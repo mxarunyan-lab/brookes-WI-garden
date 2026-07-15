@@ -1,0 +1,120 @@
+/* Shared headers */
+.dark-header {
+  position: relative;
+  overflow: hidden;
+  background:
+    radial-gradient(circle at 90% 12%, rgba(239,181,43,.08), transparent 24%),
+    repeating-radial-gradient(ellipse at 120% 55%, transparent 0 12px, rgba(255,255,255,.045) 13px 14px),
+    linear-gradient(145deg, #063c27, #03291b);
+  color: white;
+}
+.dark-header::after { content: ''; position: absolute; inset: auto -20% 10px 18%; height: 50px; opacity: .14; border-top: 1px solid #fff; border-radius: 50%; transform: rotate(-4deg); box-shadow: 0 -10px 0 -9px #fff, 0 -20px 0 -19px #fff, 0 -30px 0 -29px #fff; }
+.dark-header h1 { position: relative; z-index: 2; }
+.plant-header { min-height: 236px; padding: 22px 22px 20px; }
+.header-topline { position: relative; z-index: 3; min-height: 57px; display: flex; justify-content: space-between; align-items: flex-start; }
+.back-button { width: 42px; height: 42px; border: 0; border-radius: 50%; display: grid; place-items: center; background: rgba(110,157,43,.28); color: white; cursor: pointer; }
+.seed-cheese-art { position: absolute; top: 3px; right: 3px; width: 112px; height: 82px; display: flex; align-items: flex-end; }
+.seed-cheese-art > svg:first-child { width: 76px; transform: rotate(5deg); }
+.seed-cheese-art > svg:last-child { width: 43px; margin-left: -18px; margin-bottom: -1px; }
+.plant-header h1 { margin: -4px 0 17px; font-size: 42px; line-height: .96; letter-spacing: -.035em; }
+.location-row { position: relative; z-index: 3; display: flex; align-items: center; gap: 7px; color: rgba(255,255,255,.91); font-size: 13px; }
+.location-row span { margin-left: auto; padding: 5px 10px; border: 1px solid rgba(239,181,43,.55); border-radius: 999px; color: #f5e3a6; font-size: 11px; }
+.cream-panel { position: relative; z-index: 4; background: var(--cream); }
+.plant-panel { margin-top: -18px; padding: 16px 17px 27px; border-radius: 24px 24px 0 0; }
+.filter-row { display: grid; grid-template-columns: .8fr 1.25fr .8fr .95fr; gap: 7px; }
+.filter-row button { min-width: 0; padding: 10px 6px; border: 1px solid #d9d0bf; border-radius: 999px; background: transparent; color: #454a45; font-size: 12px; cursor: pointer; }
+.filter-row button.active { border-color: var(--green-900); background: var(--green-900); color: white; box-shadow: 0 3px 8px rgba(6,60,39,.2); }
+.crop-list { display: grid; gap: 9px; margin-top: 13px; }
+.crop-card {
+  width: 100%;
+  min-height: 84px;
+  display: grid;
+  grid-template-columns: 70px minmax(0,1fr) 124px 18px;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 10px;
+  border: 1px solid #e1d8c9;
+  border-radius: 13px;
+  background: #fffdfa;
+  color: var(--ink);
+  text-align: left;
+  box-shadow: 0 4px 9px rgba(54,45,29,.09);
+  cursor: pointer;
+}
+.crop-art { width: 67px; height: 67px; display: grid; place-items: center; filter: drop-shadow(0 4px 3px rgba(58,47,26,.13)); }
+.crop-art svg { max-width: 100%; max-height: 100%; }
+.crop-copy { min-width: 0; }
+.crop-copy h3 { margin: 0 0 2px; font-size: 18px; line-height: 1.05; }
+.crop-copy span { color: var(--muted); font-size: 12px; }
+.crop-status { min-height: 50px; padding-left: 13px; border-left: 1px solid #e0d8ca; display: flex; align-items: center; gap: 7px; }
+.crop-status span { display: grid; gap: 1px; }
+.crop-status strong { font-size: 12px; white-space: nowrap; }
+.crop-status small { color: #646a64; font-size: 11px; }
+.crop-status.tone-green { color: #237349; }
+.crop-status.tone-gold { color: #c88611; }
+.crop-status.tone-red { color: var(--red); }
+.plant-note { width: 100%; margin-top: 12px; padding: 12px 12px; display: grid; grid-template-columns: 27px 1fr 18px; gap: 8px; align-items: center; border: 0; border-radius: 12px; background: #f9efd3; color: #333a34; text-align: left; cursor: pointer; }
+.plant-note span { display: grid; font-size: 12px; }
+.plant-note small { margin-top: 2px; color: #6a6c67; }
+
+/* Garden */
+.garden-screen { background: var(--green-950); }
+.garden-header { min-height: 190px; padding: 30px 22px 31px; text-align: center; }
+.garden-header > svg { position: relative; z-index: 2; }
+.garden-header h1 { margin: 7px 0 4px; font-size: 43px; line-height: 1; }
+.garden-header p { position: relative; z-index: 2; margin: 0; color: var(--gold); font-size: 13px; font-weight: 600; }
+.add-garden { position: absolute; z-index: 4; top: 28px; right: 20px; width: 46px; height: 46px; border: 0; border-radius: 50%; display: grid; place-items: center; background: rgba(92,139,42,.33); color: white; box-shadow: inset 0 0 0 1px rgba(255,255,255,.06); cursor: pointer; }
+.garden-list { margin-top: -23px; position: relative; z-index: 4; padding-top: 0; padding-bottom: 28px; display: grid; gap: 10px; }
+.garden-space {
+  width: 100%;
+  min-height: 190px;
+  display: grid;
+  grid-template-columns: 132px minmax(0, 1fr);
+  gap: 13px;
+  padding: 11px;
+  border: 0;
+  border-radius: 17px;
+  background: var(--cream);
+  color: var(--ink);
+  text-align: left;
+  box-shadow: 0 5px 14px rgba(0,0,0,.17);
+  cursor: pointer;
+}
+.garden-thumb { height: 100%; min-height: 166px; overflow: hidden; border-radius: 12px; background: #b9cba9; }
+.garden-thumb svg { width: 100%; height: 100%; object-fit: cover; }
+.garden-space-copy { min-width: 0; padding: 4px 2px 2px 0; }
+.space-title { display: flex; align-items: center; gap: 6px; }
+.space-title h3 { margin: 0; font-size: 20px; line-height: 1; }
+.garden-space-copy > span { display: block; margin-top: 8px; color: #6d706c; font-size: 11px; }
+.progress-row { margin-top: 5px; display: grid; grid-template-columns: 1fr auto; gap: 7px; align-items: center; }
+.progress-track { height: 8px; overflow: hidden; border-radius: 999px; background: #ddd9cf; }
+.progress-track span { display: block; height: 100%; border-radius: inherit; background: var(--green-900); }
+.progress-row strong { color: var(--green-700); font-size: 14px; }
+.space-divider { margin: 10px 0 7px; border-top: 1px dashed #d6ccbd; }
+.garden-space-copy small { color: #81827e; font-size: 9px; text-transform: uppercase; }
+.garden-space-copy p { margin: 2px 0 7px; display: flex; align-items: center; gap: 5px; font-size: 11px; font-weight: 600; }
+.harvest { display: flex; align-items: center; gap: 7px; }
+.harvest > span { display: grid; font-size: 11px; }
+.harvest small { color: #c48314; font-size: 9px; font-weight: 700; }
+.encouragement { min-height: 62px; padding: 10px 14px; display: grid; grid-template-columns: 42px 1fr auto; gap: 10px; align-items: center; border-radius: 13px; background: var(--cream); color: #383d39; box-shadow: 0 4px 10px rgba(0,0,0,.12); }
+.encouragement svg { width: 38px; }
+.encouragement span:nth-child(2) { display: grid; font-size: 11px; }
+.encouragement strong { margin-top: 1px; font-size: 12px; }
+.heart { color: var(--red); font-size: 24px !important; }
+
+/* Simple screens */
+.simple-screen { background: var(--cream); }
+.simple-header { min-height: 330px; padding: 53px 31px 40px; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; }
+.simple-icon { position: relative; z-index: 2; width: 72px; height: 72px; margin-bottom: 18px; border: 1px solid rgba(239,181,43,.48); border-radius: 50%; display: grid; place-items: center; color: var(--gold); }
+.simple-icon svg { width: 34px; height: 34px; }
+.simple-header > span { position: relative; z-index: 2; color: var(--gold); font-size: 10px; font-weight: 800; letter-spacing: .13em; }
+.simple-header h1 { margin: 8px 0 11px; font-size: 40px; }
+.simple-header p { position: relative; z-index: 2; max-width: 330px; margin: 0; color: rgba(255,255,255,.77); font-size: 14px; line-height: 1.55; }
+.simple-content { padding: 35px 27px 50px; text-align: center; }
+.simple-content h2 { margin: 18px auto 8px; max-width: 320px; color: var(--green-900); font-size: 28px; line-height: 1.05; }
+.simple-content p { max-width: 350px; margin: 0 auto 22px; color: #626761; font-size: 13px; line-height: 1.65; }
+.wi-stamp { width: 80px; height: 80px; margin: 0 auto; border: 2px solid #d5c8aa; border-radius: 50%; display: flex; flex-direction: column; align-items: center; justify-content: center; color: #a58d5f; transform: rotate(-5deg); }
+.wi-stamp span { font-size: 8px; font-weight: 800; letter-spacing: .1em; }
+.wi-stamp strong { font-family: 'Fraunces', serif; font-size: 26px; line-height: .95; }
+.primary-button { width: 100%; min-height: 50px; border: 0; border-radius: 13px; background: var(--green-900); color: white; font-weight: 700; box-shadow: 0 5px 12px rgba(6,60,39,.2); cursor: pointer; }
+

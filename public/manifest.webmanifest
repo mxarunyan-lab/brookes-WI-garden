@@ -1,0 +1,17 @@
+{
+  "name": "Brooke's Garden",
+  "short_name": "Brooke's Garden",
+  "description": "A Wisconsin-first garden companion for Green Bay.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#fbf7ec",
+  "theme_color": "#063c27",
+  "icons": [
+    {
+      "src": "/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}
