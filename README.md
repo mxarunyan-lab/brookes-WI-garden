@@ -22,8 +22,12 @@ npm run dev
 npm run build
 ```
 
-Render settings:
+## Render deployment
+
+The `main` branch deploys to Render using:
 
 - Build command: `npm install && npm run build`
 - Publish directory: `dist`
 - Branch: `main`
+
+Every new commit to `main` should trigger an automatic deployment.
