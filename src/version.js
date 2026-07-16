@@ -1,15 +1,14 @@
-export const APP_VERSION='0.12.4';
-export const BUILD_ID='organized-garden-hub';
+export const APP_VERSION='0.12.5';
+export const BUILD_ID='guided-seasonal-chores';
 export const UPDATED_AT='July 16, 2026';
 export const WHATS_NEW=[
- 'Garden Chore Board is now the primary operational hub for unfinished work, tomorrow previews, and completed chores',
- 'Today is a shorter Garden Bulletin with one handoff, compact weather, and a clear route into the full task board',
- 'The duplicate hamburger navigation has been removed so the app has one predictable navigation system',
- 'Bottom navigation is shortened to Today, Garden, Planting, Center, and More for reliable iPhone fit',
- 'More provides a clean secondary home for Settings, indoor growing, records, backup, and less-frequent tools',
- 'Planting Desk received a full visual hierarchy and spacing overhaul with strict seven-day and day-eight-plus planning windows',
- 'Garden Center now uses a colorful department grid instead of a long stack of identical boxes',
- 'Next-Season Supplies clearly identifies that seed and supply review opens the Planting Desk',
- 'Dynamic text, activity handoffs, weather lines, cards, and buttons received app-wide word-spacing and wrapping protection',
- 'Mobile layouts were tightened for narrow iPhones while keeping Brooke and Archie side by side in Settings'
+ 'Fall planting chores now open a guided Green Bay recommendation screen instead of a generic Planting Desk landing page',
+ 'Seasonal suggestions separate seed packets already owned from useful crops that are not yet in the Seed Counter',
+ 'Lettuce, spinach, radishes, kale, carrots, and peas include timing, expected harvest, and why they fit fall conditions',
+ 'A suggested crop can open directly in the Add Plant flow with its crop profile already selected',
+ 'Seasonal chores now support reviewed, remind tomorrow, and skip this season outcomes',
+ 'Completed and dismissed seasonal chores move off the active Chore Board and remain visible with their outcome',
+ 'More was redesigned with the same garden header, Wisconsin palette, colorful cards, and spacing system as the rest of the app',
+ 'More now includes a collapsible quick-help map explaining what belongs on each primary screen',
+ 'Headers, icons, cards, wrapping, buttons, and mobile spacing received another cross-app visual consistency review'
 ];
