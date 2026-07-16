@@ -1,14 +1,13 @@
-export const APP_VERSION='0.12.6';
-export const BUILD_ID='home-navigation-polish';
+export const APP_VERSION='0.12.7';
+export const BUILD_ID='design-system-sync-ready';
 export const UPDATED_AT='July 16, 2026';
 export const WHATS_NEW=[
- 'Home artwork is shorter with the active gardener name kept on one line and less unused cream sky',
- 'The Garden Bulletin now uses compact Outdoor, Indoor, and Planting counters and the entire card opens the Chore Board',
- 'Tomorrow remains collapsed and shows a concise preview without duplicating the full task instructions',
- 'Home keeps one latest handoff and replaces dead seasonal copy with a tappable Garden Announcement',
- 'Garden Announcements open the correct guided chore or planning action instead of acting like decorative text',
- 'Back arrows now use actual app history and restore the scroll position of the page the gardener came from',
- 'Primary navigation still opens each destination at the top while internal returns restore the prior location',
- 'The Planting Desk now has stronger mustard and gold accents, a unified Wisconsin header, and clearer desk-style panels',
- 'Home and Planting received another iPhone browser and installed-app spacing and visual consistency pass'
+ 'Home restores the full-width Wisconsin farm hero while keeping the title readable and the overall banner shorter than the original',
+ 'Garden QR guidance is now a compact label utility instead of a large competing card',
+ 'Planting Desk removes redundant explanation boxes and moves directly from the planning controls into useful content',
+ 'Planting empty states are shorter and quieter so the desk no longer repeats its own headings',
+ 'More now uses a compact Tool Shed list with short descriptions instead of oversized app-store-style cards',
+ 'Headers, cards, spacing, icon containers, and mobile density received a final cross-app design-system pass',
+ 'The shared-data model was reviewed for beds, plants, photos, seeds, tasks, activity, year plans, and stable QR identifiers',
+ 'This release is the final single-device polish milestone before shared garden sync'
 ];
