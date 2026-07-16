@@ -1,13 +1,14 @@
-export const APP_VERSION='0.12.8';
-export const BUILD_ID='full-visual-qa-unification';
+export const APP_VERSION='0.12.9';
+export const BUILD_ID='planting-desk-label-counter';
 export const UPDATED_AT='July 16, 2026';
 export const WHATS_NEW=[
- 'Garden Center now opens directly into compact departments instead of a large explanatory box',
- 'More fully adopts the Tool Shed and Accessories identity with tighter spacing and clearer rows',
- 'The Home Garden Bulletin is shorter and the latest handoff is collapsed until needed',
- 'Headers, section spacing, icons, cards, and supporting text now follow one cross-app visual rhythm',
- 'Planting Desk panels and empty states were reduced so useful content starts sooner',
- 'Garden Center department cards are denser and use one consistent mobile layout',
- 'Secondary screens received smaller headers and less oversized introductory space',
- 'Offline cache v24 refreshes installed iPhone copies with the complete visual QA update'
+ 'Planting Desk now uses a compact desk-style switcher instead of tall planning boxes',
+ 'Next Year includes separate Crops and Supplies views',
+ 'Next-Season Supplies opens directly to the exact supplies view from Garden Center',
+ 'The supplies view checks saved seed, bed assignments, tray capacity, and grow-light readiness',
+ 'Label Counter is now a dedicated library for every active bed and growing-space QR label',
+ 'Labels can be selected, printed individually or together, copied, opened, and marked as printed',
+ 'Garden Center shows useful label availability and printed-label counts',
+ 'Back navigation from Label Counter returns to the page that opened it',
+ 'Offline cache v25 refreshes installed iPhone copies with the final local-app release'
 ];
