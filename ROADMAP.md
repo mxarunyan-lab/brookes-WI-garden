@@ -6,98 +6,82 @@ The app should remove gardening guesswork. It must show the few actions that mat
 
 ## Phase 1 — Year-Round Garden Brain
 
-**Status: in progress / first engine deployed**
+**Status: working foundation deployed**
 
-- Automatic seasonal modes for winter, seed starting, outdoor transition, growth and harvest, and fall shutdown
-- Real indoor starts and basement growing spaces in addition to beds, containers, greenhouse, and hydroponics
-- Migration that preserves existing local garden records
-- Priority-ranked Today tasks generated from real plants, stages, care history, spaces, season, and live weather
+- Automatic Green Bay seasonal modes
+- Outdoor, indoor, basement, greenhouse, and hydroponic spaces
+- Live weather and weather-ranked guidance
+- Priority-ranked Today tasks generated from real garden data
 - Soil-first watering decisions
-- Heat-aware greenhouse checks
-- Indoor and hydroponic tasks during winter
-- Clear empty states and setup actions
-- Activity log created from normal app actions
+- Activity created from normal actions
+- Safe migration of previously saved local gardens
 
-**Done when:** Brooke can enter her real garden and the Today screen reliably tells her what matters without inventing chores.
+## Combined Phase 2/3/6A — Plans, Succession, Seeds, and Harvest Basics
 
-## Phase 2 — Plant Timelines and Succession
+**Status: implemented in the current combined build**
 
-- Larger Green Bay crop database
-- Crop-specific stage timelines
-- Planting batches kept separate
-- Automatic succession schedules
-- Next sowing suggestions with adjustable batch size
-- Hardening-off sequences
-- Harvest windows calculated from start dates and varieties
-- Seven-day and thirty-day upcoming views
-- Snooze, reschedule, skip, and “not relevant” controls
-- Seasonal handoff prompts
+- Separate planting batch names and quantities in the data model
+- Growth-stage timeline checks
+- Estimated harvest windows from planting dates
+- Seven-day and thirty-day plan views
+- One-tap stage advancement
+- One-tap harvest logging
+- Automatic succession scheduling for lettuce, spinach, green onions, and basil
+- Next-batch dates that return to the plan automatically
+- Manual seed-packet inventory optimized for mobile
+- Packet year, variety, and estimated quantity remaining
+- Already-owned, low-stock, out-of-stock, and germination-test guidance
+- Possible seed-shopping list based on what has not been recorded
+- Persistent harvest, succession, seed, and activity records
 
-**Done when:** Brooke does not need to calculate when to start, transplant, replant, or harvest common crops.
-
-## Phase 3 — Seeds and Inventory
-
-- Seed inventory
-- Packet year, variety, quantity, germination notes, and days to maturity
-- “Already own it” indicators in planting recommendations
-- Low-stock and aging-packet guidance
-- Shopping list for missing seeds and supplies
-- Manual packet entry optimized for mobile
-- Winter seed-order planning
-
-**Done when:** Brooke can see what she owns and what can be planted without searching through physical packets.
+**Still to complete inside these phases:** larger crop database, variety-specific maturity, adjustable harvest amounts/units, hardening-off sequences, snooze/reschedule/not-relevant controls, and seed germination notes.
 
 ## Phase 4 — Camera Scanning and QR Labels
 
-- Photograph seed packet front and back
-- Review and correct extracted packet information before saving
-- Generate QR labels for beds, rows, trays, containers, and hydroponic pod groups
-- Scan a garden label to open the correct record immediately
-- Printable waterproof label sheets
-- Fast garden-side logging
-- Plant photo timelines
+**Status: next infrastructure-heavy phase**
 
-**Done when:** Physical garden spaces connect directly to their app records with minimal navigation.
+- Photograph packet front and back
+- Review extracted information before saving
+- QR labels for beds, rows, trays, containers, and hydroponic groups
+- Scan labels to open the correct record
+- Printable waterproof label sheets
+- Plant photo timelines
 
 ## Phase 5 — Greenhouse, Indoor, and Hydroponic Control Centers
 
-- Greenhouse temperature and humidity history
+**Status: foundation exists; dedicated control screens remain**
+
+- Temperature and humidity history
 - Venting, cold-night, and overheating guidance
-- Tray inventory and available-space planning
-- Grow-light schedules and distance checks
+- Tray inventory and space planning
+- Grow-light schedules
 - Potting-up and hardening-off workflows
-- Hydroponic pod map, crop cycles, empty pods, cleaning history, and replacement planting
-- Optional reminders that do not duplicate the equipment manufacturer’s app
-- Move plants between basement, greenhouse, hydroponics, containers, and outdoor beds without losing history
+- Hydroponic pod map, crop cycles, empty pods, and cleaning history
+- Move plants between locations without losing history
 
-**Done when:** Brooke can manage every growing environment through one coherent garden record.
+## Phase 6B — Problems and Seasonal Memory
 
-## Phase 6 — Harvests, Problems, and Seasonal Memory
+**Status: harvest basics working; seasonal intelligence remains**
 
-- Quick harvest logging by count, weight, or estimate
-- Pest, disease, storm, frost, and animal-damage entries
-- Photo-assisted problem records
+- Harvest amounts by count, weight, or estimate
+- Pest, disease, storm, frost, and animal-damage records
 - End-of-season wrap-up
 - Best and worst varieties
-- Timing lessons from the previous year
+- Timing lessons from previous years
 - Seed-saving records
-- Cleanup and overwintering checklist
-- Next-year recommendations based on Brooke’s own history
-
-**Done when:** The app gets more useful each year instead of resetting every spring.
+- Cleanup and overwintering checklists
+- Next-year recommendations based on Brooke’s history
 
 ## Phase 7 — Reminders and Shared Household Sync
 
-- Essential, normal, teaching, and quiet reminder modes
-- Grouped morning garden briefing
+**Status: requires backend and notification setup**
+
+- Reminder modes and grouped morning briefing
 - Browser/push notifications where supported
 - Brooke and Archie accounts
-- Supabase-backed shared garden data
-- Cross-device synchronization and backup
-- Task assignment and household activity history
-- Permission controls so Brooke remains the primary garden planner
-
-**Done when:** Both phones show the same real garden and useful reminders arrive without becoming annoying.
+- Supabase synchronization and backup
+- Task assignment and household history
+- Permission controls keeping Brooke as primary planner
 
 ## Phase 8 — Planning Tools and Expansion
 
@@ -105,8 +89,6 @@ The app should remove gardening guesswork. It must show the few actions that mat
 - Empty-space and crop-rotation planning
 - Dog-accessible and protected-area markers
 - Companion planting guidance
-- Preserving and meal-use ideas tied to current harvests
-- Additional Wisconsin locations and zones
-- Optional sensor integrations
-
-**Done when:** The app supports planning the whole garden while preserving the simple Today-first experience.
+- Preserving and meal-use ideas
+- More Wisconsin locations and zones
+- Optional sensors
