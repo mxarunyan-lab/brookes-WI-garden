@@ -2,25 +2,25 @@
 
 A mobile-first, year-round Wisconsin gardening companion built for Green Bay.
 
-## Current release: v0.7.0
+## Current release: v0.8.0
 
 - Live Green Bay weather and automatic year-round seasonal priorities
 - Actionable Garden Briefing and task snoozing
 - Reorderable, hideable, removable garden spaces
 - Detailed plant control center with measured harvests and problem records
 - Seven-day and thirty-day planning, succession planting, and seed inventory
-- Indoor Growing Center with seedling trays and growth stages
-- Grow-light schedules with one-tap daily checks
-- Guided seven-day hardening-off plans
-- Greenhouse temperature and humidity history
-- Hydroponic pod records and status tracking
-- Profile Version Center with build, date, environment, and What's New
-- Persistent local garden history across outdoor, greenhouse, hydroponic, indoor, and basement spaces
-- Installable PWA behavior with refreshed offline cache v7
+- Indoor Growing Center with trays, lights, hardening off, greenhouse history, and hydroponics
+- Garden Memory center with harvest totals, grow-again ratings, and seasonal lessons
+- Problem Center with active and resolved issue history
+- Automatic 2026 season review generated from real garden records
+- Brooke, Archie, and System attribution foundation for future shared profiles
+- Cleaned-up farm artwork with trees behind the landscape and a small Made in Wisconsin sticker
+- Profile Version Center showing version 0.8.0 and build `garden-memory`
+- Installable PWA behavior with refreshed offline cache v8
 
 The collapsible garden-card concept remains reserved for the later visual-overhaul phase.
 
-See `ROADMAP.md` for camera/QR labels, deeper environment automation, shared Runyan profiles and sync, seasonal memory, and garden-planning phases.
+See `ROADMAP.md` for packet scanning, QR labels, shared Runyan profiles and sync, and garden-planning phases.
 
 ## Render deployment
 
