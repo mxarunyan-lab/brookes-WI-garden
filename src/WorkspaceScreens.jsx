@@ -7,112 +7,13 @@ import {
 import { colors, formatDateTime } from './data.js';
 import { LettuceArt, PepperArt, WisconsinLandscape, cropArt, gardenArt } from './art.jsx';
 
-function WeatherIcon({ weather, size = 45 }) {
-  const code = weather?.weatherCode ?? 2;
-  if ([71, 73, 75, 77, 85, 86].includes(code)) return <Snowflake size={size} color="#d9efff" />;
-  if ([51, 53, 55, 61, 63, 65, 66, 67, 80, 81, 82, 95, 96, 99].includes(code)) return <CloudRain size={size} color="#d9efff" />;
-  if ([3, 45, 48].includes(code)) return <Cloud size={size} color="#fff" />;
-  if (!weather?.isDay) return <Moon size={size} color="#f7dc8b" fill="#f7dc8b" />;
-  if (code === 0) return <Sun size={size} color="#efb52b" fill="#efb52b" />;
-  return <CloudSun size={size} color="#fff" fill="#efb52b" />;
-}
+function WeatherIcon({ weather, size = 45 }) { const code=weather?.weatherCode??2;if([71,73,75,77,85,86].includes(code))return <Snowflake size={size} color="#d9efff"/>;if([51,53,55,61,63,65,66,67,80,81,82,95,96,99].includes(code))return <CloudRain size={size} color="#d9efff"/>;if([3,45,48].includes(code))return <Cloud size={size} color="#fff"/>;if(!weather?.isDay)return <Moon size={size} color="#f7dc8b" fill="#f7dc8b"/>;if(code===0)return <Sun size={size} color="#efb52b" fill="#efb52b"/>;return <CloudSun size={size} color="#fff" fill="#efb52b"/>; }
+function WeatherCard({weather,loading,error,source,refresh}){return <section className="weather-card" aria-live="polite"><div className="weather-card-top"><div className="weather-label"><MapPin size={15}/> Today in Green Bay</div><button className="weather-refresh" onClick={refresh} disabled={loading}><RefreshCw size={16} className={loading?'is-spinning':''}/></button></div>{weather?<><div className="weather-grid"><div className="temperature-block"><WeatherIcon weather={weather}/><span className="temperature">{weather.temperature}°</span><span className="conditions"><strong>{weather.condition}</strong><small>H: {weather.high}° &nbsp; L: {weather.low}°</small><small>Feels like {weather.apparent}°</small></span></div><div className="rain-block"><Droplets size={29} color="#7cb0db"/><span><strong>{weather.rainChance}%</strong><small>Rain chance</small></span></div></div><div className="weather-footnote"><span>{source==='live'?'Live conditions':'Saved conditions'} • updated {formatDateTime(weather.updatedAt)}</span><span>{weather.wind} mph wind</span></div></>:<div className="weather-loading"><RefreshCw size={22} className={loading?'is-spinning':''}/><span>{loading?'Loading live Green Bay weather…':'Weather is unavailable right now.'}</span></div>}{error&&<div className="weather-error">{error}</div>}</section>;}
+function TaskIcon({task,done}){if(done)return <Check size={24} color={colors.green}/>;if(task.kind==='navigate')return <LettuceArt compact/>;if(task.kind==='greenhouse')return <Warehouse size={29} color="#397b4d"/>;if(task.kind==='soil'&&task.plant?.cropId==='peppers')return <PepperArt compact/>;if(task.kind==='setup'||task.kind==='setupPlant')return <Plus size={29} color="#397b4d"/>;return <Sprout size={31} color="#397b4d"/>;}
+function TaskCard({task,done,onAction,onSnooze}){return <article className={`task-card ${done?'is-done':''}`}><div className="task-icon"><TaskIcon task={task} done={done}/></div><div className="task-copy"><h3>{task.title}</h3><p>{done?'Recorded for today':task.subtitle}</p></div><div className="task-card-actions"><button className={`task-button tone-${task.tone||'green'}`} onClick={onAction}>{done?'Review':task.action}</button>{!done&&<button className="task-snooze" onClick={onSnooze}>Later</button>}</div></article>;}
 
-function WeatherCard({ weather, loading, error, source, refresh }) {
-  return (
-    <section className="weather-card" aria-live="polite">
-      <div className="weather-card-top">
-        <div className="weather-label"><MapPin size={15} /> Today in Green Bay</div>
-        <button className="weather-refresh" onClick={refresh} disabled={loading} aria-label="Refresh weather"><RefreshCw size={16} className={loading ? 'is-spinning' : ''} /></button>
-      </div>
-      {weather ? <>
-        <div className="weather-grid">
-          <div className="temperature-block"><WeatherIcon weather={weather} /><span className="temperature">{weather.temperature}°</span><span className="conditions"><strong>{weather.condition}</strong><small>H: {weather.high}° &nbsp; L: {weather.low}°</small><small>Feels like {weather.apparent}°</small></span></div>
-          <div className="rain-block"><Droplets size={29} color="#7cb0db" /><span><strong>{weather.rainChance}%</strong><small>Rain chance</small></span></div>
-        </div>
-        <div className="weather-footnote"><span>{source === 'live' ? 'Live conditions' : 'Saved conditions'} • updated {formatDateTime(weather.updatedAt)}</span><span>{weather.wind} mph wind</span></div>
-      </> : <div className="weather-loading"><RefreshCw size={22} className={loading ? 'is-spinning' : ''} /><span>{loading ? 'Loading live Green Bay weather…' : 'Weather is unavailable right now.'}</span></div>}
-      {error && <div className="weather-error">{error}</div>}
-    </section>
-  );
-}
+export function TodayWorkspace({profile,tasks,dailyDone,onTask,onSnooze,onMenu,noticeOpen,setNoticeOpen,weatherState,weatherAlert,activity,setModal,seasonMode}){return <main className="screen today-screen"><section className="today-hero"><button className="round-control hero-menu" onClick={onMenu}><Menu size={22}/></button><button className="round-control hero-bell" onClick={()=>setNoticeOpen((value)=>!value)}><Bell size={21}/>{tasks.length>0&&<span className="notification-count">{tasks.length}</span>}</button>{noticeOpen&&<div className="notification-popover actionable-briefing"><div className="briefing-title"><strong>Garden briefing</strong><small>{seasonMode?.name||'Today'} • {tasks.length} action{tasks.length===1?'':'s'}</small></div>{tasks.length?tasks.map((task)=><button key={task.id} onClick={()=>{setNoticeOpen(false);onTask(task);}}><span>{task.title}<small>{task.subtitle}</small></span><ChevronRight size={17}/></button>):<span>Nothing urgent is waiting right now.</span>}{weatherAlert&&weatherAlert.type!=='good'&&<button onClick={()=>{setNoticeOpen(false);setModal({type:'weatherAlert',alert:weatherAlert,weather:weatherState.weather});}}><span>{weatherAlert.title}<small>Open weather guidance</small></span><ChevronRight size={17}/></button>}</div>}<div className="hero-title-wrap"><Leaf size={25} fill="#91a83f" color="#91a83f"/><h1>{profile.gardenerName||'Brooke'}’s<br/>Garden</h1><p>Growing good things in Wisconsin</p></div><WisconsinLandscape/></section><section className="today-body screen-pad"><WeatherCard {...weatherState}/><div className="season-mode-strip"><span>{seasonMode?.eyebrow||'YEAR-ROUND MODE'}</span><strong>{seasonMode?.name||'Garden season'}</strong><small>{seasonMode?.description||'The app changes priorities with the season.'}</small></div><div className="dashboard-heading"><div><span className="section-kicker">TODAY’S USEFUL ACTIONS</span><h2>What actually needs attention</h2></div></div><div className="task-stack">{tasks.map((task)=><TaskCard key={task.id} task={task} done={dailyDone.includes(task.id)} onAction={()=>onTask(task)} onSnooze={()=>onSnooze(task.id)}/>)}{!tasks.length&&<div className="all-clear"><Check/><span><strong>Nothing urgent.</strong><small>The app will bring tasks back when they matter.</small></span></div>}</div>{weatherAlert&&<button className={`weather-alert-card alert-${weatherAlert.type}`} onClick={()=>setModal({type:'weatherAlert',alert:weatherAlert,weather:weatherState.weather})}><div><span>{weatherAlert.label}</span><strong>{weatherAlert.title}</strong><small>{weatherAlert.detail}</small></div><div className="weather-alert-reading"><strong>{weatherAlert.reading}</strong><span>Today</span></div>{weatherAlert.type==='heat'?<Thermometer/>:weatherAlert.type==='rain'?<CloudRain/>:weatherAlert.type==='wind'?<Wind/>:<CloudSun/>}</button>}<section className="week-ahead activity-heading"><div><span className="section-kicker">GARDEN LOG</span><h2>Recently recorded</h2></div><button className="text-link" onClick={()=>setModal({type:'activity'})}>View all <ChevronRight size={16}/></button></section><div className="mini-events activity-list">{activity.length?activity.slice(0,3).map((entry)=><button key={entry.id} onClick={()=>setModal({type:'activityEntry',entry})}><Check size={18}/><span><strong>{entry.title}</strong>{entry.detail}</span><small>{formatDateTime(entry.at)}</small></button>):<button onClick={()=>setModal({type:'addPlant'})}><Sprout/><span><strong>Your real garden log starts here.</strong>Add a plant or complete a task.</span><ChevronRight/></button>}</div></section></main>;}
 
-function TaskIcon({ task, done }) {
-  if (done) return <Check size={24} color={colors.green} />;
-  if (task.kind === 'navigate') return <LettuceArt compact />;
-  if (task.kind === 'greenhouse') return <Warehouse size={29} color="#397b4d" />;
-  if (task.kind === 'soil' && task.plant?.cropId === 'peppers') return <PepperArt compact />;
-  if (task.kind === 'setup' || task.kind === 'setupPlant') return <Plus size={29} color="#397b4d" />;
-  return <Sprout size={31} color="#397b4d" />;
-}
+function SpaceCard({space,plants,index,total,manageSpace,setModal}){const progress=Math.min(100,Math.round((plants.length/Math.max(space.capacity||1,1))*100));const nextTask=plants.length?`Check ${plants[0].name} soil`:'No plants currently tracked';return <article className="managed-space-card"><button className="garden-space" onClick={()=>setModal({type:'space',space,plants})}><div className="garden-thumb">{gardenArt(space.type)}</div><div className="garden-space-copy"><div className="space-title"><h3>{space.name}</h3>{space.type==='greenhouse'?<Warehouse size={17}/>:space.type==='hydro'?<Droplets size={17} color="#4c8fb7"/>:<Leaf size={16} color="#2d7650"/>}</div><span>{plants.length} of {space.capacity||'—'} spots tracked</span><div className="progress-row"><div className="progress-track"><span style={{width:`${progress}%`}}/></div><strong>{progress}%</strong></div><div className="space-divider"/><small>Next useful action</small><p>{space.type==='hydro'?<FlaskConical size={16}/>:<Droplets size={16}/>} {nextTask}</p><div className="harvest"><CalendarDays size={16}/><span><small>Schedule</small>{plants.length?'Based on planting dates':'Inactive'}</span></div></div></button><div className="space-management-row"><button disabled={index===0} onClick={()=>manageSpace('up',space.id)}><ArrowUp/></button><button disabled={index===total-1} onClick={()=>manageSpace('down',space.id)}><ArrowDown/></button><button onClick={()=>manageSpace('hide',space.id)}><EyeOff/> Hide</button><button className="danger-space-action" onClick={()=>manageSpace('remove',space.id)}><Trash2/> Remove</button></div></article>;}
 
-function TaskCard({ task, done, onAction, onSnooze }) {
-  return (
-    <article className={`task-card ${done ? 'is-done' : ''}`}>
-      <div className="task-icon"><TaskIcon task={task} done={done} /></div>
-      <div className="task-copy"><h3>{task.title}</h3><p>{done ? 'Recorded for today' : task.subtitle}</p></div>
-      <div className="task-card-actions">
-        <button className={`task-button tone-${task.tone || 'green'}`} onClick={onAction}>{done ? 'Review' : task.action}</button>
-        {!done && <button className="task-snooze" onClick={onSnooze}>Later</button>}
-      </div>
-    </article>
-  );
-}
-
-export function TodayWorkspace({ profile, tasks, dailyDone, onTask, onSnooze, onMenu, noticeOpen, setNoticeOpen, weatherState, weatherAlert, activity, setModal, seasonMode }) {
-  return (
-    <main className="screen today-screen">
-      <section className="today-hero">
-        <button className="round-control hero-menu" onClick={onMenu} aria-label="Open menu"><Menu size={22} /></button>
-        <button className="round-control hero-bell" onClick={() => setNoticeOpen((value) => !value)} aria-label="Open garden briefing"><Bell size={21} />{tasks.length > 0 && <span className="notification-count">{tasks.length}</span>}</button>
-        {noticeOpen && <div className="notification-popover actionable-briefing">
-          <div className="briefing-title"><strong>Garden briefing</strong><small>{seasonMode?.name || 'Today'} • {tasks.length} action{tasks.length === 1 ? '' : 's'}</small></div>
-          {tasks.length ? tasks.map((task) => <button key={task.id} onClick={() => { setNoticeOpen(false); onTask(task); }}><span>{task.title}<small>{task.subtitle}</small></span><ChevronRight size={17} /></button>) : <span>Nothing urgent is waiting right now.</span>}
-          {weatherAlert && weatherAlert.type !== 'good' && <button onClick={() => { setNoticeOpen(false); setModal({ type: 'weatherAlert', alert: weatherAlert, weather: weatherState.weather }); }}><span>{weatherAlert.title}<small>Open weather guidance</small></span><ChevronRight size={17} /></button>}
-        </div>}
-        <div className="hero-title-wrap"><Leaf size={25} fill="#91a83f" color="#91a83f" /><h1>{profile.gardenerName || 'Brooke'}’s<br />Garden</h1><p>Growing good things in Wisconsin</p></div>
-        <WisconsinLandscape />
-      </section>
-      <section className="today-body screen-pad">
-        <WeatherCard {...weatherState} />
-        <div className="season-mode-strip"><span>{seasonMode?.eyebrow || 'YEAR-ROUND MODE'}</span><strong>{seasonMode?.name || 'Garden season'}</strong><small>{seasonMode?.description || 'The app changes priorities with the season.'}</small></div>
-        <div className="dashboard-heading"><div><span className="section-kicker">TODAY’S USEFUL ACTIONS</span><h2>What actually needs attention</h2></div></div>
-        <div className="task-stack">{tasks.map((task) => <TaskCard key={task.id} task={task} done={dailyDone.includes(task.id)} onAction={() => onTask(task)} onSnooze={() => onSnooze(task.id)} />)}{!tasks.length && <div className="all-clear"><Check /><span><strong>Nothing urgent.</strong><small>The app will bring tasks back when they matter.</small></span></div>}</div>
-        {weatherAlert && <button className={`weather-alert-card alert-${weatherAlert.type}`} onClick={() => setModal({ type: 'weatherAlert', alert: weatherAlert, weather: weatherState.weather })}><div><span>{weatherAlert.label}</span><strong>{weatherAlert.title}</strong><small>{weatherAlert.detail}</small></div><div className="weather-alert-reading"><strong>{weatherAlert.reading}</strong><span>Today</span></div>{weatherAlert.type === 'heat' ? <Thermometer /> : weatherAlert.type === 'rain' ? <CloudRain /> : weatherAlert.type === 'wind' ? <Wind /> : <CloudSun />}</button>}
-        <section className="week-ahead activity-heading"><div><span className="section-kicker">GARDEN LOG</span><h2>Recently recorded</h2></div><button className="text-link" onClick={() => setModal({ type: 'activity' })}>View all <ChevronRight size={16} /></button></section>
-        <div className="mini-events activity-list">{activity.length ? activity.slice(0, 3).map((entry) => <button key={entry.id} onClick={() => setModal({ type: 'activityEntry', entry })}><Check size={18} /><span><strong>{entry.title}</strong>{entry.detail}</span><small>{formatDateTime(entry.at)}</small></button>) : <button onClick={() => setModal({ type: 'addPlant' })}><Sprout /><span><strong>Your real garden log starts here.</strong>Add a plant or complete a task.</span><ChevronRight /></button>}</div>
-      </section>
-    </main>
-  );
-}
-
-function SpaceCard({ space, plants, index, total, manageSpace, setModal }) {
-  const progress = Math.min(100, Math.round((plants.length / Math.max(space.capacity || 1, 1)) * 100));
-  const nextTask = plants.length ? `Check ${plants[0].name} soil` : 'No plants currently tracked';
-  return (
-    <article className="managed-space-card">
-      <button className="garden-space" onClick={() => setModal({ type: 'space', space, plants })}>
-        <div className="garden-thumb">{gardenArt(space.type)}</div>
-        <div className="garden-space-copy"><div className="space-title"><h3>{space.name}</h3>{space.type === 'greenhouse' ? <Warehouse size={17} /> : space.type === 'hydro' ? <Droplets size={17} color="#4c8fb7" /> : <Leaf size={16} color="#2d7650" />}</div><span>{plants.length} of {space.capacity || '—'} spots tracked</span><div className="progress-row"><div className="progress-track"><span style={{ width: `${progress}%` }} /></div><strong>{progress}%</strong></div><div className="space-divider" /><small>Next useful action</small><p>{space.type === 'hydro' ? <FlaskConical size={16} /> : <Droplets size={16} />} {nextTask}</p><div className="harvest"><CalendarDays size={16} /><span><small>Schedule</small>{plants.length ? 'Based on planting dates' : 'Inactive'}</span></div></div>
-      </button>
-      <div className="space-management-row"><button disabled={index === 0} onClick={() => manageSpace('up', space.id)} aria-label={`Move ${space.name} up`}><ArrowUp /></button><button disabled={index === total - 1} onClick={() => manageSpace('down', space.id)} aria-label={`Move ${space.name} down`}><ArrowDown /></button><button onClick={() => manageSpace('hide', space.id)}><EyeOff /> Hide</button><button className="danger-space-action" onClick={() => manageSpace('remove', space.id)}><Trash2 /> Remove</button></div>
-    </article>
-  );
-}
-
-export function GardenWorkspace({ garden, setModal, manageSpace }) {
-  const visible = garden.spaces.filter((space) => !space.hidden);
-  const hidden = garden.spaces.filter((space) => space.hidden);
-  return (
-    <main className="screen garden-screen">
-      <section className="dark-header garden-header"><Leaf size={24} color="#8ea83b" fill="#8ea83b" /><h1>My Garden</h1><p>Only the spaces Brooke is actually using.</p><button className="add-garden" onClick={() => setModal({ type: 'addMenu' })}><Plus /></button></section>
-      <section className="garden-list screen-pad">
-        <div className="garden-actions"><button onClick={() => setModal({ type: 'addPlant' })}><Sprout /> Add plant</button><button onClick={() => setModal({ type: 'addSpace' })}><Plus /> Add space</button></div>
-        <div className="space-order-note"><ArrowUp size={17} /><span><strong>Put important spaces first.</strong><small>Use the arrows below each card. Hide seasonal spaces without deleting them.</small></span></div>
-        {visible.map((space, index) => <SpaceCard key={space.id} space={space} plants={garden.plants.filter((plant) => plant.spaceId === space.id)} index={index} total={visible.length} manageSpace={manageSpace} setModal={setModal} />)}
-        {!visible.length && <button className="empty-garden" onClick={() => setModal({ type: 'addSpace' })}><Plus /><span><strong>No active spaces.</strong><small>Add one or restore a hidden space below.</small></span></button>}
-        {hidden.length > 0 && <section className="hidden-spaces"><div><Eye size={20} /><span><strong>Hidden seasonal spaces</strong><small>They stay saved but do not take over the page.</small></span></div>{hidden.map((space) => <button key={space.id} onClick={() => manageSpace('show', space.id)}><Eye /> Restore {space.name}</button>)}</section>}
-        <section className="tracked-plants-section"><div className="section-row"><div><span className="section-kicker">TRACKED PLANTS</span><h2>What Brooke is growing</h2></div><button className="text-link" onClick={() => setModal({ type: 'addPlant' })}>Add <Plus size={15} /></button></div>{garden.plants.length ? <div className="tracked-plant-list">{garden.plants.map((plant) => <button key={plant.id} onClick={() => setModal({ type: 'plantDetail', plant })}><div className="tracked-plant-art">{plant.cropId ? cropArt(plant.cropId) : <Sprout />}</div><span><strong>{plant.name}</strong><small>{plant.variety || plant.stage} • {garden.spaces.find((space) => space.id === plant.spaceId)?.name || 'Unassigned'}</small></span><ChevronRight /></button>)}</div> : <button className="empty-garden" onClick={() => setModal({ type: 'addPlant' })}><Sprout /><span><strong>No plants entered yet.</strong><small>Add what is actually growing.</small></span></button>}</section>
-      </section>
-    </main>
-  );
-}
+export function GardenWorkspace({garden,setModal,manageSpace}){const visible=garden.spaces.filter((space)=>!space.hidden),hidden=garden.spaces.filter((space)=>space.hidden),activePlants=garden.plants.filter((plant)=>!plant.archived),archived=garden.plants.filter((plant)=>plant.archived);return <main className="screen garden-screen"><section className="dark-header garden-header"><Leaf size={24} color="#8ea83b" fill="#8ea83b"/><h1>My Garden</h1><p>Only the spaces Brooke is actually using.</p><button className="add-garden" onClick={()=>setModal({type:'addMenu'})}><Plus/></button></section><section className="garden-list screen-pad"><div className="garden-actions"><button onClick={()=>setModal({type:'addPlant'})}><Sprout/> Add plant</button><button onClick={()=>setModal({type:'addSpace'})}><Plus/> Add space</button></div><div className="space-order-note"><ArrowUp size={17}/><span><strong>Put important spaces first.</strong><small>Use the arrows below each card. Hide seasonal spaces without deleting them.</small></span></div>{visible.map((space,index)=><SpaceCard key={space.id} space={space} plants={activePlants.filter((plant)=>plant.spaceId===space.id)} index={index} total={visible.length} manageSpace={manageSpace} setModal={setModal}/>)}{!visible.length&&<button className="empty-garden" onClick={()=>setModal({type:'addSpace'})}><Plus/><span><strong>No active spaces.</strong><small>Add one or restore a hidden space below.</small></span></button>}{hidden.length>0&&<section className="hidden-spaces"><div><Eye size={20}/><span><strong>Hidden seasonal spaces</strong><small>They stay saved but do not take over the page.</small></span></div>{hidden.map((space)=><button key={space.id} onClick={()=>manageSpace('show',space.id)}><Eye/> Restore {space.name}</button>)}</section>}<section className="tracked-plants-section"><div className="section-row"><div><span className="section-kicker">TRACKED PLANTS</span><h2>What Brooke is growing</h2></div><button className="text-link" onClick={()=>setModal({type:'addPlant'})}>Add <Plus size={15}/></button></div>{activePlants.length?<div className="tracked-plant-list">{activePlants.map((plant)=><button key={plant.id} onClick={()=>setModal({type:'managePlant',plant})}><div className="tracked-plant-art">{plant.cropId?cropArt(plant.cropId):<Sprout/>}</div><span><strong>{plant.name}</strong><small>{plant.stage} • {garden.spaces.find((space)=>space.id===plant.spaceId)?.name||'Unassigned'}</small></span><ChevronRight/></button>)}</div>:<button className="empty-garden" onClick={()=>setModal({type:'addPlant'})}><Sprout/><span><strong>No active plants entered.</strong><small>Add what is actually growing.</small></span></button>}</section>{archived.length>0&&<section className="hidden-spaces archived-plants"><div><Eye size={20}/><span><strong>Finished garden history</strong><small>{archived.length} archived plant record{archived.length===1?'':'s'} kept for future seasons.</small></span></div></section>}</section></main>;}
