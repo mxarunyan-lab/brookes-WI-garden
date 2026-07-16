@@ -1,0 +1,5 @@
+import React,{useState}from'react';
+import{CalendarDays,Leaf}from'lucide-react';
+import PlantRecommendations from'./PlantRecommendations.jsx';
+import PlannerScreen from'./PlannerScreen.jsx';
+export default function PlanPlantHub(props){const[view,setView]=useState('grow');return <main className="plan-plant-hub"><section className="dark-header plan-plant-header"><span>WHAT SHOULD WE DO NEXT?</span><h1>Plan & Plant</h1><p>Seasonal planting guidance and the Runyan Garden schedule in one place.</p><div className="plan-plant-switch"><button className={view==='grow'?'active':''} onClick={()=>setView('grow')}><Leaf/> What can we grow?</button><button className={view==='plan'?'active':''} onClick={()=>setView('plan')}><CalendarDays/> Upcoming plan</button></div></section>{view==='grow'?<PlantRecommendations recommendations={props.recommendations} setModal={props.setModal} navigate={props.navigate}/>:<PlannerScreen garden={props.garden} timeline={props.timeline} addSeed={props.addSeed} completePlanItem={props.completePlanItem} updatePlantStage={props.updatePlantStage} recordHarvest={props.recordHarvest} scheduleSuccession={props.scheduleSuccession}/>}</main>}
