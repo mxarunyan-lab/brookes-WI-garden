@@ -1,18 +1,22 @@
 # Brooke's Wisconsin Garden
 
-A mobile-first Wisconsin gardening companion built for Green Bay.
+A mobile-first, year-round Wisconsin gardening companion built for Green Bay.
 
-## Working phase now included
+## Working systems
 
-- Live Green Bay weather with current temperature, feels-like temperature, daily high/low, rain chance, wind, refresh, saved fallback data, and weather-driven garden guidance
-- Date-aware Green Bay planting recommendations that change throughout the season instead of remaining stuck on spring sample dates
-- A real garden setup flow for adding plants and growing spaces
-- Saved plant stages, planting dates, soil checks, watering records, greenhouse checks, and activity history
-- A soil-first watering flow: Brooke records whether soil is dry, damp, or wet before the app recommends watering or skipping it
-- Raised bed, greenhouse, and hydroponics spaces that calculate progress from the plants actually entered
-- Local device persistence so the garden survives closing and reopening the app
-- Installable PWA metadata and an updated service worker that avoids serving stale app versions or caching the external weather API
-- Responsive mobile layouts while preserving the approved Wisconsin visual design
+- Live Green Bay weather with saved fallback conditions and garden-specific weather guidance
+- Automatic seasonal modes for winter, seed starting, outdoor transition, summer care, harvest, and fall shutdown
+- Real garden spaces and plant records across outdoor beds, containers, greenhouse, hydroponics, indoor starts, and basement growing
+- Soil-first watering checks instead of generic watering alarms
+- Seven-day and thirty-day garden plans generated from planting dates, stages, succession schedules, and harvest estimates
+- One-tap plant-stage advancement and basic harvest logging
+- Automatic succession planning for lettuce, spinach, green onions, and basil
+- Mobile seed inventory with packet year, variety, estimated amount remaining, aging guidance, and a possible shopping list
+- Persistent local records for plants, seeds, succession batches, harvests, greenhouse checks, watering, and activity
+- Installable PWA behavior with a refreshed offline cache
+- Responsive Wisconsin visual design based on the approved product mockup
+
+See `ROADMAP.md` for completed work and the remaining camera/QR, control-center, seasonal-memory, shared-sync, and garden-planning phases.
 
 ## Local development
 
@@ -28,8 +32,6 @@ npm run build
 ```
 
 ## Render deployment
-
-The `main` branch deploys to Render using:
 
 - Build command: `npm install && npm run build`
 - Publish directory: `dist`
