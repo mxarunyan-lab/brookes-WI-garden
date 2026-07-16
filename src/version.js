@@ -1,14 +1,12 @@
-export const APP_VERSION = '0.10.2';
-export const BUILD_ID = 'clarity-sync-ready';
+export const APP_VERSION = '0.11.0';
+export const BUILD_ID = 'garden-center';
 export const UPDATED_AT = 'July 16, 2026';
-
 export const WHATS_NEW = [
-  'Weather details appear once, followed by one short garden-specific interpretation',
-  'Planting recommendations now separate indoor seeds, outdoor planting, indoor production, existing crops, and later plans',
-  'Gardening shorthand replaced with plain descriptions of seeds, seedlings, young plants, and transplanting',
-  'Every Today task identifies the plant, growing location, action, and why it appeared',
-  'Task completions show who handled them and when, with an Undo control',
-  'Indoor setup distinguishes spring seedlings from crops intended to mature and produce indoors',
-  'Garden records now include sync-ready timestamps, authors, revisions, and soft deletion',
-  'Profile includes a downloadable garden backup before the v1.0.0 cloud migration',
+ 'Runyan Garden Center promoted to the main navigation as a Wisconsin storefront-style hub',
+ 'Garden Center established 2024 with a rotating daily questionable-expertise slogan',
+ 'What to Plant and Garden Plan combined into one Plan & Plant destination',
+ 'Plan & Plant separates what can be grown from the upcoming 7-day, 30-day, seed, and succession plan',
+ 'Garden Memory moved into the Garden Center Records Department',
+ 'Indoor Growing, seeds, QR labels, greenhouse, and hydroponics organized into clear departments',
+ 'Profile replaced by a cow-themed Runyan tab focused on people, settings, backup, and app information',
 ];
