@@ -1,0 +1,3 @@
+The Runyan Garden v0.12.0
+Garden Year Planner and unified experience release.
+Includes next-season draft generation, Wisconsin seed-start reminders from saved packets, Planting Desk redesign, Garden Center seed readiness, plant-led indoor growing, and cache v17.
