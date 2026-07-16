@@ -1,4 +1,4 @@
-const CACHE = 'brookes-garden-v2';
+const CACHE = 'brookes-garden-v3';
 const CORE = ['/', '/manifest.webmanifest', '/icon.svg'];
 
 self.addEventListener('install', (event) => {
