@@ -1,5 +1,39 @@
 import React from'react';
 import{BookOpen,ChevronRight,CircleHelp,ClipboardList,HardDriveDownload,Settings,Sprout,Warehouse}from'lucide-react';
-const LinkRow=({icon:Icon,title,subtitle,onClick})=><button className="more-link-row" onClick={onClick}><span className="more-link-icon"><Icon/></span><span><strong>{title}</strong><small>{subtitle}</small></span><ChevronRight/></button>;
-const HELP=[['Today','Weather, today’s count, tomorrow preview, and the latest handoff.'],['Garden','Beds, plants, photos, care history, and QR labels.'],['Planting','What can grow now, upcoming planting, succession, and next year.'],['Center','Seeds, labels, supplies, indoor growing, and records.'],['Chore Board','Open instructions, complete work, postpone it, or dismiss a seasonal choice.']];
-export default function MoreHub({garden,navigate}){const active=garden.profile?.gardenerName||'Brooke';return <main className="screen more-screen"><section className="dark-header garden-header more-header"><Sprout/><span>THE RUNYAN GARDEN</span><h1>More</h1><p>Established 2024 · Green Bay, Wisconsin</p></section><section className="screen-pad more-content"><div className="more-identity-line"><span>TOOL SHED & RECORDS</span><strong>Useful things that do not need a permanent tab.</strong><small>Gardening as {active}</small></div><div className="more-list"><LinkRow icon={Settings} title="Garden Settings" subtitle="Profiles, backup, sync, and app details" onClick={()=>navigate('profile')}/><LinkRow icon={Warehouse} title="Indoor Growing" subtitle="Seedlings, lights, greenhouse, and winter crops" onClick={()=>navigate('indoor')}/><LinkRow icon={BookOpen} title="Garden Records" subtitle="Harvests, problems, and season history" onClick={()=>navigate('memory')}/><LinkRow icon={ClipboardList} title="Garden Chore Board" subtitle="Today, tomorrow, and completed work" onClick={()=>navigate('chores')}/></div><details className="more-help"><summary><CircleHelp/><span><strong>Quick help</strong><small>Where things live</small></span><ChevronRight/></summary><div className="more-help-list">{HELP.map(([title,text])=><article key={title}><strong>{title}</strong><p>{text}</p></article>)}</div></details><section className="more-backup-note compact-sync-note"><HardDriveDownload/><span><strong>Shared garden is next.</strong><small>Back up this device from Garden Settings before migration.</small></span></section></section></main>}
+
+const LinkRow=({icon:Icon,title,subtitle,onClick})=><button className="more-link-row" onClick={onClick}>
+  <span className="more-link-icon"><Icon/></span>
+  <span><strong>{title}</strong><small>{subtitle}</small></span>
+  <ChevronRight/>
+</button>;
+
+const HELP=[
+  ['Today','Weather, today’s count, tomorrow preview, and the latest handoff.'],
+  ['Garden','Beds, plants, photos, care history, and QR labels.'],
+  ['Planting','What can grow now, upcoming planting, succession, and next year.'],
+  ['Center','Seeds, labels, supplies, indoor growing, and records.'],
+  ['Chore Board','Open instructions, complete work, postpone it, or dismiss a seasonal choice.']
+];
+
+export default function MoreHub({garden,navigate}){
+  const active=garden.profile?.gardenerName||'Brooke';
+  return <main className="screen more-screen">
+    <section className="dark-header garden-header more-header">
+      <Sprout/><span>THE RUNYAN GARDEN</span><h1>Tool Shed</h1><p>Settings, records, indoor growing, and the useful extras.</p>
+    </section>
+    <section className="screen-pad more-content">
+      <div className="tool-shed-heading"><span>TOOLS & ACCESSORIES</span><small>Currently gardening as {active}</small></div>
+      <div className="more-list">
+        <LinkRow icon={Settings} title="Garden Settings" subtitle="Profiles, backup, sync, and app details" onClick={()=>navigate('profile')}/>
+        <LinkRow icon={Warehouse} title="Indoor Growing" subtitle="Seedlings, lights, greenhouse, and winter crops" onClick={()=>navigate('indoor')}/>
+        <LinkRow icon={BookOpen} title="Garden Records" subtitle="Harvests, problems, and season history" onClick={()=>navigate('memory')}/>
+        <LinkRow icon={ClipboardList} title="Garden Chore Board" subtitle="Today, tomorrow, and completed work" onClick={()=>navigate('chores')}/>
+      </div>
+      <details className="more-help">
+        <summary><CircleHelp/><span><strong>Quick help</strong><small>Where things live</small></span><ChevronRight/></summary>
+        <div className="more-help-list">{HELP.map(([title,text])=><article key={title}><strong>{title}</strong><p>{text}</p></article>)}</div>
+      </details>
+      <section className="more-backup-note compact-sync-note"><HardDriveDownload/><span><strong>Shared garden is next.</strong><small>Back up this device from Garden Settings before migration.</small></span></section>
+    </section>
+  </main>;
+}
