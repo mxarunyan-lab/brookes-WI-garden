@@ -1,12 +1,13 @@
-export const APP_VERSION = '0.10.0';
-export const BUILD_ID = 'runyan-profiles';
+export const APP_VERSION = '0.10.1';
+export const BUILD_ID = 'runyan-ux';
 export const UPDATED_AT = 'July 16, 2026';
 
 export const WHATS_NEW = [
-  'The Garden of the Runyans identity across Profile and first-time setup',
-  'Brooke and Archie device profiles with clear planner and helper roles',
-  'One-time Who is in the garden chooser that remembers this device',
-  'Fast profile switching from Profile with actions attributed to the active gardener',
-  'App now opens on Today instead of returning to the last secondary screen',
-  'Shared garden data remains together while cloud synchronization is prepared',
+  'Brooke is Director of Seed Acquisition and Archie is Director of Dirt Operations',
+  'Shared app identity updated to The Runyan Garden with profile-specific home titles',
+  'Learn renamed to Plan with a clear Garden Plan purpose and upcoming-work sections',
+  'Every page change now resets immediately to the top and closes stale overlays',
+  'Raised-bed artwork now resembles the six black square beds and three white oval beds',
+  'Shared-ownership copy and gardener attribution cleaned up across Today, My Garden, and Profile',
+  'Profile reorganized into gardener, garden-center, location, and app-information groups',
 ];
