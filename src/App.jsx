@@ -11,6 +11,7 @@ import {
 } from './screens.jsx';
 import { getCropRecommendations, newId, starterGarden } from './data.js';
 import { gardenWeatherAlert, useGreenBayWeather } from './weather.js';
+import { buildYearRoundTasks, getSeasonMode, migrateGarden } from './yearRoundEngine.js';
 
 const GARDEN_KEY = 'brookes-garden-state-v2';
 const PAGE_KEY = 'brookes-garden-page-v2';
@@ -32,7 +33,7 @@ function dayKey() {
 
 function App() {
   const [page, setPage] = useState(() => localStorage.getItem(PAGE_KEY) || 'today');
-  const [garden, setGarden] = useState(() => safeLoad(GARDEN_KEY, starterGarden));
+  const [garden, setGarden] = useState(() => migrateGarden(safeLoad(GARDEN_KEY, starterGarden), starterGarden));
   const [daily, setDaily] = useState(() => {
     const stored = safeLoad(DAILY_KEY, { date: dayKey(), done: [] });
     return stored.date === dayKey() ? stored : { date: dayKey(), done: [] };
@@ -71,13 +72,16 @@ function App() {
     });
   };
 
+  const activityEntry = (entry) => ({
+    id: newId('activity'),
+    at: new Date().toISOString(),
+    ...entry,
+  });
+
   const addActivity = (entry) => {
     setGarden((current) => ({
       ...current,
-      activity: [
-        { id: newId('activity'), at: new Date().toISOString(), ...entry },
-        ...(current.activity || []),
-      ].slice(0, 100),
+      activity: [activityEntry(entry), ...(current.activity || [])].slice(0, 150),
     }));
   };
 
@@ -92,10 +96,19 @@ function App() {
       plantedAt: plant.plantedAt || new Date().toISOString().slice(0, 10),
       lastWatered: null,
       lastSoilCheck: null,
+      lastFertilized: null,
       moisture: 'unknown',
+      notes: '',
     };
-    setGarden((current) => ({ ...current, plants: [...current.plants, created] }));
-    addActivity({ type: 'planted', title: `Added ${created.name}`, detail: 'Now tracked in Brooke’s garden.' });
+    setGarden((current) => ({
+      ...current,
+      profile: { ...current.profile, setupComplete: true },
+      plants: [...current.plants, created],
+      activity: [
+        activityEntry({ type: 'planted', title: `Added ${created.name}`, detail: 'Now tracked in Brooke’s year-round garden.', plantId: created.id }),
+        ...(current.activity || []),
+      ].slice(0, 150),
+    }));
     showToast(`${created.name} is now in the garden.`);
     return created;
   };
@@ -107,13 +120,23 @@ function App() {
       type: space.type || 'bed',
       capacity: Number(space.capacity) || 12,
     };
-    setGarden((current) => ({ ...current, spaces: [...current.spaces, created] }));
-    addActivity({ type: 'space', title: `Added ${created.name}`, detail: 'New garden space created.' });
+    setGarden((current) => ({
+      ...current,
+      profile: { ...current.profile, setupComplete: true },
+      spaces: [...current.spaces, created],
+      activity: [
+        activityEntry({ type: 'space', title: `Added ${created.name}`, detail: 'New year-round growing space created.' }),
+        ...(current.activity || []),
+      ].slice(0, 150),
+    }));
     showToast(`${created.name} was added.`);
   };
 
   const updateProfile = (profile) => {
-    setGarden((current) => ({ ...current, profile: { ...current.profile, ...profile } }));
+    setGarden((current) => ({
+      ...current,
+      profile: { ...current.profile, ...profile, setupComplete: profile.setupComplete ?? current.profile.setupComplete },
+    }));
     showToast('Garden settings saved.');
   };
 
@@ -125,13 +148,16 @@ function App() {
       plants: current.plants.map((item) => item.id === plantId
         ? { ...item, moisture, lastSoilCheck: now }
         : item),
+      activity: [
+        activityEntry({
+          type: 'soil',
+          title: `Checked ${plant?.name || 'plant'} soil`,
+          detail: moisture === 'dry' ? 'Soil felt dry.' : moisture === 'damp' ? 'Soil felt damp.' : 'Soil felt wet.',
+          plantId,
+        }),
+        ...(current.activity || []),
+      ].slice(0, 150),
     }));
-    addActivity({
-      type: 'soil',
-      title: `Checked ${plant?.name || 'plant'} soil`,
-      detail: moisture === 'dry' ? 'Soil felt dry.' : moisture === 'damp' ? 'Soil felt damp.' : 'Soil felt wet.',
-      plantId,
-    });
     if (moisture !== 'dry') markDaily(`soil-${plantId}`, true);
   };
 
@@ -143,8 +169,11 @@ function App() {
       plants: current.plants.map((item) => item.id === plantId
         ? { ...item, moisture: 'damp', lastSoilCheck: now, lastWatered: now }
         : item),
+      activity: [
+        activityEntry({ type: 'watered', title: `Watered ${plant?.name || 'plant'}`, detail: 'Watering recorded.', plantId }),
+        ...(current.activity || []),
+      ].slice(0, 150),
     }));
-    addActivity({ type: 'watered', title: `Watered ${plant?.name || 'plant'}`, detail: 'Watering recorded.', plantId });
     markDaily(`soil-${plantId}`, true);
     showToast('Watering recorded.');
   };
@@ -161,59 +190,20 @@ function App() {
 
   const cropRecommendations = useMemo(() => getCropRecommendations(new Date()), []);
   const weatherAlert = useMemo(() => gardenWeatherAlert(weatherState.weather), [weatherState.weather]);
-  const firstTrackedPlant = garden.plants[0] || null;
-
-  const todayTasks = useMemo(() => {
-    const tasks = [];
-    if (!garden.plants.length) {
-      tasks.push({
-        id: 'setup-first-plant',
-        kind: 'setup',
-        title: 'Tell us what is actually growing',
-        subtitle: 'Add the first real plant so reminders stop being generic.',
-        action: 'Add Plant',
-        tone: 'green',
-      });
-    } else if (firstTrackedPlant) {
-      tasks.push({
-        id: `soil-${firstTrackedPlant.id}`,
-        kind: 'soil',
-        plant: firstTrackedPlant,
-        title: `Check ${firstTrackedPlant.name} soil`,
-        subtitle: 'Feel the soil before deciding whether to water.',
-        action: 'Check Soil',
-        tone: 'green',
-      });
-    }
-
-    tasks.push({
-      id: 'review-planting',
-      kind: 'navigate',
-      title: 'See what still makes sense to plant',
-      subtitle: new Intl.DateTimeFormat('en-US', { month: 'long', day: 'numeric' }).format(new Date()),
-      action: 'Review',
-      tone: 'gold',
-      target: 'plant',
-    });
-
-    if (garden.spaces.some((space) => space.type === 'greenhouse')) {
-      tasks.push({
-        id: 'greenhouse-check',
-        kind: 'greenhouse',
-        title: 'Log greenhouse conditions',
-        subtitle: 'Record temperature, humidity, or a quick note.',
-        action: 'Check',
-        tone: 'quiet',
-      });
-    }
-    return tasks;
-  }, [garden.plants, garden.spaces, firstTrackedPlant]);
+  const seasonMode = useMemo(() => getSeasonMode(new Date()), []);
+  const todayTasks = useMemo(() => buildYearRoundTasks({
+    garden,
+    weather: weatherState.weather,
+    date: new Date(),
+  }), [garden, weatherState.weather]);
 
   const openTask = (task) => {
-    if (task.kind === 'setup') setModal({ type: 'addPlant' });
+    if (task.kind === 'setup') setModal({ type: 'addMenu' });
+    if (task.kind === 'setupPlant') setModal({ type: 'addPlant' });
     if (task.kind === 'soil') setModal({ type: 'soilCheck', plant: task.plant });
     if (task.kind === 'navigate') navigate(task.target);
     if (task.kind === 'greenhouse') setModal({ type: 'greenhouseCheck' });
+    if (task.kind === 'plantDetail') setModal({ type: 'plantDetail', plant: task.plant });
   };
 
   return (
@@ -232,6 +222,7 @@ function App() {
             weatherAlert={weatherAlert}
             activity={garden.activity || []}
             setModal={setModal}
+            seasonMode={seasonMode}
           />
         )}
         {page === 'plant' && (
