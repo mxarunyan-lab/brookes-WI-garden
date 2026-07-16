@@ -1,0 +1,5 @@
+The Runyan Garden v0.11.3
+Build: settings-full-plant-qa
+Released: July 16, 2026
+
+Final deployment marker for Settings cleanup, profile layout, pre-sync QA, and full-plant reminder coverage.
