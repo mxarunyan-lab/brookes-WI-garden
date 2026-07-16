@@ -1,12 +1,12 @@
-export const APP_VERSION = '0.9.0';
-export const BUILD_ID = 'seed-tools';
+export const APP_VERSION = '0.10.0';
+export const BUILD_ID = 'runyan-profiles';
 export const UPDATED_AT = 'July 16, 2026';
 
 export const WHATS_NEW = [
-  'Seed packet camera capture with a required confirmation form',
-  'Packet photos, varieties, maturity timing, depth, spacing, and notes saved together',
-  'Printable QR labels for garden spaces, plants, seedling trays, and hydroponic pods',
-  'Cow added to the Wisconsin farm scene in place of the Made in Wisconsin badge',
-  'Simplified cheese-and-sprout app icon with no WI badge',
-  'Garden Memory and Indoor Growing Center remain available from Profile',
+  'The Garden of the Runyans identity across Profile and first-time setup',
+  'Brooke and Archie device profiles with clear planner and helper roles',
+  'One-time Who is in the garden chooser that remembers this device',
+  'Fast profile switching from Profile with actions attributed to the active gardener',
+  'App now opens on Today instead of returning to the last secondary screen',
+  'Shared garden data remains together while cloud synchronization is prepared',
 ];
