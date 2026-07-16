@@ -1,7 +1,7 @@
 {
   "name": "brookes-wi-garden",
   "private": true,
-  "version": "0.12.1",
+  "version": "0.12.4",
   "type": "module",
   "scripts": {"dev":"vite","build":"vite build","preview":"vite preview"},
   "dependencies": {"@vitejs/plugin-react":"latest","lucide-react":"latest","qrcode.react":"latest","vite":"latest","react":"latest","react-dom":"latest"},
