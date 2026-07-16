@@ -1,16 +1,15 @@
-export const APP_VERSION='0.12.1';
-export const BUILD_ID='garden-chore-board';
+export const APP_VERSION='0.12.4';
+export const BUILD_ID='organized-garden-hub';
 export const UPDATED_AT='July 16, 2026';
 export const WHATS_NEW=[
- 'Today is now a compact Garden Bulletin instead of a long all-purpose dashboard',
- 'Garden Chore Board organizes unfinished work, tomorrow preview, and completed-today history',
- 'Completed chores leave the active Home count immediately while remaining visible with gardener and time',
- 'Plan & Plant has been renamed Planting Desk throughout navigation and app copy',
- 'This Week is limited to today through day seven; Coming Soon begins on day eight',
- 'Succession planning is suggested during plant setup only for crops that benefit from repeat sowing',
- 'Succession plans explain the concept and connect each future batch to saved seed inventory',
- 'Missing succession seed creates a clear Seed Counter or supply-list prompt instead of a disconnected plan',
- 'Fall planting, garlic, winter planning, and early indoor-start reminders are part of the seasonal task engine',
- 'Garden Center now provides a permanent entrance to the Garden Chore Board',
- 'Settings director cards are forced into a compact side-by-side layout on phones'
+ 'Garden Chore Board is now the primary operational hub for unfinished work, tomorrow previews, and completed chores',
+ 'Today is a shorter Garden Bulletin with one handoff, compact weather, and a clear route into the full task board',
+ 'The duplicate hamburger navigation has been removed so the app has one predictable navigation system',
+ 'Bottom navigation is shortened to Today, Garden, Planting, Center, and More for reliable iPhone fit',
+ 'More provides a clean secondary home for Settings, indoor growing, records, backup, and less-frequent tools',
+ 'Planting Desk received a full visual hierarchy and spacing overhaul with strict seven-day and day-eight-plus planning windows',
+ 'Garden Center now uses a colorful department grid instead of a long stack of identical boxes',
+ 'Next-Season Supplies clearly identifies that seed and supply review opens the Planting Desk',
+ 'Dynamic text, activity handoffs, weather lines, cards, and buttons received app-wide word-spacing and wrapping protection',
+ 'Mobile layouts were tightened for narrow iPhones while keeping Brooke and Archie side by side in Settings'
 ];
