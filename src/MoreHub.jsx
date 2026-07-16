@@ -1,21 +1,12 @@
-import React from 'react';
-import { BookOpen, ChevronRight, ClipboardList, HardDriveDownload, Settings, Sprout, Warehouse } from 'lucide-react';
+import React from'react';
+import{BookOpen,ChevronRight,CircleHelp,ClipboardList,HardDriveDownload,Settings,Sprout,Warehouse}from'lucide-react';
 
-const LinkCard=({icon:Icon,title,subtitle,onClick})=><button className="more-link-card" onClick={onClick}><span className="more-link-icon"><Icon/></span><span><strong>{title}</strong><small>{subtitle}</small></span><ChevronRight/></button>;
-
-export default function MoreHub({garden,navigate}){
- const active=(garden.profile?.gardenerName||'Brooke');
- return <main className="screen more-screen">
-  <section className="dark-header more-header"><span>THE REST OF THE TOOL SHED</span><h1>More</h1><p>Settings, records, indoor systems, and the useful things you do not need in the bottom bar every day.</p></section>
-  <section className="screen-pad more-content">
-   <section className="more-current-user"><Sprout/><span><small>CURRENT GARDENER</small><strong>{active}</strong></span></section>
-   <div className="more-grid">
-    <LinkCard icon={Settings} title="Garden Settings" subtitle="Profiles, Green Bay location, backup, sync readiness, version, and app information" onClick={()=>navigate('profile')}/>
-    <LinkCard icon={Warehouse} title="Indoor Growing" subtitle="Seedlings, recommended lights, greenhouse care, hardening off, and winter crops" onClick={()=>navigate('indoor')}/>
-    <LinkCard icon={BookOpen} title="Garden Records" subtitle="Harvests, problems, favorites, lessons, and the history that improves next year" onClick={()=>navigate('memory')}/>
-    <LinkCard icon={ClipboardList} title="Garden Chore Board" subtitle="The full task hub, completed work, and tomorrow preview" onClick={()=>navigate('chores')}/>
-   </div>
-   <section className="more-backup-note"><HardDriveDownload/><span><strong>Shared garden is the next major milestone.</strong><small>Your local garden can be backed up from Garden Settings before migration.</small></span></section>
-  </section>
- </main>
-}
+const LinkCard=({icon:Icon,title,subtitle,tone,onClick})=><button className={`more-link-card tone-${tone}`} onClick={onClick}><span className="more-link-icon"><Icon/></span><span><strong>{title}</strong><small>{subtitle}</small></span><ChevronRight/></button>;
+const HELP=[
+ ['Today','A quick weather read, the number of chores waiting, tomorrow’s preview, and the latest household handoff.'],
+ ['Garden','Your actual beds and growing spaces, including plants, photos, activity, names, and QR labels.'],
+ ['Planting','What to plant now, what is due this week, future planting work, succession batches, and next year’s plan.'],
+ ['Center','Seeds, indoor growing, labels, records, supplies, and the entrance to the full Chore Board.'],
+ ['Chore Board','The place to actually work. Open a chore for instructions, finish it, postpone it, or skip a seasonal decision.']
+];
+export default function MoreHub({garden,navigate}){const active=garden.profile?.gardenerName||'Brooke';return <main className="screen more-screen"><section className="dark-header garden-header more-header"><Sprout/><span>THE RUNYAN GARDEN</span><h1>More</h1><p>Established 2024 • Green Bay, Wisconsin</p></section><section className="screen-pad more-content"><section className="more-marquee"><span>TOOL SHED & RECORDS</span><strong>The useful stuff behind the garden.</strong><small>Currently gardening as {active}</small></section><div className="more-grid"><LinkCard icon={Settings} title="Garden Settings" subtitle="Profiles, location, backup, sync readiness, version, and app information" tone="gold" onClick={()=>navigate('profile')}/><LinkCard icon={Warehouse} title="Indoor Growing" subtitle="Seedlings, suggested light schedules, greenhouse care, and winter crops" tone="green" onClick={()=>navigate('indoor')}/><LinkCard icon={BookOpen} title="Garden Records" subtitle="Harvests, problems, lessons, favorites, and the history that improves next year" tone="blue" onClick={()=>navigate('memory')}/><LinkCard icon={ClipboardList} title="Garden Chore Board" subtitle="Today’s full work list, tomorrow’s preview, and completed tasks" tone="rust" onClick={()=>navigate('chores')}/></div><details className="more-help"><summary><CircleHelp/><span><strong>Quick help: where does everything live?</strong><small>A plain-language map of the app</small></span><ChevronRight/></summary><div className="more-help-list">{HELP.map(([title,text])=><article key={title}><strong>{title}</strong><p>{text}</p></article>)}</div></details><section className="more-backup-note"><HardDriveDownload/><span><strong>Shared garden is the next major milestone.</strong><small>Your local garden can be backed up from Garden Settings before migration.</small></span></section></section></main>}
