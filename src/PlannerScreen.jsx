@@ -1,5 +1,5 @@
 import React, { useMemo, useState } from 'react';
-import { CalendarDays, Check, ChevronRight, PackagePlus, Plus, Seedling, ShoppingBasket, Sprout } from 'lucide-react';
+import { CalendarDays, Check, ChevronRight, PackagePlus, Plus, ShoppingBasket, Sprout } from 'lucide-react';
 import { cropCatalog } from './data.js';
 import { daysFromNow, prettyDate, seedStatusForCrop, splitTimeline } from './planning.js';
 import { CheeseIcon, cropArt } from './art.jsx';
@@ -19,6 +19,7 @@ export default function PlannerScreen({ garden, timeline, addSeed, completePlanI
   const groups = useMemo(() => splitTimeline(timeline), [timeline]);
   const visible = tab === 'week' ? groups.week : tab === 'month' ? groups.month : [];
   const shopping = cropCatalog.filter((crop) => seedStatusForCrop(garden, crop.id).tone === 'red');
+  const successionCandidates = garden.plants.filter((plant) => ['lettuce', 'spinach', 'onions', 'basil'].includes(plant.cropId));
 
   const saveSeed = (event) => {
     event.preventDefault();
@@ -101,10 +102,14 @@ export default function PlannerScreen({ garden, timeline, addSeed, completePlanI
         )}
 
         <section className="succession-helper">
-          <Seedling size={26} />
-          <div><span className="section-kicker">SUCCESSION PLANTING</span><h3>Small batches instead of one giant harvest</h3><p>Open any tracked lettuce, spinach, green onion, or basil plant and schedule its next batch. The date then appears here automatically.</p></div>
+          <Sprout size={26} />
+          <div><span className="section-kicker">SUCCESSION PLANTING</span><h3>Small batches instead of one giant harvest</h3><p>Schedule another small batch below. It will automatically appear in the 7-day or 30-day plan when due.</p></div>
           <CheeseIcon />
         </section>
+        <div className="succession-quick">
+          {successionCandidates.map((plant) => <button key={plant.id} onClick={() => scheduleSuccession(plant.id)}><span>Schedule next {plant.name} batch</span><small>In {plant.successionDays || 14} days</small></button>)}
+          {!successionCandidates.length && <button disabled><span>Add lettuce, spinach, green onions, or basil to use succession planning</span><small>No eligible tracked crop yet</small></button>}
+        </div>
       </section>
     </main>
   );
