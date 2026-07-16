@@ -1,5 +1,16 @@
 import React from'react';
 import{CalendarDays,Home,Store,Sprout,Sun,UserRound,X}from'lucide-react';
 import{CheeseIcon}from'./art.jsx';
-export default function BottomNav({page,navigate}){const items=[{id:'today',label:'Today',icon:Sun},{id:'garden',label:'Garden',icon:Sprout},{id:'plan-plant',label:'Plan & Plant',icon:CalendarDays},{id:'center',label:'Garden Center',icon:Store},{id:'profile',label:'Runyan',icon:UserRound}];return <nav className="bottom-nav" aria-label="Primary navigation">{items.map(({id,label,icon:Icon})=><button key={id} className={page===id?'active':''} onClick={()=>navigate(id)}><Icon size={23}/><span>{label}</span></button>)}</nav>}
+
+export default function BottomNav({page,navigate}){
+ const items=[
+  {id:'today',label:'Today',icon:Sun},
+  {id:'garden',label:'Garden',icon:Sprout},
+  {id:'plan-plant',label:'Plan & Plant',icon:CalendarDays},
+  {id:'center',label:'Garden Center',icon:Store},
+  {id:'profile',label:'Runyan',icon:UserRound}
+ ];
+ return <nav className="bottom-nav" aria-label="Primary navigation">{items.map(({id,label,icon:Icon})=><button key={id} className={page===id?'active':''} onClick={()=>navigate(id)}><Icon size={23}/><span>{label}</span></button>)}</nav>;
+}
+
 export function RunyanMenu({close,navigate}){return <div className="overlay" onMouseDown={close}><aside className="drawer" onMouseDown={event=>event.stopPropagation()}><button className="drawer-close" onClick={close}><X/></button><CheeseIcon className="drawer-cheese"/><span className="section-kicker">THE RUNYAN GARDEN</span><h2>Established 2024. Questionable expertise since opening day.</h2><button onClick={()=>navigate('today')}><Home/> Today</button><button onClick={()=>navigate('garden')}><Sprout/> Our garden</button><button onClick={()=>navigate('plan-plant')}><CalendarDays/> Plan & Plant</button><button onClick={()=>navigate('center')}><Store/> Runyan Garden Center</button><button onClick={()=>navigate('profile')}><UserRound/> Runyan profiles & settings</button></aside></div>}
