@@ -1,25 +1,22 @@
-# Brooke's Wisconsin Garden
+# The Garden of the Runyans
 
-A mobile-first, year-round Wisconsin gardening companion built for Green Bay.
+A mobile-first, year-round Wisconsin gardening companion built for the Runyan household in Green Bay.
 
-## Current release: v0.9.0
+## Current release: v0.10.0
 
-- Live Green Bay weather and automatic year-round seasonal priorities
-- Actionable Garden Briefing, task snoozing, and manageable garden spaces
-- Detailed plant controls, measured harvests, problems, Garden Memory, and seasonal review
-- Indoor Growing Center with trays, lights, hardening off, greenhouse history, and hydroponics
-- Seed packet camera capture with the original photo stored alongside confirmed packet details
-- Required review before a photographed packet enters the seed inventory
-- Packet records for variety, brand, year, quantity, maturity, depth, spacing, and notes
-- Printable QR labels for garden spaces, plants, seedling trays, and hydroponic pods
-- Cow added to the farm scene in place of the Made in Wisconsin sticker
-- Simplified cheese-and-sprout app icon with no WI badge
-- Profile Version Center showing version 0.9.0 and build `seed-tools`
-- Installable PWA behavior with refreshed offline cache v9
+- Brooke and Archie device profiles with garden planner and garden helper roles
+- One-time “Who’s in the garden?” setup that remembers the selected person on the device
+- Fast profile switching from Profile
+- Care, harvest, problem, and garden-log actions attributed to the active gardener
+- One shared local garden rather than separate duplicate gardens
+- App always opens on Today instead of reopening Profile or another secondary screen
+- Existing live weather, planting guidance, Garden Memory, Indoor Growing Center, packet photos, and QR labels remain available
+- Profile Version Center showing version 0.10.0 and build `runyan-profiles`
+- Installable PWA behavior with refreshed offline cache v10
 
-The packet workflow intentionally requires human confirmation rather than pretending uncertain camera text is always correct. Shared cross-phone QR routing will be completed with cloud sync in v1.0.0.
+## Current storage boundary
 
-The collapsible garden-card concept remains reserved for the later visual-overhaul phase.
+The two profiles share the garden saved on the current device. Supabase cloud sync is still required before Brooke’s and Archie’s separate phones automatically share the same live records, tasks, packet photos, and QR destinations.
 
 ## Render deployment
 
