@@ -11,4 +11,5 @@
 
 Build: design-system-sync-ready
 Offline cache: v22
+Deployment status: retriggered from the verified green build on July 16, 2026
 Next milestone: v1.0.0 Shared Runyan Garden
