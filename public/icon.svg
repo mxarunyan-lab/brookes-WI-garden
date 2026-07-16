@@ -5,6 +5,4 @@
   <path d="M255 385V215" stroke="#7a3f2a" stroke-width="26" stroke-linecap="round"/>
   <path d="M255 285c-58-4-96-34-112-83 57-6 98 18 112 83Z" fill="#3f8f55" stroke="#f8f2df" stroke-width="12" stroke-linejoin="round"/>
   <path d="M255 335c56-4 94-32 111-79-56-5-95 18-111 79Z" fill="#74b85a" stroke="#f8f2df" stroke-width="12" stroke-linejoin="round"/>
-  <circle cx="410" cy="105" r="42" fill="#b63f31" stroke="#f8f2df" stroke-width="10"/>
-  <text x="410" y="118" text-anchor="middle" font-family="Arial, sans-serif" font-size="32" font-weight="800" fill="#fff">WI</text>
 </svg>
