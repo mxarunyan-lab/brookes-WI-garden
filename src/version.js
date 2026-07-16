@@ -1,14 +1,14 @@
-export const APP_VERSION='0.11.2';
-export const BUILD_ID='navigation-plant-intelligence';
+export const APP_VERSION='0.11.3';
+export const BUILD_ID='settings-full-plant-qa';
 export const UPDATED_AT='July 16, 2026';
 export const WHATS_NEW=[
- 'Plan & Plant rebuilt as one clean page with one set of What can we grow and Upcoming plan controls',
- 'Top-left shortcut drawer now uses the same working destinations as the bottom navigation',
- 'Seed Catalog is the first plant-add option, followed by searchable Crop Catalog and manual entry',
- 'Crop Catalog expanded across vegetables, fruits, herbs, flowers, indoor crops, and common Wisconsin garden plants',
- 'Moisture tasks now use crop, stage, location, recent care, heat, and rain to choose timing and check depth',
- 'Soil checks explain where to test, whether to water, how the crop prefers watering, and critical growth stages',
- 'QR printing outputs only codes and bed names, with multi-label sheet selection',
- 'Copy Link now confirms success and provides a selectable fallback when clipboard access is blocked',
- 'Navigation, sub-tabs, page position, blank states, QR actions, and legacy route aliases received a dedicated QA pass'
+ 'Runyan tab renamed Settings with a clear Runyan Garden Settings header and rotating household slogan',
+ 'Brooke and Archie remain visible with Director of Seed Acquisition and Director of Dirt Operations titles',
+ 'Profile switching moved to a collapsed Who is using the app section near the bottom',
+ 'Removed unnecessary household-role and Garden Center relocation explanations',
+ 'Settings now summarizes plants, spaces, seeds, photos, storage, backup, and pre-sync data quality',
+ 'Pre-sync QA flags unmatched crops, unassigned plants, generic bed names, and unattributed older activity',
+ 'Plant reminders now cover watering, seedlings, potting up, support, feeding review, pests and stress, harvest, and overwintering',
+ 'Watering frequency still adapts to exact crop, stage, location, heat, rain, and recent care',
+ 'Today can surface up to eight prioritized actions so complete plant care is not crowded out by generic soil checks'
 ];
