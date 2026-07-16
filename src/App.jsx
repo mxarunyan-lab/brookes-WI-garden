@@ -1,5 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { BottomNav, DetailModal, MenuDrawer, PlantScreen } from './screens.jsx';
+import { DetailModal, MenuDrawer, PlantScreen } from './screens.jsx';
+import BottomNav from './Navigation.jsx';
 import { GardenWorkspace, TodayWorkspace } from './WorkspaceScreens.jsx';
 import PlannerScreen from './PlannerScreen.jsx';
 import GardenControls from './GardenControls.jsx';
@@ -19,19 +20,18 @@ const plusDays=(days)=>{const d=new Date();d.setDate(d.getDate()+days);return d.
 const normalizeAll=(garden)=>({...garden,trays:garden.trays||[],growLights:garden.growLights||[],hardeningPlans:garden.hardeningPlans||[],hydroPods:garden.hydroPods||[],greenhouseReadings:garden.greenhouseReadings||[],seedPackets:garden.seedPackets||[],problems:garden.problems||[],harvests:garden.harvests||[]});
 
 export default function App(){
- const [page,setPage]=useState(()=>localStorage.getItem(PAGE_KEY)||'today');
+ const [page,setPage]=useState('today');
  const [garden,setGarden]=useState(()=>normalizeAll(normalizePlanning(migrateGarden(safeLoad(GARDEN_KEY,starterGarden),starterGarden))));
  const [daily,setDaily]=useState(()=>{const s=safeLoad(DAILY_KEY,{date:dayKey(),done:[],snoozed:{}});return s.date===dayKey()?{...s,snoozed:s.snoozed||{}}:{date:dayKey(),done:[],snoozed:{}};});
  const [filter,setFilter]=useState('all'),[drawerOpen,setDrawerOpen]=useState(false),[noticeOpen,setNoticeOpen]=useState(false),[modal,setModal]=useState(null),[toast,setToast]=useState('');
  const weatherState=useGreenBayWeather();
  useEffect(()=>localStorage.setItem(PAGE_KEY,page),[page]);useEffect(()=>localStorage.setItem(GARDEN_KEY,JSON.stringify(garden)),[garden]);useEffect(()=>localStorage.setItem(DAILY_KEY,JSON.stringify(daily)),[daily]);
  const showToast=(m)=>{setToast(m);clearTimeout(window.__gardenToast);window.__gardenToast=setTimeout(()=>setToast(''),2600);};
- const navigate=(next)=>{setPage(next);setDrawerOpen(false);setNoticeOpen(false);window.scrollTo({top:0,behavior:'smooth'});};
+ const navigate=(next)=>{setPage(next);setDrawerOpen(false);setNoticeOpen(false);setModal(null);requestAnimationFrame(()=>window.scrollTo(0,0));};
  const activityEntry=(entry)=>({id:newId('activity'),at:new Date().toISOString(),actor:garden.profile?.gardenerName||'Brooke',...entry});
  const addActivity=(entry)=>setGarden(c=>({...c,activity:[activityEntry(entry),...(c.activity||[])].slice(0,200)}));
  const markDaily=(id)=>setDaily(c=>({...c,done:Array.from(new Set([...(c.done||[]),id]))}));
  const snoozeTask=(id,days=1)=>{setDaily(c=>({...c,snoozed:{...(c.snoozed||{}),[id]:plusDays(days)}}));setNoticeOpen(false);showToast(days===1?'Moved to tomorrow.':`Snoozed for ${days} days.`);};
-
  const addPlant=(plant)=>{const p={id:newId('plant'),name:plant.name.trim(),variety:plant.variety?.trim()||'',cropId:plant.cropId||'',spaceId:plant.spaceId,stage:plant.stage||'Growing',plantedAt:plant.plantedAt||dayKey(),batchName:plant.batchName||'Batch 1',quantity:Number(plant.quantity)||1,successionEnabled:Boolean(plant.successionEnabled),successionDays:Number(plant.successionDays)||14,lastWatered:null,lastSoilCheck:null,lastFertilized:null,moisture:'unknown',notes:'',archived:false};setGarden(c=>({...c,profile:{...c.profile,setupComplete:true},plants:[...c.plants,p],succession:p.successionEnabled?[...(c.succession||[]),createSuccession(p,p.successionDays,p.quantity)]:c.succession||[],activity:[activityEntry({type:'planted',title:`Added ${p.name}`,detail:`${p.batchName} is now tracked.`,plantId:p.id}),...(c.activity||[])].slice(0,200)}));showToast(`${p.name} is now in the garden.`);};
  const addSpace=(space)=>{const s={id:newId('space'),name:space.name.trim(),type:space.type||'bed',capacity:Number(space.capacity)||12,hidden:false};setGarden(c=>({...c,spaces:[...c.spaces,s],activity:[activityEntry({type:'space',title:`Added ${s.name}`,detail:'New growing space created.'}),...(c.activity||[])].slice(0,200)}));showToast(`${s.name} was added.`);};
  const manageSpace=(action,id)=>{const s=garden.spaces.find(x=>x.id===id);if(!s)return;const count=garden.plants.filter(p=>p.spaceId===id&&!p.archived).length;if(action==='remove'){if(count){showToast(`Move or archive the ${count} tracked plant${count===1?'':'s'} first.`);return;}if(!window.confirm(`Remove ${s.name}?`))return;setGarden(c=>({...c,spaces:c.spaces.filter(x=>x.id!==id)}));showToast(`${s.name} removed.`);return;}if(action==='hide'||action==='show'){const hidden=action==='hide';setGarden(c=>({...c,spaces:c.spaces.map(x=>x.id===id?{...x,hidden}:x)}));showToast(hidden?`${s.name} hidden for now.`:`${s.name} restored.`);return;}setGarden(c=>{const visible=c.spaces.filter(x=>!x.hidden),hidden=c.spaces.filter(x=>x.hidden),i=visible.findIndex(x=>x.id===id),t=action==='up'?i-1:i+1;if(i<0||t<0||t>=visible.length)return c;[visible[i],visible[t]]=[visible[t],visible[i]];return{...c,spaces:[...visible,...hidden]};});};
@@ -58,7 +58,6 @@ export default function App(){
  const startHardening=(plantId)=>{const p=garden.plants.find(x=>x.id===plantId);if(!p)return;const plan={id:newId('hardening'),plantId,plantName:p.name,day:1,complete:false,startedAt:new Date().toISOString()};setGarden(c=>({...c,hardeningPlans:[plan,...(c.hardeningPlans||[])]}));showToast(`${p.name} hardening plan started.`);};
  const advanceHardening=(id)=>setGarden(c=>({...c,hardeningPlans:(c.hardeningPlans||[]).map(x=>x.id===id?(x.day>=7?{...x,complete:true,completedAt:new Date().toISOString()}:{...x,day:x.day+1,lastCompletedAt:new Date().toISOString()}):x)}));
  const saveHydroPod=(draft)=>{const existing=garden.hydroPods?.find(x=>String(x.position)===String(draft.position));setGarden(c=>({...c,hydroPods:existing?(c.hydroPods||[]).map(x=>x.id===existing.id?{...x,...draft,updatedAt:new Date().toISOString()}:x):[...(c.hydroPods||[]),{id:newId('pod'),...draft,updatedAt:new Date().toISOString()}]}));showToast(`Hydroponic pod ${draft.position} saved.`);};
-
  const cropRecommendations=useMemo(()=>getCropRecommendations(new Date()),[]),weatherAlert=useMemo(()=>gardenWeatherAlert(weatherState.weather),[weatherState.weather]),seasonMode=useMemo(()=>getSeasonMode(new Date()),[]);
  const activeGarden=useMemo(()=>({...garden,spaces:garden.spaces.filter(s=>!s.hidden),plants:garden.plants.filter(p=>!p.archived)}),[garden]);
  const allTasks=useMemo(()=>buildYearRoundTasks({garden:activeGarden,weather:weatherState.weather,date:new Date()}),[activeGarden,weatherState.weather]);
@@ -66,13 +65,12 @@ export default function App(){
  const openTask=(task)=>{if(task.kind==='setup')setModal({type:'addMenu'});if(task.kind==='setupPlant')setModal({type:'addPlant'});if(task.kind==='soil')setModal({type:'soilCheck',plant:task.plant});if(task.kind==='navigate')navigate(task.target);if(task.kind==='greenhouse')setModal({type:'greenhouseCheck'});if(task.kind==='plantDetail')setModal({type:'managePlant',plant:task.plant});};
  const controlModal=modal?.type==='managePlant';
  const navPage=['indoor','memory','seed-tools'].includes(page)?'profile':page;
-
  return <div className="site-stage"><div className={`app-shell page-${page}`}>
   {page==='today'&&<TodayWorkspace profile={garden.profile} tasks={todayTasks} dailyDone={daily.done||[]} onTask={openTask} onSnooze={id=>snoozeTask(id,1)} onMenu={()=>setDrawerOpen(true)} noticeOpen={noticeOpen} setNoticeOpen={setNoticeOpen} weatherState={weatherState} weatherAlert={weatherAlert} activity={garden.activity||[]} setModal={setModal} seasonMode={seasonMode}/>} 
   {page==='plant'&&<PlantScreen filter={filter} setFilter={setFilter} recommendations={cropRecommendations} setModal={setModal} navigate={navigate}/>} 
   {page==='garden'&&<GardenWorkspace garden={garden} setModal={setModal} manageSpace={manageSpace}/>} 
   {page==='learn'&&<PlannerScreen garden={garden} timeline={timeline} addSeed={addSeed} completePlanItem={completePlanItem} updatePlantStage={updatePlantStage} recordHarvest={recordHarvest} scheduleSuccession={scheduleSuccession}/>} 
-  {page==='profile'&&<SettingsCenter profile={garden.profile} updateProfile={updateProfile} navigate={navigate}/>} 
+  {page==='profile'&&<SettingsCenter navigate={navigate}/>} 
   {page==='indoor'&&<IndoorCenter garden={garden} navigate={navigate} addTray={addTray} addLight={addLight} toggleLight={toggleLight} startHardening={startHardening} advanceHardening={advanceHardening} saveHydroPod={saveHydroPod} setModal={setModal}/>} 
   {page==='memory'&&<GardenMemory garden={garden} navigate={navigate} resolveProblem={resolveProblem}/>} 
   {page==='seed-tools'&&<SeedTools garden={garden} navigate={navigate} savePacket={savePacket} deletePacket={deletePacket}/>} 
