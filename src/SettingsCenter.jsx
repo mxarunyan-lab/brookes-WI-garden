@@ -1,9 +1,25 @@
 import React from 'react';
 import { ChevronRight, Info, QrCode, Sprout, UserRound, Warehouse } from 'lucide-react';
 import { APP_VERSION, BUILD_ID, UPDATED_AT, WHATS_NEW } from './version.js';
-import { ProfileAvatar, ProfileSwitcher } from './RunyanProfiles.jsx';
+import { DEFAULT_PROFILES, ProfileAvatar, ProfileSwitcher } from './RunyanProfiles.jsx';
 
-export default function SettingsCenter({ profiles, activeProfile, switchProfile, navigate }) {
+const ACTIVE_PROFILE_KEY = 'runyan-garden-active-profile';
+const GARDEN_KEY = 'brookes-garden-state-v2';
+
+export default function SettingsCenter({ navigate }) {
+  const activeId = localStorage.getItem(ACTIVE_PROFILE_KEY) || 'brooke';
+  const activeProfile = DEFAULT_PROFILES.find((profile) => profile.id === activeId) || DEFAULT_PROFILES[0];
+  const switchProfile = (profileId) => {
+    const selected = DEFAULT_PROFILES.find((profile) => profile.id === profileId) || DEFAULT_PROFILES[0];
+    localStorage.setItem(ACTIVE_PROFILE_KEY, selected.id);
+    try {
+      const garden = JSON.parse(localStorage.getItem(GARDEN_KEY) || '{}');
+      localStorage.setItem(GARDEN_KEY, JSON.stringify({ ...garden, profile: { ...(garden.profile || {}), gardenerName: selected.name, activeProfileId: selected.id } }));
+    } catch {}
+    localStorage.setItem('brookes-garden-page-v2', 'today');
+    window.location.reload();
+  };
+
   return <main className="screen simple-screen profile-screen settings-center">
     <section className="dark-header simple-header compact-simple-header">
       <div className="simple-icon"><UserRound /></div>
@@ -13,8 +29,8 @@ export default function SettingsCenter({ profiles, activeProfile, switchProfile,
     </section>
     <section className="profile-form-wrap">
       <div className="active-profile-strip"><ProfileAvatar profile={activeProfile} small /><span><small>Currently using the app</small><strong>{activeProfile.name} • {activeProfile.role}</strong></span></div>
-      <ProfileSwitcher profiles={profiles} activeId={activeProfile.id} onSwitch={switchProfile} />
-      <p className="role-note">{activeProfile.id === 'brooke' ? 'Brooke is the primary garden planner. Planning and setup decisions are attributed to her profile.' : 'Archie can complete care work, record conditions, harvest, and add observations. Shared cloud syncing is the next infrastructure step.'}</p>
+      <ProfileSwitcher profiles={DEFAULT_PROFILES} activeId={activeProfile.id} onSwitch={switchProfile} />
+      <p className="role-note">{activeProfile.id === 'brooke' ? 'Brooke is the primary garden planner. Planning and setup decisions are attributed to her profile.' : 'Archie can complete care work, record conditions, harvest, and add observations. Shared cross-phone syncing is the next infrastructure step.'}</p>
 
       <label>Weather location<input value="Green Bay, Wisconsin" disabled /></label>
       <label>USDA zone<input value="5b" disabled /></label>
