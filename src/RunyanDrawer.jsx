@@ -1,0 +1,4 @@
+import React from'react';
+import{CalendarDays,Home,Store,Sprout,UserRound,X}from'lucide-react';
+import{CheeseIcon}from'./art.jsx';
+export default function RunyanDrawer({close,navigate}){const go=page=>{close();navigate(page)};return <div className="overlay" onMouseDown={close}><aside className="drawer" onMouseDown={e=>e.stopPropagation()}><button className="drawer-close" onClick={close}><X/></button><CheeseIcon className="drawer-cheese"/><span className="section-kicker">THE RUNYAN GARDEN</span><h2>Shortcuts. No secret second navigation system.</h2><button onClick={()=>go('today')}><Home/> Today</button><button onClick={()=>go('garden')}><Sprout/> The Runyan Garden</button><button onClick={()=>go('plan-plant')}><CalendarDays/> Plan & Plant</button><button onClick={()=>go('center')}><Store/> Runyan Garden Center</button><button onClick={()=>go('profile')}><UserRound/> Profiles & app settings</button></aside></div>}
