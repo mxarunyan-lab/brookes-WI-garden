@@ -1,16 +1,5 @@
 import React from'react';
-import{CalendarDays,Home,Settings,Store,Sprout,Sun,X}from'lucide-react';
+import{CalendarDays,ClipboardList,Home,Settings,Store,Sprout,Sun,X}from'lucide-react';
 import{CheeseIcon}from'./art.jsx';
-
-export default function BottomNav({page,navigate}){
- const items=[
-  {id:'today',label:'Today',icon:Sun},
-  {id:'garden',label:'Garden',icon:Sprout},
-  {id:'plan-plant',label:'Plan & Plant',icon:CalendarDays},
-  {id:'center',label:'Garden Center',icon:Store},
-  {id:'profile',label:'Settings',icon:Settings}
- ];
- return <nav className="bottom-nav" aria-label="Primary navigation">{items.map(({id,label,icon:Icon})=><button key={id} className={page===id?'active':''} onClick={()=>navigate(id)}><Icon size={23}/><span>{label}</span></button>)}</nav>;
-}
-
-export function RunyanMenu({close,navigate}){return <div className="overlay" onMouseDown={close}><aside className="drawer" onMouseDown={event=>event.stopPropagation()}><button className="drawer-close" onClick={close}><X/></button><CheeseIcon className="drawer-cheese"/><span className="section-kicker">THE RUNYAN GARDEN</span><h2>Established 2024. Questionable expertise since opening day.</h2><button onClick={()=>navigate('today')}><Home/> Today</button><button onClick={()=>navigate('garden')}><Sprout/> Our garden</button><button onClick={()=>navigate('plan-plant')}><CalendarDays/> Plan & Plant</button><button onClick={()=>navigate('center')}><Store/> Runyan Garden Center</button><button onClick={()=>navigate('profile')}><Settings/> Runyan Garden settings</button></aside></div>}
+export default function BottomNav({page,navigate}){const items=[{id:'today',label:'Today',icon:Sun},{id:'garden',label:'Garden',icon:Sprout},{id:'plan-plant',label:'Planting Desk',icon:CalendarDays},{id:'center',label:'Garden Center',icon:Store},{id:'profile',label:'Settings',icon:Settings}];return <nav className="bottom-nav" aria-label="Primary navigation">{items.map(({id,label,icon:Icon})=><button key={id} className={page===id?'active':''} onClick={()=>navigate(id)}><Icon size={23}/><span>{label}</span></button>)}</nav>}
+export function RunyanMenu({close,navigate}){return <div className="overlay" onMouseDown={close}><aside className="drawer" onMouseDown={event=>event.stopPropagation()}><button className="drawer-close" onClick={close}><X/></button><CheeseIcon className="drawer-cheese"/><span className="section-kicker">THE RUNYAN GARDEN</span><h2>Established 2024. Questionable expertise since opening day.</h2><button onClick={()=>navigate('today')}><Home/> Today</button><button onClick={()=>navigate('chores')}><ClipboardList/> Garden Chore Board</button><button onClick={()=>navigate('garden')}><Sprout/> Our garden</button><button onClick={()=>navigate('plan-plant')}><CalendarDays/> Planting Desk</button><button onClick={()=>navigate('center')}><Store/> Garden Center</button><button onClick={()=>navigate('profile')}><Settings/> Settings</button></aside></div>}
