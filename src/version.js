@@ -1,12 +1,12 @@
-export const APP_VERSION = '0.8.0';
-export const BUILD_ID = 'garden-memory';
+export const APP_VERSION = '0.9.0';
+export const BUILD_ID = 'seed-tools';
 export const UPDATED_AT = 'July 16, 2026';
 
 export const WHATS_NEW = [
-  'Garden Memory center for harvests, favorites, problems, and seasonal lessons',
-  'Harvest Center with crop totals and grow-again ratings',
-  'Problem Center with active and resolved issue history',
-  'Automatic end-of-season review based on real garden records',
-  'Brooke, Archie, and System attribution foundation for future shared accounts',
-  'Cleaned-up Wisconsin farm artwork and repositioned WI Grown sticker',
+  'Seed packet camera capture with a required confirmation form',
+  'Packet photos, varieties, maturity timing, depth, spacing, and notes saved together',
+  'Printable QR labels for garden spaces, plants, seedling trays, and hydroponic pods',
+  'Cow added to the Wisconsin farm scene in place of the Made in Wisconsin badge',
+  'Simplified cheese-and-sprout app icon with no WI badge',
+  'Garden Memory and Indoor Growing Center remain available from Profile',
 ];
