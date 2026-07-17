@@ -1,8 +1,6 @@
 name: Validate Garden App
 
 on:
-  push:
-    branches: [main]
   pull_request:
 
 permissions:
@@ -21,31 +19,11 @@ jobs:
           node-version: 22
       - name: Install dependencies
         run: npm install
-      - name: Build production app
-        id: production_build
-        continue-on-error: true
-        run: npm run build > build.log 2>&1
-      - name: Upload build log
-        if: always()
+      - name: Build unminified app
+        run: npx vite build --minify=false --sourcemap
+      - name: Upload unminified app
         uses: actions/upload-artifact@v4
         with:
-          name: production-build-log
-          path: build.log
-          retention-days: 2
-      - name: Upload compiled app
-        if: steps.production_build.outcome == 'success'
-        uses: actions/upload-artifact@v4
-        with:
-          name: compiled-garden-app
+          name: unminified-garden-app
           path: dist
-          retention-days: 2
-      - name: Upload route source snapshot
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: app-route-source
-          path: src/App.jsx
           retention-days: 1
-      - name: Fail when production build failed
-        if: steps.production_build.outcome == 'failure'
-        run: exit 1
