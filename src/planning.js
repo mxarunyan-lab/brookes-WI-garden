@@ -37,11 +37,11 @@ export function normalizePlanning(garden) {
 export function buildTimeline(garden, now=new Date()) {
   const today=now.toISOString().slice(0,10),items=[];
   (garden.plants||[]).forEach((plant)=>{
-    const crop=cropMap[plant.cropId],stage=normalizeLifecycleStage(plant.stage),planted=plant.plantedAt||today;
+    const crop=cropMap[plant.cropId],stage=normalizeLifecycleStage(plant.stage),planted=plant.plantedAt||today,stageEntered=plant.stageUpdatedAt||planted;
     const harvestDate=plant.expectedHarvest||addDays(planted,harvestDays[plant.cropId]||60),harvestDelta=daysFromNow(harvestDate);
     normalizeStageHistory(plant,garden.profile?.gardenerName).forEach((entry)=>items.push({id:`history-${plant.id}-${entry.id}`,type:'lifecycle',plantId:plant.id,date:String(entry.enteredAt).slice(0,10),title:`${plant.name}: ${entry.stage}`,detail:entry.notes||'Lifecycle stage entered',priority:4,historical:true,photos:entry.photos||[]}));
     if(stage==='Harvesting'||(harvestDelta>=-7&&harvestDelta<=30))items.push({id:`harvest-${plant.id}`,type:'harvest',plantId:plant.id,date:harvestDate,title:stage==='Harvesting'?`Harvest ${plant.name}`:`Check ${plant.name} for harvest`,detail:`${plant.batchName||'Current batch'} • ${crop?.harvest||'Check maturity'}`,priority:stage==='Harvesting'?1:3});
-    if(earlyStages.has(stage)){const checkDate=addDays(planted,['Planned','Seed Purchased'].includes(stage)?7:stage==='Seed Started'?5:3);items.push({id:`stage-${plant.id}`,type:'stage',plantId:plant.id,date:checkDate,title:`Check ${plant.name} progress`,detail:`Current stage: ${stage}`,priority:2});}
+    if(earlyStages.has(stage)){const checkDate=addDays(stageEntered,['Planned','Seed Purchased'].includes(stage)?7:stage==='Seed Started'?5:3);items.push({id:`stage-${plant.id}`,type:'stage',plantId:plant.id,date:checkDate,title:`Check ${plant.name} progress`,detail:`Current stage: ${stage}`,priority:2});}
     if(plant.successionEnabled){const existing=(garden.succession||[]).find(item=>item.plantId===plant.id&&item.status!=='done'),due=existing?.dueDate||addDays(planted,plant.successionDays||14);items.push({id:existing?.id||`succession-${plant.id}`,type:'succession',plantId:plant.id,date:due,title:`Start the next ${plant.name} batch`,detail:`${plant.quantity||1} now • repeats every ${plant.successionDays||14} days`,priority:2});}
   });
   (garden.succession||[]).filter(item=>!item.plantId&&item.status!=='done').forEach(item=>items.push({...item,type:'succession',priority:2}));
