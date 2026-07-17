@@ -6,41 +6,15 @@ on:
   pull_request:
 
 permissions:
-  contents: write
+  contents: read
 
 jobs:
   test-and-build:
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
-      - name: Check out Phase 4.4B branch
+      - name: Check out repository
         uses: actions/checkout@v4
-        with:
-          ref: agent/phase-4-4b-weather-decisions
-      - name: Apply and push Phase 4.4B validation fixes
-        id: patch
-        continue-on-error: true
-        run: |
-          set -o pipefail
-          python .github/scripts/fix_phase_4_4b.py 2>&1 | tee patch.log
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git status --short | tee -a patch.log
-          git add src/App.jsx src/weatherDecisionEngine.js src/yearRoundEngine.js test/weatherDecisionEngine.test.js .github/scripts/fix_phase_4_4b.py
-          git commit -m "Fix Phase 4.4B production build" 2>&1 | tee push.log
-          git push origin HEAD:agent/phase-4-4b-weather-decisions 2>&1 | tee -a push.log
-      - name: Upload patch diagnostics
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: phase-4-4b-patch-diagnostics
-          path: |
-            patch.log
-            push.log
-          retention-days: 2
-      - name: Stop when patch push failed
-        if: steps.patch.outcome == 'failure'
-        run: exit 1
       - name: Set up Node
         uses: actions/setup-node@v4
         with:
