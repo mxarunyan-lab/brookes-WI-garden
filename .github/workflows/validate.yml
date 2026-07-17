@@ -1,17 +1,15 @@
 name: Validate Garden App
 
 on:
-  push:
-    branches: [main]
   pull_request:
 
 permissions:
   contents: read
 
 jobs:
-  build:
+  build-and-visual-check:
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    timeout-minutes: 25
     steps:
       - name: Check out repository
         uses: actions/checkout@v4
@@ -19,26 +17,33 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 22
-      - name: Install dependencies
+      - name: Install app dependencies
         run: npm install
+      - name: Install temporary Playwright runner
+        run: |
+          npm install --no-save playwright
+          npx playwright install --with-deps chromium
       - name: Build production app
-        id: production_build
-        continue-on-error: true
-        run: npm run build > build.log 2>&1
-      - name: Upload build log
+        run: npm run build
+      - name: Start compiled app
+        run: |
+          npm run preview -- --host 127.0.0.1 --port 4173 > preview.log 2>&1 &
+          for attempt in {1..40}; do
+            if curl -fsS http://127.0.0.1:4173 >/dev/null; then exit 0; fi
+            sleep 1
+          done
+          cat preview.log
+          exit 1
+      - name: Run 320–430px route and visual checks
+        env:
+          BASE_URL: http://127.0.0.1:4173
+        run: node scripts/phase43-visual-check.mjs
+      - name: Upload Phase 4.3 screenshots and report
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: production-build-log
-          path: build.log
+          name: phase-4-3-mobile-validation
+          path: |
+            phase43-artifacts
+            preview.log
           retention-days: 2
-      - name: Upload compiled app
-        if: steps.production_build.outcome == 'success'
-        uses: actions/upload-artifact@v4
-        with:
-          name: compiled-garden-app
-          path: dist
-          retention-days: 2
-      - name: Fail when production build failed
-        if: steps.production_build.outcome == 'failure'
-        run: exit 1
