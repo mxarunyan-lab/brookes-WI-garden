@@ -4,13 +4,13 @@ import{QRCodeSVG}from'qrcode.react';
 const STATUS_KEY='runyan-garden-label-status-v2';
 const loadStatus=()=>{try{return JSON.parse(localStorage.getItem(STATUS_KEY)||'{}')}catch{return{}}};
 const bedLink=id=>`${window.location.origin}${window.location.pathname}?bed=${encodeURIComponent(id)}&view=public`;
-const waitForPaint=()=>new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(()=>setTimeout(resolve,120))));
+const waitForPaint=()=>new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(()=>setTimeout(resolve,500))));
 export default function LabelCounter({garden,navigate}){
  const spaces=useMemo(()=>(garden.spaces||[]).filter(s=>!s.hidden&&!s.deletedAt),[garden.spaces]);
  const[status,setStatus]=useState(loadStatus),[selected,setSelected]=useState([]),[printing,setPrinting]=useState([]),[message,setMessage]=useState('');
  const save=next=>{setStatus(next);localStorage.setItem(STATUS_KEY,JSON.stringify(next))};
  const toggle=id=>setSelected(v=>v.includes(id)?v.filter(x=>x!==id):[...v,id]);
- const print=async items=>{setPrinting(items);document.body.classList.add('printing-garden-labels');await waitForPaint();const cleanup=()=>{document.body.classList.remove('printing-garden-labels');setPrinting([])};window.addEventListener('afterprint',cleanup,{once:true});window.print();setTimeout(cleanup,2500);setMessage('Print dialog opened. Mark labels installed only after you laminate and mount them.')};
+ const print=async items=>{setPrinting(items);document.body.classList.add('printing-garden-labels');await waitForPaint();let cleaned=false,armed=false;const cleanup=()=>{if(cleaned)return;cleaned=true;document.body.classList.remove('printing-garden-labels');setPrinting([]);window.removeEventListener('afterprint',cleanup);window.removeEventListener('focus',returnFromPrint);document.removeEventListener('visibilitychange',visibilityReturn)};const returnFromPrint=()=>{if(armed)setTimeout(cleanup,900)};const visibilityReturn=()=>{if(armed&&document.visibilityState==='visible')setTimeout(cleanup,900)};window.addEventListener('afterprint',cleanup);window.addEventListener('focus',returnFromPrint);document.addEventListener('visibilitychange',visibilityReturn);setTimeout(()=>{armed=true},1200);window.print();setMessage('Print preview opened. The QR sheet will stay loaded until you close the preview.')};
  const copy=async space=>{const link=bedLink(space.id);try{await navigator.clipboard.writeText(link);setMessage(`${space.name} public bed link copied.`)}catch{window.prompt('Copy this exact bed link:',link)}};
  const markInstalled=space=>{const next={...status,[space.id]:{state:'installed',at:new Date().toISOString()}};save(next);setMessage(`${space.name} marked as installed.`)};
  const test=space=>window.open(bedLink(space.id),'_blank','noopener,noreferrer');
