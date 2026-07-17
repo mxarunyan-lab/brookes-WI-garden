@@ -1,0 +1,22 @@
+/* Phase 4.3 visual-only correction: legacy header SVGs need a content-box
+   so the icon remains visible inside the Runyan badge. */
+.indoor-center-screen .indoor-center-header>svg,
+.memory-screen .memory-header>svg{
+ box-sizing:content-box!important;
+ width:28px!important;
+ height:28px!important;
+ min-width:28px!important;
+ min-height:28px!important;
+ padding:13px!important;
+ display:block!important;
+ overflow:visible!important;
+ opacity:1!important;
+ color:var(--runyan-mustard-300)!important;
+ stroke:currentColor!important;
+ fill:none!important;
+}
+.indoor-center-screen .indoor-center-header>svg *,
+.memory-screen .memory-header>svg *{
+ opacity:1!important;
+ stroke:currentColor!important;
+}
