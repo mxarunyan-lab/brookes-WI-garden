@@ -1,0 +1,36 @@
+name: Apply Phase 4.4A recommendation group fix
+
+on:
+  push:
+    branches: [agent/phase-4-4a-weather-intelligence]
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: agent/phase-4-4a-weather-intelligence
+      - name: Keep compact rejected and later groups visible
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          source = Path('src/plantingDesk.js')
+          text = source.read_text()
+          old = "const ordered=[...unique.values()].sort((a,b)=>b.priority-a.priority||a.title.localeCompare(b.title)).slice(0,24);"
+          new = "const all=[...unique.values()].sort((a,b)=>b.priority-a.priority||a.title.localeCompare(b.title)),actionable=all.filter(card=>!['Save for Later','Not This Season'].includes(card.group)).slice(0,16),later=all.filter(card=>card.group==='Save for Later').slice(0,4),rejected=all.filter(card=>card.group==='Not This Season').slice(0,4),ordered=[...actionable,...later,...rejected];"
+          if old not in text:
+              raise SystemExit('Expected recommendation selection line was not found')
+          source.write_text(text.replace(old,new))
+          PY
+      - name: Commit fix
+        run: |
+          if git diff --quiet; then exit 0; fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add src/plantingDesk.js
+          git commit -m "Keep rejected planting opportunities visible"
+          git push origin HEAD:agent/phase-4-4a-weather-intelligence
