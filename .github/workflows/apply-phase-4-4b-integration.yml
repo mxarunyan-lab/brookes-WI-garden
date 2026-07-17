@@ -1,0 +1,104 @@
+name: Apply Phase 4.4B integration
+
+on:
+  push:
+    branches: [agent/phase-4-4b-weather-decisions]
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: agent/phase-4-4b-weather-decisions
+      - name: Integrate weather decisions
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+
+          def replace_required(text, old, new, label):
+              if old not in text:
+                  raise SystemExit(f'Missing expected text for {label}')
+              return text.replace(old, new, 1)
+
+          # App integration and persisted recommendation history.
+          path=Path('src/App.jsx')
+          text=path.read_text()
+          text=replace_required(text,"import{gardenWeatherAlert,useGreenBayWeather}from'./weather.js';","import{gardenWeatherAlert,useGreenBayWeather}from'./weather.js';\nimport{buildWeatherDecisionEngine,createWeatherRecommendationDecision}from'./weatherDecisionEngine.js';",'App weather decision import')
+          text=replace_required(text,"shoppingItems:garden.shoppingItems||[],yearPlan:garden.yearPlan||{crops:[]}","shoppingItems:garden.shoppingItems||[],yearPlan:garden.yearPlan||{crops:[]},weatherRecommendationHistory:garden.weatherRecommendationHistory||[]",'App history normalization')
+          marker=" const recommendations=useMemo(()=>getCropRecommendations(new Date()),[])"
+          handler=" const handleWeatherDecision=(recommendation,status='dismissed')=>{const now=new Date().toISOString(),decision=createWeatherRecommendationDecision(recommendation,status,actor,new Date(now)),affected=new Set(recommendation.affectedPlants||[]);setGarden(current=>{const plants=status==='watered'?current.plants.map(plant=>affected.has(plant.id)?touchRecord({...plant,lastWatered:now,lastSoilCheck:now,moisture:'unknown'},actor):plant:current.plants,activity=activityEntry({type:'weather-decision',title:`${status==='dismissed'?'Dismissed':status==='not-useful'?'Not useful':status==='watered'?'Watering handled':'Handled'}: ${recommendation.title}`,detail:[recommendation.category,recommendation.confidence,recommendation.source].filter(Boolean).join(' • ')});return{...current,plants,weatherRecommendationHistory:[decision,...(current.weatherRecommendationHistory||[])].slice(0,300),activity:[activity,...(current.activity||[])].slice(0,200)}});showToast(status==='dismissed'?'Weather recommendation dismissed.':status==='not-useful'?'Feedback saved.':status==='watered'?'Watering recorded.':'Weather action marked handled.')};\n"
+          text=replace_required(text,marker,handler+marker,'App weather decision handler')
+          old="activeGarden=useMemo(()=>({...garden,spaces:garden.spaces.filter(space=>!space.hidden&&!space.deletedAt),plants:garden.plants.filter(plant=>!plant.archived&&!plant.deletedAt)}),[garden]),tasks=useMemo(()=>buildYearRoundTasks({garden:activeGarden,weather:weatherState.weather,date:new Date()}),[activeGarden,weatherState.weather])"
+          new="activeGarden=useMemo(()=>({...garden,spaces:garden.spaces.filter(space=>!space.hidden&&!space.deletedAt),plants:garden.plants.filter(plant=>!plant.archived&&!plant.deletedAt)}),[garden]),weatherGuidance=useMemo(()=>buildWeatherDecisionEngine({garden:activeGarden,weather:weatherState.weather}),[activeGarden,weatherState.weather]),tasks=useMemo(()=>buildYearRoundTasks({garden:activeGarden,weather:weatherState.weather,weatherGuidance,date:new Date()}),[activeGarden,weatherState.weather,weatherGuidance])"
+          text=replace_required(text,old,new,'App decision calculation')
+          text=replace_required(text,"return buildYearRoundTasks({garden:activeGarden,weather:weatherState.weather,date}).filter", "return buildYearRoundTasks({garden:activeGarden,weather:weatherState.weather,weatherGuidance,date}).filter",'App tomorrow decisions')
+          text=replace_required(text,"[activeGarden,weatherState.weather]),timeline=", "[activeGarden,weatherState.weather,weatherGuidance]),timeline=",'App tomorrow dependency')
+          text=replace_required(text,"weatherState={weatherState} weatherAlert={weatherAlert} activity=", "weatherState={weatherState} weatherAlert={weatherAlert} weatherGuidance={weatherGuidance} onWeatherDecision={handleWeatherDecision} activity=",'Today guidance props')
+          path.write_text(text)
+
+          # Central engine drives Smart Watering and weather-generated chores.
+          path=Path('src/yearRoundEngine.js')
+          text=path.read_text()
+          text=replace_required(text,"import{hardeningWeatherAdvice,normalizeHardeningPlan}from'./seedToHarvest.js';","import{hardeningWeatherAdvice,normalizeHardeningPlan}from'./seedToHarvest.js';\nimport{buildWeatherDecisionEngine,wateringDecisionForPlant}from'./weatherDecisionEngine.js';",'year-round decision import')
+          start=text.index(" const soilReason=",text.index("function plantTasks"))
+          end=text.index(" if(['established','flowering','fruiting','harvesting','transplanted']",start)
+          watering=""" const waterDecision=wateringDecisionForPlant({plant,space,weather,now:now.getTime()});
+ if(waterDecision.actionKey==='water-now')out.push(task({id:`water-${plant.id}`,kind:'soil',taskType:'Water',plant,space,priority:waterDecision.priority,title:`Water ${plant.name}`,subtitle:`Water slowly at the root zone in ${place}, preferably during a cooler practical period.`,reason:waterDecision.explanation,weatherAdjusted:true,action:'Open'},now));
+ else if(['check-soil','delay-watering'].includes(waterDecision.actionKey))out.push(task({id:`soil-${plant.id}`,kind:'soil',taskType:'Check Moisture',plant,space,priority:waterDecision.priority,title:waterDecision.actionKey==='delay-watering'?`Reassess ${plant.name} after the rain window`:`Check ${plant.name} moisture`,subtitle:waterDecision.actionKey==='delay-watering'?`Forecast rain has not happened yet. Recheck the root zone in ${place} after the forecast period.`:`Check ${crop?.checkDepth||'about 1 inch'} down in ${place}. ${crop?.watering||'Water only when the root zone is becoming dry.'}`,reason:waterDecision.explanation,weatherAdjusted:true,action:'Check Soil'},now));
+"""
+          text=text[:start]+watering+text[end:]
+          old="function weatherTasks(weather,date){return buildGardenWeatherAlerts(weather,date).map(alert=>task({id:`weather-${alert.id}-${dateKey(date)}`,kind:'weather',taskType:alert.type,priority:alert.severity==='Urgent'?99:alert.severity==='High'?86:65,title:alert.type,subtitle:alert.what,reason:alert.why,when:alert.when,source:alert.source,weatherAlert:alert,weatherDriven:true,action:'Review'},date))}"
+          new="""const WEATHER_TASK_CATEGORIES=new Set(['frost','heat','wind','storm','heavy-rain','disease-risk']);
+function weatherTasks(weather,date,garden,guidance=null){const decisionSet=guidance||buildWeatherDecisionEngine({garden,weather,now:date.getTime()}),rows=(decisionSet.recommendations||[]).filter(row=>WEATHER_TASK_CATEGORIES.has(row.category)&&row.priority>=65);return rows.map(row=>{const plant=(garden.plants||[]).find(item=>row.affectedPlants?.includes(item.id)),space=(garden.spaces||[]).find(item=>row.affectedGrowingSpaces?.includes(item.id)),alert={id:row.recommendationId,type:row.title,severity:row.priority>=90?'Urgent':row.priority>=70?'High':'Normal',what:row.plainLanguageExplanation,why:row.recommendedAction,when:row.timing,source:row.source};return task({id:row.recommendationId,kind:'weather',taskType:row.category==='disease-risk'?'Inspect For Problems':row.title,plant,space,priority:row.priority,title:row.title,subtitle:row.plainLanguageExplanation,reason:row.recommendedAction,when:row.timing,source:row.source,weatherAlert:alert,weatherDriven:true,action:'Review'},date)})}"""
+          text=replace_required(text,old,new,'weather task bridge')
+          text=replace_required(text,"export function buildYearRoundTasks({garden,weather,date=new Date()}){", "export function buildYearRoundTasks({garden,weather,weatherGuidance=null,date=new Date()}){",'task builder signature')
+          text=replace_required(text,"tasks.push(...weatherTasks(weather,date),...manualTasks(garden,date),...seasonalTasks(garden,date));", "tasks.push(...weatherTasks(weather,date,garden,weatherGuidance),...manualTasks(garden,date),...seasonalTasks(garden,date));",'task builder decision tasks')
+          text=replace_required(text,"environmentalCorrections:garden.environmentalCorrections||[],environmentSchemaVersion:1,version:13", "environmentalCorrections:garden.environmentalCorrections||[],weatherRecommendationHistory:garden.weatherRecommendationHistory||[],environmentSchemaVersion:1,weatherDecisionSchemaVersion:1,version:14",'weather decision migration')
+          path.write_text(text)
+
+          # Planting Desk keeps seasonal logic and adds short-term readiness.
+          path=Path('src/plantingDesk.js')
+          text=path.read_text()
+          text=replace_required(text,"import { formatGardenDateRange, localDateInputValue } from './dateFormat.js';","import { formatGardenDateRange, localDateInputValue } from './dateFormat.js';\nimport { assessPlantingWeatherReadiness } from './weatherDecisionEngine.js';",'Planting Desk readiness import')
+          old="subtitle=guide.type&&title!==guide.type?guide.type:guide.use||crop.summary||'',weatherReason=weather?.signals?.poorPlantingWindow?.status?weather.signals.poorPlantingWindow.reason:'No major weather conflict is active in the available planting window.',risks="
+          new="subtitle=guide.type&&title!==guide.type?guide.type:guide.use||crop.summary||'',weatherReadiness=assessPlantingWeatherReadiness({method:action.method,cropId:crop.id,seasonallySuitable:action.realistic,weather}),weatherReason=weatherReadiness.explanation,risks="
+          text=replace_required(text,old,new,'Planting Desk readiness calculation')
+          text=replace_required(text,"commonUse:guide.use||crop.summary||'',spaces,weatherNote:weatherReason", "commonUse:guide.use||crop.summary||'',spaces,weatherReadiness,weatherNote:weatherReason",'Planting Desk readiness field')
+          path.write_text(text)
+
+          path=Path('src/PlanPlantHub.jsx')
+          text=path.read_text()
+          text=replace_required(text,"<div className=\"recommendation-status-line\"><strong>{card.status}</strong><span>{card.confidence} confidence</span></div>","<div className=\"recommendation-status-line\"><strong>{card.status}</strong><span>{card.weatherReadiness?.status||'Recheck forecast soon'} · {card.weatherReadiness?.confidence||card.confidence} confidence</span></div>",'Planting Desk readiness display')
+          path.write_text(text)
+
+          # Release metadata, cache, and version.
+          path=Path('package.json');text=path.read_text();text=replace_required(text,'\"version\": \"0.16.0\"','\"version\": \"0.17.0\"','package version');path.write_text(text)
+          path=Path('public/sw.js');text=path.read_text();text=replace_required(text,"brookes-garden-v44a","brookes-garden-v44b",'service worker cache');path.write_text(text)
+          path=Path('src/version.js');text=path.read_text();text=text.replace("APP_VERSION='0.16.0'","APP_VERSION='0.17.0'").replace("BUILD_ID='phase-4-4a-weather-intelligence'","BUILD_ID='phase-4-4b-weather-decisions'");start=text.index('export const WHATS_NEW=[');text=text[:start]+"""export const WHATS_NEW=[
+ 'Garden weather now interprets conditions for the actual plants and Growing Spaces instead of only displaying measurements',
+ 'Today prioritizes the one to three most useful weather decisions and keeps confidence, source, freshness, affected plants, and the reason available in compact details',
+ 'Smart Watering now combines observed rain, forecast rain, heat, wind, containers, protected spaces, recent watering, plant stage, and stale-data safeguards',
+ 'Forecast rain is never counted as completed watering, low rain probability does not cancel watering, and uncertain evidence becomes Check Soil rather than a false definite answer',
+ 'Frost and freeze guidance excludes indoor plants, distinguishes tender and cold-tolerant crops, and respects recorded protection',
+ 'Heat, wind, storm, heavy-rain, greenhouse, and damp-weather risk guidance now produces stable garden actions without duplicating official emergency alerts',
+ 'Planting Desk keeps its seasonal recommendation and adds a separate short-term weather readiness label such as Good conditions, Acceptable with caution, Delay, or Recheck forecast soon',
+ 'Weather recommendations can be dismissed, marked handled, recorded as already watered, or marked not useful without immediately returning unchanged',
+ 'Upcoming weather is grouped into a compact preparation view instead of creating one card for every forecast day',
+ 'The app remains fully useful with public weather data alone; live Sainlogic and Weather Underground integration remains deferred'
+];
+""";path.write_text(text)
+
+          Path('.github/workflows/apply-phase-4-4b-integration.yml').unlink()
+          PY
+      - name: Commit integration
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add src/App.jsx src/yearRoundEngine.js src/plantingDesk.js src/PlanPlantHub.jsx src/version.js package.json public/sw.js .github/workflows/apply-phase-4-4b-integration.yml
+          git commit -m "Integrate Phase 4.4B weather decisions"
+          git push origin HEAD:agent/phase-4-4b-weather-decisions
