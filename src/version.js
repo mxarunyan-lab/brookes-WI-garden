@@ -1,14 +1,17 @@
-export const APP_VERSION='0.15.4';
-export const BUILD_ID='phase-4-3-visual-standardization';
-export const UPDATED_AT='July 18, 2026';
+export const APP_VERSION='0.16.0';
+export const BUILD_ID='phase-4-4a-weather-intelligence';
+export const UPDATED_AT='July 17, 2026';
 export const WHATS_NEW=[
- 'Secondary screens now share the atmospheric Runyan Garden visual system without changing their content, order, destinations, or behavior',
- 'Runyan Garden Center and Tool Shed now use richer dark-green contour backgrounds, dimensional cards, and unified icon tiles while retaining every current department and utility',
- 'More and all focused settings screens now use the same premium hero, warm cream surfaces, typography, form controls, and button treatment',
- 'Garden Chore Board, Planting Desk, and Garden Shopping List now use unified card depth, filters, badges, buttons, empty states, and outdoor-readable contrast',
- 'Plant Labels, Printable Garden Pack, and all Tool Shed calculators now share consistent focused heroes, form cards, result cards, controls, and safe-area spacing',
- 'The shared secondary-screen system now defines semantic Runyan colors, shadows, radii, icon badges, typography, buttons, form controls, and mobile spacing',
- 'Today and Runyan Garden remain visually and functionally unchanged',
- 'All existing plants, Growing Spaces, Seed Inventory, tasks, recommendations, shopping items, weather, Smart Watering, QR links, PDFs, calculations, settings, and histories remain intact',
- 'Offline cache v43 refreshes installed copies with the Phase 4.3 visual standardization'
+ 'One unified garden weather system now separates observed conditions, forecasts, home-monitor corrections, and cautious estimates',
+ 'National Weather Service KGRB observations, hourly and daily forecasts, rainfall, and alerts now pass through one normalized provider adapter, with Open-Meteo retained as a labeled fallback',
+ 'Record rain at home now supports precise decimal inches, measurement time, optional temperature, source, notes, correction history, editing, and removal',
+ 'Smart Watering now applies effective rain by Growing Space: exposed beds receive rain credit, partial cover receives reduced credit, and indoor or protected greenhouse spaces receive none',
+ 'Forecast rain may cautiously delay watering but never marks watering complete; stale weather changes advice to a lower-confidence soil check',
+ 'The Chore Board can change Water to Check Soil, create frost, heat, wind, drainage, greenhouse-ventilation, spraying-delay, and fertilizing-delay tasks, and explain why the plan changed',
+ 'Planting Desk recommendations now identify the specific crop type, present action, direct sow versus transplant, shopping traits, example varieties when curated, Green Bay fit, Growing Space fit, harvest timing, weather risk, and realistic failure conditions',
+ 'Planting opportunities are organized into compact collapsible action groups such as Direct Sow, Start Indoors, Buy Transplants, Perennials and Plants, Save for Later, and Not This Season',
+ 'The large owned-seed explanation card was removed; owned packets still take priority only when they are a realistic fit',
+ 'User-facing planting and weather dates use MM-DD-YYYY while stored dates remain ISO for sorting and future household sync',
+ 'A dormant personal-weather-station adapter is ready for Phase 4.4B; no Sainlogic or Weather Underground connection is active and no credentials are stored in the app',
+ 'Today and The Runyan Garden retain their approved layout and visual system'
 ];
