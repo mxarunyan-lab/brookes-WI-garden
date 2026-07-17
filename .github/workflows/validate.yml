@@ -22,4 +22,16 @@ jobs:
       - name: Install dependencies
         run: npm install
       - name: Build production app
-        run: npm run build
+        id: production_build
+        continue-on-error: true
+        run: npm run build > build.log 2>&1
+      - name: Upload build log
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: production-build-log
+          path: build.log
+          retention-days: 2
+      - name: Fail when production build failed
+        if: steps.production_build.outcome == 'failure'
+        run: exit 1
