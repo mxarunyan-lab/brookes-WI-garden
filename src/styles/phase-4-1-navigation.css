@@ -88,16 +88,29 @@
 .more-group{display:grid;gap:9px;margin-bottom:19px}
 .more-link-row{min-height:76px!important;grid-template-columns:44px minmax(0,1fr) 18px!important}
 .more-link-row>span:nth-child(2){min-width:0}
-.more-link-row strong{word-break:normal;overflow-wrap:break-word}
-.more-link-row small{word-break:normal;overflow-wrap:break-word}
+.more-link-row strong{color:var(--green-900)!important;word-break:normal;overflow-wrap:break-word}
+.more-link-row small{color:#5d685f!important;word-break:normal;overflow-wrap:break-word}
 .current-quick-help{margin-bottom:0}
 
 .garden-center-header h1{max-width:360px}
 .garden-center-content{gap:12px}
 .department-copy{min-width:0}
 .garden-center-department strong,.garden-center-department small,.garden-center-department em{word-break:normal;overflow-wrap:break-word}
+.garden-center-department:active{transform:translateY(1px);filter:brightness(.97)}
 
 .seed-tools-header h1,.label-counter-header h1{max-width:340px}
+.seed-status-badge{display:inline-flex;align-items:center;justify-content:center;max-width:132px;padding:6px 8px;border-radius:999px;font-size:9px!important;font-style:normal!important;font-weight:850;line-height:1.15;text-align:center;white-space:normal}
+.seed-status-badge.owned{background:#dcebdc;color:#1b603d}
+.seed-status-badge.needed{background:#fff0c7;color:#85570d}
+.grow-now-card.is-owned{border-color:#b8d1ba;background:#fbfff8}
+.grow-now-card.is-purchase{border-color:#e2c676;background:#fffaf0}
+.grow-now-card.is-purchase .planting-card-actions button:not(.primary-button){color:#694a15;border-color:#dbc68e;background:#fff8e5}
+.grow-now-card.is-purchase .primary-button{background:#8a5d11;color:#fff}
+
+.settings-back{position:absolute;left:18px;top:20px;z-index:5}
+.visually-hidden-input{position:absolute!important;width:1px!important;height:1px!important;padding:0!important;margin:-1px!important;overflow:hidden!important;clip:rect(0,0,0,0)!important;white-space:nowrap!important;border:0!important}
+.restore-message{margin:4px 0 0;padding:10px;border-radius:10px;background:#e9f0e5;color:#31543c;font-size:11px;line-height:1.4}
+.profile-form-wrap{padding-bottom:calc(112px + env(safe-area-inset-bottom))}
 
 @media(max-width:360px){
  .bottom-nav{padding-left:1px!important;padding-right:1px!important}
@@ -107,6 +120,7 @@
  .tool-card-icon{width:40px;height:40px}
  .tool-card-copy strong{font-size:16px}
  .tool-card-copy small{font-size:10.5px}
+ .seed-status-badge{max-width:112px;font-size:8.5px!important}
 }
 
 @media(max-width:330px){
