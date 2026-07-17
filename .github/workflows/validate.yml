@@ -26,8 +26,8 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git status --short | tee -a patch.log
-          git add src/weatherDecisionEngine.js src/yearRoundEngine.js test/weatherDecisionEngine.test.js .github/scripts/fix_phase_4_4b.py
-          git commit -m "Fix Phase 4.4B weather decision validation" 2>&1 | tee push.log
+          git add src/App.jsx src/weatherDecisionEngine.js src/yearRoundEngine.js test/weatherDecisionEngine.test.js .github/scripts/fix_phase_4_4b.py
+          git commit -m "Fix Phase 4.4B production build" 2>&1 | tee push.log
           git push origin HEAD:agent/phase-4-4b-weather-decisions 2>&1 | tee -a push.log
       - name: Upload patch diagnostics
         if: always()
