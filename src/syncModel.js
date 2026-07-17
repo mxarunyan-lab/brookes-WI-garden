@@ -5,8 +5,8 @@ const stampRecord=(record,actor='System')=>{const createdAt=record.createdAt||re
 
 export function prepareGardenForSync(garden){
  const actor=garden.profile?.gardenerName||'System';
- const collections=['spaces','plants','activity','seeds','seedPackets','harvests','problems','succession','trays','growLights','hardeningPlans','hydroPods','greenhouseReadings'];
- const prepared={...garden,schemaVersion:6,updatedAt:garden.updatedAt||nowIso()};
+ const collections=['spaces','plants','activity','seeds','seedPackets','harvests','problems','succession','trays','growLights','hardeningPlans','hydroPods','greenhouseReadings','reminders','taskHistory'];
+ const prepared={...garden,schemaVersion:7,updatedAt:garden.updatedAt||nowIso()};
  collections.forEach(key=>{prepared[key]=(garden[key]||[]).map(record=>stampRecord(record,actor))});
  prepared.spaces=prepared.spaces.map(space=>normalizeSpaceIntelligence(space));
  prepared.plants=prepared.plants.map(plant=>({...plant,stage:normalizeLifecycleStage(plant.stage),stageHistory:normalizeStageHistory(plant,actor),spaceId:plant.spaceId||''}));
