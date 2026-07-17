@@ -1,15 +1,16 @@
-export const APP_VERSION='0.12.15';
-export const BUILD_ID='nws-rain-unit-correction';
+export const APP_VERSION='0.13.0';
+export const BUILD_ID='garden-intelligence-foundation';
 export const UPDATED_AT='July 17, 2026';
 export const WHATS_NEW=[
- 'NWS precipitation measurements now use their reported unit codes instead of assuming meters',
- 'KGRB millimeter rainfall is converted correctly to inches',
- 'Impossible rainfall totals above 10 inches are rejected from automated garden guidance',
- 'The corrupted 78.74-inch weather cache and rain hold are discarded automatically',
- 'Weather and rain-hold storage use fresh schemas so poisoned values cannot survive the update',
- 'Home rain-gauge entries are validated before they can create a watering hold',
- 'National Weather Service remains the primary source for ZIP 54302 with Open-Meteo as labeled fallback',
- 'Recent rain continues to suppress routine outdoor watering and soil-check tasks',
- 'QR & Label Studio remains the PDF-only physical label workflow',
- 'Offline cache v32 refreshes installed iPhone copies with the rainfall-unit correction'
+ 'Garden Intelligence now tracks a complete plant lifecycle from Planned through Finished',
+ 'Existing plant records are migrated into the expanded lifecycle without losing their current stage, location, notes, or care history',
+ 'Every lifecycle change can record the date entered, a note, and an optional photo',
+ 'The Plant Control Center now includes a Journey view combining stage history, completed care activity, harvests, problems, notes, and photos chronologically',
+ 'Plants remain linked to the existing named growing-space records instead of using a second location system',
+ 'New growing-space types include raised beds, in-ground beds, container planters, potato grow bags, seed trays, indoor plant areas, and greenhouse spaces',
+ 'Growing spaces can now capture soil, drainage, mulch, irrigation, sun exposure, container construction, and potato grow-bag hilling details where relevant',
+ 'The existing planning timeline now understands lifecycle history and the expanded stage names',
+ 'The existing reminder engine now recognizes early-stage, fruiting, harvesting, indoor, and recent-rain conditions without replacing weather or task systems',
+ 'Sync-ready records now use schema version 6 so future weather, watering, pruning, fertilizing, and harvest prediction systems can extend the same data model',
+ 'Offline cache v33 refreshes installed copies with the Garden Intelligence foundation'
 ];
