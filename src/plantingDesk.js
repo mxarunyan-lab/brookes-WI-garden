@@ -102,7 +102,7 @@ function recommendationCard(packet,recommendation,garden,weather){
  else if(Number(weather?.high)>=92)uncertainty.push('Current heat may make transplanting risky.');
  else if(Number(weather?.low)<=36)uncertainty.push('Cold conditions may delay outdoor planting.');
  return{
-  id:subjectKey,subjectKey,source:packet.exactPacket?'owned-packet':'owned-seed-record',owned:true,packet,crop,cropName:packet.name||crop?.name||'Saved seed',variety:packet.variety||crop?.variety||'',brand:packet.brand||'',title:[packet.brand,packet.variety||packet.name].filter(Boolean).join(' ')||packet.name||'Saved seed',quantity:packet.quantityAvailable,mode,timing:packet.plantingWindow||packet.startingWindow||recommendation?.timing||recommendation?.status||'Timing needs confirmation',reason:packet.notes||recommendation?.note||crop?.summary||'This seed is already owned.',uncertainty:uncertainty.join(' ')||'Exact packet and saved garden information were used.',spaces,spaceWarning:spaces.length?'':'No clearly suitable saved growing space is available.',oldPacket,germinationTest:oldPacket,decision,strongNow:Boolean(mode)&&isStrongNow(mode,recommendation)&&!oldPacket,
+  id:subjectKey,subjectKey,source:packet.exactPacket?'owned-packet':'owned-seed-record',owned:true,packet,crop,cropId:packet.cropId,cropName:packet.name||crop?.name||'Saved seed',variety:packet.variety||crop?.variety||'',brand:packet.brand||'',title:[packet.brand,packet.variety||packet.name].filter(Boolean).join(' ')||packet.name||'Saved seed',quantity:packet.quantityAvailable,mode,timing:packet.plantingWindow||packet.startingWindow||recommendation?.timing||recommendation?.status||'Timing needs confirmation',reason:packet.notes||recommendation?.note||crop?.summary||'This seed is already owned.',uncertainty:uncertainty.join(' ')||'Exact packet and saved garden information were used.',spaces,spaceWarning:spaces.length?'':'No clearly suitable saved growing space is available.',oldPacket,germinationTest:oldPacket,decision,strongNow:Boolean(mode)&&isStrongNow(mode,recommendation)&&!oldPacket,
  };
 }
 
@@ -131,8 +131,10 @@ export function buildPlanAheadRecommendations({garden,recommendations=[],weather
  const byId=new Map(recommendations.map(item=>[item.id,item])),decisions=decisionMap(garden),items=[];
  seedInventory(garden).forEach(packet=>{
   const card=recommendationCard(packet,byId.get(packet.cropId),garden,weather),decision=decisions.get(card.subjectKey);
-  if(decision?.decision==='not-this-season'||packetAlreadyStarted(garden,packet)||card.strongNow)return;
+  if(decision?.decision==='not-this-season'||packetAlreadyStarted(garden,packet))return;
   if(decision?.decision==='later'&&decision.dueDate){items.push({...card,date:decision.dueDate,windowLabel:'Confirmed',timing:`Scheduled for ${decision.dueDate}`,reason:decision.note||card.reason});return}
+  if(card.strongNow)return;
+  if(card.oldPacket&&(garden.reminders||[]).some(reminder=>!reminder.deletedAt&&reminder.enabled!==false&&reminder.title===`Test germination: ${card.title}`))return;
   if(card.oldPacket){items.push({...card,date:addDays(todayKey(),7),mode:'Germination Test',windowLabel:'Suggested',timing:'Within the next week',reason:'This owned packet is old enough that a germination test is recommended before relying on it.'});return}
   const window=nextWindow(packet.cropId);items.push({...card,date:window.start,windowEnd:window.end,windowLabel:'Estimated',timing:`${window.start}–${window.end}`,reason:window.reason});
  });
