@@ -1,0 +1,89 @@
+import{getCropProfile,newId}from'./data.js';
+
+const DAY=86400000;
+const LEAF_ROOT=new Set(['lettuce','spinach','kale','radish','carrot','onion','green-onion','cabbage','broccoli','cauliflower']);
+const REPEAT_HARVEST=new Set(['tomato','bell-pepper','hot-pepper','cucumber','zucchini','green-bean','peas','lettuce','spinach','kale','basil','parsley','cilantro','dill','strawberry']);
+const DEFAULT_PATH=['Planned','Seed Purchased','Seed Started','Germinating','Seedling','Potted Up','Hardening Off','Transplanted','Established','Flowering','Fruiting','Harvesting','Finished'];
+const DIRECT_PATH=['Planned','Seed Purchased','Seed Started','Germinating','Seedling','Established','Harvesting','Finished'];
+
+const iso=value=>{const d=value?new Date(value):new Date();return Number.isNaN(d.getTime())?new Date().toISOString():d.toISOString()};
+const dateKey=value=>iso(value).slice(0,10);
+const addDays=(value,days)=>{const d=new Date(`${dateKey(value)}T12:00:00`);d.setDate(d.getDate()+Number(days||0));return d.toISOString().slice(0,10)};
+const firstNumber=value=>{const match=String(value??'').match(/\d+/);return match?Number(match[0]):null};
+const range=value=>{const nums=String(value??'').match(/\d+/g)?.map(Number)||[];return nums.length?[nums[0],nums[1]||nums[0]]:[null,null]};
+const actualStageDate=(plant,stages)=>{const rows=(plant.stageHistory||[]).filter(row=>stages.includes(row.stage)).sort((a,b)=>String(a.enteredAt).localeCompare(String(b.enteredAt)));return rows[0]?.enteredAt?.slice(0,10)||''};
+
+export function packetForPlant(garden={},plant={}){
+ const id=plant.sourcePacketId||plant.seedId||plant.packetId||'';
+ if(!id)return null;
+ return(garden.seedPackets||[]).find(packet=>packet.id===id&&!packet.deletedAt)||(garden.seeds||[]).find(packet=>packet.id===id&&!packet.deletedAt)||null;
+}
+
+export function packetDisplayName(packet,plant={}){
+ if(!packet)return plant.variety||plant.cropName||plant.name||'Packet not linked';
+ return[packet.brand,packet.variety||packet.name].filter(Boolean).join(' ')||packet.name||plant.variety||plant.name;
+}
+
+export function availablePacketQuantity(packet={}){
+ const quantity=Number(packet.quantity??packet.seedsRemaining??0)||0,reserved=Number(packet.reservedQuantity??packet.reserved??0)||0;
+ return Math.max(0,quantity-reserved);
+}
+
+export function lifecyclePathForPlant(plant={}){
+ const crop=getCropProfile(plant.cropId),id=crop?.id||plant.cropId;
+ if(LEAF_ROOT.has(id))return DIRECT_PATH;
+ if(crop?.family==='flowers')return['Planned','Seed Purchased','Seed Started','Germinating','Seedling','Potted Up','Hardening Off','Transplanted','Established','Flowering','Dormant','Finished'];
+ return DEFAULT_PATH;
+}
+
+export function nextLifecycleStage(plant={}){
+ const path=lifecyclePathForPlant(plant),index=path.indexOf(plant.stage);
+ if(['Failed','Removed','Finished'].includes(plant.stage))return'';
+ return index>=0&&index<path.length-1?path[index+1]:'';
+}
+
+function estimate(existing,key,original,current,actual,source){
+ const prior=existing?.[key]||{};
+ return{packet:prior.packet||original||'',original:prior.original||original||'',current:prior.current||current||original||'',actual:prior.actual||actual||'',source:prior.source||source||'General crop estimate',status:prior.actual||actual?'Confirmed':prior.current||current||original?'Estimated':'Suggested',updatedAt:prior.updatedAt||new Date().toISOString()};
+}
+
+export function buildPlantEstimates(plant={},packet=null){
+ const existing=plant.estimates||{},base=plant.plantedAt||actualStageDate(plant,['Seed Started'])||plant.createdAt||new Date().toISOString(),[gMin,gMax]=range(packet?.germinationEstimate||packet?.germinationDays||packet?.germination),germMin=gMin||7,germMax=gMax||14,daysToMaturity=firstNumber(packet?.daysToMaturity)||firstNumber(plant.daysToMaturity)||75,basis=String(packet?.maturityBasis||packet?.maturityMeasuredFrom||'').toLowerCase(),transplantBase=actualStageDate(plant,['Transplanted'])||addDays(base,56),maturityBase=basis.includes('transplant')?transplantBase:base,repeat=REPEAT_HARVEST.has(plant.cropId),firstHarvest=addDays(maturityBase,daysToMaturity),harvestEnd=addDays(firstHarvest,repeat?42:14);
+ return{
+  germination:estimate(existing,'germination',`${addDays(base,germMin)}–${addDays(base,germMax)}`,addDays(base,germMin),actualStageDate(plant,['Germinating','Seedling']),packet?.germinationEstimate?'Exact packet':'Estimated from planting date'),
+  transplant:estimate(existing,'transplant',packet?.transplantWindow||addDays(base,56),packet?.transplantWindow||addDays(base,56),actualStageDate(plant,['Transplanted']),packet?.transplantWindow?'Exact packet':'Variety/crop estimate'),
+  flowering:estimate(existing,'flowering',addDays(transplantBase,35),addDays(transplantBase,35),actualStageDate(plant,['Flowering']),'Variety/crop estimate'),
+  maturity:estimate(existing,'maturity',firstHarvest,firstHarvest,actualStageDate(plant,['Fruiting','Harvesting']),packet?.daysToMaturity?'Exact packet days to maturity':'General crop estimate'),
+  harvest:estimate(existing,'harvest',`${firstHarvest}–${harvestEnd}`,`${firstHarvest}–${harvestEnd}`,actualStageDate(plant,['Harvesting']),packet?.daysToMaturity?'Exact packet maturity plus harvest pattern':'General crop estimate'),
+ };
+}
+
+export function normalizePlantSeedToHarvest(plant={},garden={}){
+ const packet=packetForPlant(garden,plant),path=lifecyclePathForPlant(plant);
+ return{...plant,sourcePacketId:plant.sourcePacketId||plant.seedId||'',seedsUsed:Math.max(0,Number(plant.seedsUsed??plant.quantityStarted??plant.quantity??1)||0),seedCountType:plant.seedCountType||'exact',packetSnapshot:plant.packetSnapshot||packet?{id:packet?.id||'',name:packetDisplayName(packet,plant),brand:packet?.brand||'',variety:packet?.variety||plant.variety||'',packetYear:packet?.packetYear||'',daysToMaturity:packet?.daysToMaturity||null}:null,lifecyclePath:plant.lifecyclePath?.length?plant.lifecyclePath:path,estimates:buildPlantEstimates(plant,packet),harvestPattern:plant.harvestPattern||{type:REPEAT_HARVEST.has(plant.cropId)?'repeat':'one-time',firstHarvest:'',lastHarvest:''}};
+}
+
+export function createSeedUsageEntry({packetId,plantId,quantity,countType='exact',actor='System',note=''}){
+ const now=new Date().toISOString();return{id:newId('seed-usage'),packetId,plantId,quantity:Math.max(0,Number(quantity)||0),countType,note,at:now,actor,createdAt:now,updatedAt:now,createdBy:actor,updatedBy:actor,revision:1,deletedAt:null};
+}
+
+export function daysSincePlanting(plant={}){
+ const start=plant.plantedAt||actualStageDate(plant,['Seed Started'])||plant.createdAt;if(!start)return null;
+ return Math.max(0,Math.floor((Date.now()-new Date(start).getTime())/DAY));
+}
+
+export function normalizeHardeningPlan(plan={},plant={}){
+ const now=new Date().toISOString();return{...plan,id:plan.id||newId('hardening'),plantId:plan.plantId||plant.id||'',plantName:plan.plantName||plant.name||'',day:Math.min(7,Math.max(1,Number(plan.day)||1)),status:plan.status||(plan.complete?'complete':'active'),complete:Boolean(plan.complete),pausedAt:plan.pausedAt||'',weatherDelayUntil:plan.weatherDelayUntil||'',history:Array.isArray(plan.history)?plan.history:[],createdAt:plan.createdAt||now,updatedAt:plan.updatedAt||plan.createdAt||now};
+}
+
+export function hardeningWeatherAdvice(weather={}){
+ if(weather.isStormingNow)return{safe:false,label:'Weather delay',reason:'Storms make outdoor exposure unsafe. Keep today’s progress and resume after conditions settle.'};
+ if(Number(weather.wind)>=20)return{safe:false,label:'Weather delay',reason:`Wind near ${weather.wind} mph can damage tender seedlings.`};
+ if(Number(weather.high)>=92)return{safe:false,label:'Weather delay',reason:`A high near ${weather.high}° can overheat seedlings during exposure.`};
+ if(Number(weather.low)<=40)return{safe:false,label:'Weather delay',reason:`A low near ${weather.low}° is too cold for many tender seedlings.`};
+ return{safe:true,label:'Continue today',reason:'Current weather does not trigger a hardening-off safety delay.'};
+}
+
+export function hardeningHistoryEntry(action,day,actor='System',note=''){
+ return{id:newId('hardening-event'),action,day,at:new Date().toISOString(),actor,note};
+}
