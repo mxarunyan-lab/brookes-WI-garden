@@ -40,8 +40,9 @@ async function noOverflow(page,label){
 }
 
 async function bottomClearance(page,label){
+ await page.evaluate(()=>window.scrollTo(0,document.documentElement.scrollHeight));
+ await page.waitForTimeout(80);
  const result=await page.evaluate(()=>{
-  window.scrollTo(0,document.documentElement.scrollHeight);
   const nav=document.querySelector('.bottom-nav');
   const main=document.querySelector('main');
   if(!nav||!main)return{ok:false,reason:'missing main or nav'};
@@ -52,7 +53,7 @@ async function bottomClearance(page,label){
   const last=items.at(-1);
   if(!last)return{ok:true,reason:'no interactive content'};
   const rect=last.getBoundingClientRect(),navRect=nav.getBoundingClientRect();
-  return{ok:rect.bottom<=navRect.top+1,lastBottom:rect.bottom,navTop:navRect.top,lastText:(last.textContent||last.getAttribute('aria-label')||'').trim().slice(0,80)};
+  return{ok:rect.bottom<=navRect.top+1,lastBottom:rect.bottom,navTop:navRect.top,scrollY:window.scrollY,scrollHeight:document.documentElement.scrollHeight,lastText:(last.textContent||last.getAttribute('aria-label')||'').trim().slice(0,80)};
  });
  if(!result.ok)throw new Error(`${label}: final action may be hidden by navigation ${JSON.stringify(result)}`);
 }
