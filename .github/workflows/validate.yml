@@ -9,7 +9,7 @@ permissions:
   contents: read
 
 jobs:
-  build:
+  test-and-build:
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
@@ -21,6 +21,8 @@ jobs:
           node-version: 22
       - name: Install dependencies
         run: npm install
+      - name: Run environmental and planting tests
+        run: npm test
       - name: Build production app
         id: production_build
         continue-on-error: true
