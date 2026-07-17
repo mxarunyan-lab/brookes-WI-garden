@@ -25,7 +25,7 @@ function PlantingActionCard({item,garden,setModal,updatePlantStage,scheduleSucce
  const plant=garden.plants.find(entry=>entry.id===item.plantId)||item.task?.plant,space=item.task?.space||garden.spaces.find(entry=>entry.id===plant?.spaceId),hardening=(garden.hardeningPlans||[]).find(plan=>plan.plantId===plant?.id&&!plan.deletedAt&&!plan.complete),finishedHardening=(garden.hardeningPlans||[]).some(plan=>plan.plantId===plant?.id&&!plan.deletedAt&&plan.complete),baseLabel=plantingActionLabel(item,plant),label=plant?.stage==='Hardening Off'&&!hardening?(finishedHardening?'Mark as Transplanted':'Begin Hardening Off'):baseLabel,subjectKey=item.subjectKey||item.id;
  const act=()=>{
   if(item.type==='task'){
-   if(item.task?.taskType==='Harden Off'&&plant){if(hardening)advanceHardening(hardening.id);else startHardening(plant.id);onTaskStatus(item.task,'done');return}
+   if(item.task?.taskType==='Harden Off'&&plant){if(finishedHardening)updatePlantStage(plant.id);else if(hardening)advanceHardening(hardening.id);else startHardening(plant.id);onTaskStatus(item.task,'done');return}
    onOpenTask(item.task);return;
   }
   if(item.type==='succession'&&plant){scheduleSuccession(plant.id,true);completePlanItem(item);return}
