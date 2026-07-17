@@ -3,6 +3,7 @@ import ReactDOM from 'react-dom/client';
 import App from './App.jsx';
 import { DEFAULT_PROFILES, ProfileChooser } from './RunyanProfiles.jsx';
 import './styles.css';
+import './legacyQrFocus.js';
 
 const ACTIVE_PROFILE_KEY = 'runyan-garden-active-profile';
 const GARDEN_KEY = 'brookes-garden-state-v2';
