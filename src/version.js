@@ -1,6 +1,6 @@
 export const APP_VERSION='0.15.4';
 export const BUILD_ID='phase-4-3-visual-standardization';
-export const UPDATED_AT='July 17, 2026';
+export const UPDATED_AT='July 18, 2026';
 export const WHATS_NEW=[
  'Secondary screens now share the atmospheric Runyan Garden visual system without changing their content, order, destinations, or behavior',
  'Runyan Garden Center and Tool Shed now use richer dark-green contour backgrounds, dimensional cards, and unified icon tiles while retaining every current department and utility',
