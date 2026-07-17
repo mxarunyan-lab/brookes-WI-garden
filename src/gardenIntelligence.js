@@ -18,13 +18,17 @@ export const PLANT_LIFECYCLE_STAGES = [
 ];
 
 export const GROWING_SPACE_TYPES = [
-  { value: 'bed', label: 'Raised Bed' },
+  { value: 'black-square-bed', label: 'Black Square Raised Bed' },
+  { value: 'white-oval-bed', label: 'White Rounded Raised Bed' },
+  { value: 'bed', label: 'Other Raised Bed' },
   { value: 'in-ground', label: 'In Ground Bed' },
   { value: 'container', label: 'Container Planter' },
   { value: 'potato-grow-bag', label: 'Potato Grow Bag' },
   { value: 'seed-tray', label: 'Seed Tray' },
   { value: 'indoor', label: 'Indoor Plant Area' },
+  { value: 'basement', label: 'Basement Growing Area' },
   { value: 'greenhouse', label: 'Greenhouse Space' },
+  { value: 'hydro', label: 'Hydroponics' },
 ];
 
 const LEGACY_STAGE_MAP = {
