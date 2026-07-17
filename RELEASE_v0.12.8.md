@@ -13,3 +13,5 @@
 
 Build: full-visual-qa-unification
 Offline cache: v24
+
+Deployment retrigger: latest v0.12.9 code on July 16, 2026.
