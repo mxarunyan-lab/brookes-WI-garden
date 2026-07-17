@@ -1,0 +1,10 @@
+/* Weather freshness states */
+.weather-freshness{display:block;margin-top:3px;font-size:8px;font-style:normal;font-weight:800;letter-spacing:.04em;text-transform:uppercase;color:#637067}
+.weather-is-stale{border-color:#c64231!important}
+.weather-is-stale .weather-freshness{color:#a73327}
+.weather-stale-warning{grid-column:1/-1;display:flex;align-items:flex-start;gap:9px;margin-top:10px;padding:10px 11px;border-radius:11px;background:#fff0ec;color:#7e241c;border:1px solid #e4a59d}
+.weather-stale-warning>svg{width:19px;height:19px;flex:0 0 auto}
+.weather-stale-warning span{display:grid;gap:2px}
+.weather-stale-warning strong{font-size:11px}
+.weather-stale-warning small{font-size:9px;line-height:1.35}
+.compact-weather-line.weather-is-stale .compact-weather-message{display:none}
