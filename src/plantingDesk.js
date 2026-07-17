@@ -4,6 +4,7 @@ const DAY=86400000;
 const DIRECT_SOW_IDS=new Set(['lettuce','spinach','kale','radish','peas','carrot','corn','green-bean','cucumber','zucchini','winter-squash','pumpkin','green-onion','cilantro','dill','parsley']);
 const LARGE_CROP_IDS=new Set(['corn','cucumber','zucchini','winter-squash','pumpkin']);
 const COOL_FALL_IDS=new Set(['lettuce','spinach','kale','radish','carrot','peas','cabbage','broccoli','cauliflower']);
+const FALL_INDOOR_IDS=new Set(['cabbage','broccoli','cauliflower']);
 const WARM_START_IDS=new Set(['bell-pepper','hot-pepper','tomato','onion','marigold','basil']);
 const PLANTING_TASK_TYPES=new Set(['Start Seeds','Direct Sow','Transplant','Pot Up','Harden Off','Prepare Space','Install Support','Plan Succession','Thin Seedlings','Reserve Space']);
 const INDOOR_TYPES=new Set(['indoor','basement','seed-tray','greenhouse','hydro']);
@@ -105,16 +106,16 @@ function purchaseCard(item,garden,weather,date='',windowLabel='Current window'){
 }
 
 export function buildGrowNowRecommendations({garden,recommendations=[],weather=null}){
- const byId=new Map(recommendations.map(item=>[item.id,item])),decisions=decisionMap(garden),inventory=seedInventory(garden),owned=inventory.map(packet=>recommendationCard(packet,byId.get(packet.cropId),garden,weather)).filter(card=>card.strongNow&&!packetAlreadyStarted(garden,card.packet)&&decisions.get(card.subjectKey)?.decision!=='not-this-season'&&!(decisions.get(card.subjectKey)?.decision==='later'&&decisions.get(card.subjectKey)?.dueDate>todayKey())).sort((a,b)=>Number(b.packet.exactPacket)-Number(a.packet.exactPacket)||Number(b.quantity||0)-Number(a.quantity||0)),ownedIds=new Set(inventory.map(packet=>packet.cropId).filter(Boolean)),purchases=recommendations.filter(item=>!ownedIds.has(item.id)&&!cropAlreadyPlanned(garden,item.id)).map(item=>purchaseCard(item,garden,weather)).filter(card=>card.strongNow&&card.decision?.decision!=='not-this-season'&&!(card.decision?.decision==='later'&&card.decision.dueDate>todayKey())).sort((a,b)=>firstNumber(a.crop?.harvest)-firstNumber(b.crop?.harvest));
- const exact=owned.find(card=>card.packet.exactPacket),another=owned.find(card=>card.id!==exact?.id),purchase=purchases[0],next=buildPlanAheadRecommendations({garden,recommendations,weather}).find(card=>card.date>todayKey()),cards=[];
- [exact,another,purchase,next].filter(Boolean).forEach(card=>{if(!cards.some(item=>item.subjectKey===card.subjectKey))cards.push(card)});
+ const byId=new Map(recommendations.map(item=>[item.id,item])),decisions=decisionMap(garden),inventory=seedInventory(garden),owned=inventory.map(packet=>recommendationCard(packet,byId.get(packet.cropId),garden,weather)).filter(card=>card.strongNow&&!packetAlreadyStarted(garden,card.packet)&&decisions.get(card.subjectKey)?.decision!=='not-this-season'&&!(decisions.get(card.subjectKey)?.decision==='later'&&decisions.get(card.subjectKey)?.dueDate>todayKey())).sort((a,b)=>Number(b.packet.exactPacket)-Number(a.packet.exactPacket)||Number(b.quantity||0)-Number(a.quantity||0)),ownedIds=new Set(inventory.map(packet=>packet.cropId).filter(Boolean)),purchases=recommendations.filter(item=>!ownedIds.has(item.id)&&!cropAlreadyPlanned(garden,item.id)).map(item=>purchaseCard(item,garden,weather)).filter(card=>card.strongNow&&card.decision?.decision!=='not-this-season'&&!(card.decision?.decision==='later'&&card.decision.dueDate>todayKey())).sort((a,b)=>(firstNumber(a.crop?.harvest)||999)-(firstNumber(b.crop?.harvest)||999));
+ const exact=owned.find(card=>card.packet.exactPacket),sameCrop=exact&&owned.find(card=>card.id!==exact.id&&card.cropId===exact.cropId),another=owned.find(card=>card.id!==exact?.id&&card.id!==sameCrop?.id),purchase=purchases[0],next=buildPlanAheadRecommendations({garden,recommendations,weather}).find(card=>card.date>todayKey()),cards=[];
+ [exact,sameCrop,another,purchase,next].filter(Boolean).forEach(card=>{if(cards.length<4&&!cards.some(item=>item.subjectKey===card.subjectKey))cards.push(card)});
  [...owned,...purchases].forEach(card=>{if(cards.length<4&&!cards.some(item=>item.subjectKey===card.subjectKey))cards.push(card)});
  return{cards:cards.slice(0,4),owned,purchases,next:next||null};
 }
 
 function nextWindow(cropId){
  const year=new Date().getFullYear(),today=todayKey(),range=(sm,sd,em,ed,label,reason,mode)=>{let y=year,start=`${y}-${String(sm).padStart(2,'0')}-${String(sd).padStart(2,'0')}`,end=`${y}-${String(em).padStart(2,'0')}-${String(ed).padStart(2,'0')}`;if(end<today){y+=1;start=`${y}-${String(sm).padStart(2,'0')}-${String(sd).padStart(2,'0')}`;end=`${y}-${String(em).padStart(2,'0')}-${String(ed).padStart(2,'0')}`}return{start,end,label,reason,mode}};
- if(COOL_FALL_IDS.has(cropId))return range(8,1,9,15,'Estimated fall planting window','This cool-season crop may fit Green Bay’s late-summer or early-fall window.','Start indoors');
+ if(COOL_FALL_IDS.has(cropId))return range(8,1,9,15,'Estimated fall planting window','This cool-season crop may fit Green Bay’s late-summer or early-fall window.',FALL_INDOOR_IDS.has(cropId)?'Start indoors':'Direct sow');
  if(cropId==='garlic')return range(9,20,10,25,'Estimated fall planting window','Hardneck garlic is generally planted before the ground freezes.','Direct sow');
  if(WARM_START_IDS.has(cropId))return range(2,15,4,1,'Estimated indoor-start window','This long-season crop usually needs an indoor head start before Green Bay’s outdoor season.','Start indoors');
  return range(5,15,6,15,'Estimated outdoor planting window','General Green Bay seasonal guidance is being used because an exact packet window is not recorded.',DIRECT_SOW_IDS.has(cropId)?'Direct sow':'Transplant');
