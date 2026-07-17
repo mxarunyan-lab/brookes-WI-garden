@@ -1,39 +1,14 @@
 import React from'react';
-import{BookOpen,ChevronRight,CircleHelp,ClipboardList,HardDriveDownload,Settings,Sprout,Warehouse}from'lucide-react';
-
-const LinkRow=({icon:Icon,title,subtitle,onClick})=><button className="more-link-row" onClick={onClick}>
-  <span className="more-link-icon"><Icon/></span>
-  <span><strong>{title}</strong><small>{subtitle}</small></span>
-  <ChevronRight/>
-</button>;
-
+import{BookOpen,ChevronDown,ChevronRight,CircleHelp,ClipboardList,HardDriveDownload,Settings,Sprout,Warehouse}from'lucide-react';
+const LinkRow=({icon:Icon,title,subtitle,onClick})=><button className="more-link-row" onClick={onClick}><span className="more-link-icon"><Icon/></span><span><strong>{title}</strong><small>{subtitle}</small></span><ChevronRight/></button>;
 const HELP=[
-  ['Today','Weather, today’s count, tomorrow preview, and the latest handoff.'],
-  ['Garden','Beds, plants, photos, care history, and QR labels.'],
-  ['Planting','What can grow now, upcoming planting, succession, and next year.'],
-  ['Center','Seeds, labels, supplies, indoor growing, and records.'],
-  ['Chore Board','Open instructions, complete work, postpone it, or dismiss a seasonal choice.']
+ ['What is the difference between the Chore Board and Planting Desk?','The Chore Board holds actions that need attention: moisture checks, weather work, care, and planting steps. The Planting Desk focuses only on what to start, sow, harden off, transplant, or plan next.'],
+ ['Why am I seeing Check Moisture?','Smart Watering does not water on a fixed calendar. It considers the crop, lifecycle stage, Growing Space, recent rain, heat, and the last soil or watering record. Check the soil first; record Dry, Damp, or Wet.'],
+ ['What is a Growing Space?','A Growing Space is the exact bed, container, seed tray, greenhouse area, indoor rack, grow bag, or hydroponic area where a planting lives. Space conditions help recommendations stay specific.'],
+ ['What is Plant Journey?','Plant Journey is the history and current status for one planting or batch. It shows its packet, variety, stage, estimates, milestones, notes, photos, watering history, harvests, problems, and guided hardening-off progress.'],
+ ['How do lifecycle stages work?','Stages describe what is happening now, from Planned and Seed Started through Harvesting, Dormant, Finished, Failed, or Removed. Not every crop uses every stage. Confirmed, Estimated, Suggested, and Imported History are labeled separately.'],
+ ['How does Seed Inventory work?','Exact packet information comes first. Starting seeds reduces that packet’s available quantity, preserves reserved seed, and links the new planting back to its packet. Counts can be exact or estimated and can be corrected later.'],
+ ['How do collapsed task cards work?','Chore Board sections show counts first. Tap a section to see compact task titles, then tap one task to reveal instructions and buttons. Completing it removes it from active counts while preserving history.'],
+ ['How does guided hardening off work?','Open the planting’s Journey to follow Day 1 through Day 7. You can complete, repeat, pause, skip, or delay a day for weather without losing progress.'],
 ];
-
-export default function MoreHub({garden,navigate}){
-  const active=garden.profile?.gardenerName||'Brooke';
-  return <main className="screen more-screen">
-    <section className="dark-header garden-header more-header">
-      <Sprout/><span>THE RUNYAN GARDEN</span><h1>Tool Shed</h1><p>Settings, records, indoor growing, and the useful extras.</p>
-    </section>
-    <section className="screen-pad more-content">
-      <div className="tool-shed-heading"><span>TOOLS & ACCESSORIES</span><small>Currently gardening as {active}</small></div>
-      <div className="more-list">
-        <LinkRow icon={Settings} title="Garden Settings" subtitle="Profiles, backup, sync, and app details" onClick={()=>navigate('profile')}/>
-        <LinkRow icon={Warehouse} title="Indoor Growing" subtitle="Seedlings, lights, greenhouse, and winter crops" onClick={()=>navigate('indoor')}/>
-        <LinkRow icon={BookOpen} title="Garden Records" subtitle="Harvests, problems, and season history" onClick={()=>navigate('memory')}/>
-        <LinkRow icon={ClipboardList} title="Garden Chore Board" subtitle="Today, tomorrow, and completed work" onClick={()=>navigate('chores')}/>
-      </div>
-      <details className="more-help">
-        <summary><CircleHelp/><span><strong>Quick help</strong><small>Where things live</small></span><ChevronRight/></summary>
-        <div className="more-help-list">{HELP.map(([title,text])=><article key={title}><strong>{title}</strong><p>{text}</p></article>)}</div>
-      </details>
-      <section className="more-backup-note compact-sync-note"><HardDriveDownload/><span><strong>Shared garden is next.</strong><small>Back up this device from Garden Settings before migration.</small></span></section>
-    </section>
-  </main>;
-}
+export default function MoreHub({garden,navigate}){const active=garden.profile?.gardenerName||'Brooke';return <main className="screen more-screen"><section className="dark-header garden-header more-header"><Sprout/><span>THE RUNYAN GARDEN</span><h1>Tool Shed</h1><p>Settings, records, indoor growing, and the useful extras.</p></section><section className="screen-pad more-content"><div className="tool-shed-heading"><span>TOOLS & ACCESSORIES</span><small>Currently gardening as {active}</small></div><div className="more-list"><LinkRow icon={Settings} title="Garden Settings" subtitle="Profiles, backup, sync, and app details" onClick={()=>navigate('profile')}/><LinkRow icon={Warehouse} title="Indoor Growing" subtitle="Seedlings, lights, greenhouse, and winter crops" onClick={()=>navigate('indoor')}/><LinkRow icon={BookOpen} title="Garden Records" subtitle="Harvests, problems, and season history" onClick={()=>navigate('memory')}/><LinkRow icon={ClipboardList} title="Garden Chore Board" subtitle="Counts first, then expandable task details" onClick={()=>navigate('chores')}/></div><details className="more-help current-quick-help"><summary><CircleHelp/><span><strong>Quick Help</strong><small>Current features in plain language</small></span><ChevronRight/></summary><div className="more-help-list">{HELP.map(([title,text])=><details key={title} className="quick-help-topic"><summary><strong>{title}</strong><ChevronDown/></summary><p>{text}</p></details>)}</div></details><section className="more-backup-note compact-sync-note"><HardDriveDownload/><span><strong>Shared garden is next.</strong><small>Back up this device from Garden Settings before migration.</small></span></section></section></main>}
