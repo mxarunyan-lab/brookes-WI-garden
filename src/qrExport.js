@@ -1,7 +1,8 @@
 import{jsPDF}from'jspdf';import QRCode from'qrcode';
 
 export const publicBedLink=id=>`${window.location.origin}${window.location.pathname}?bed=${encodeURIComponent(id)}&view=public`;
-const safe=s=>String(s||'').replace(/[\\/:*?"<>|]+/g,'-').trim();
+export const publicRecordLink=(type,id)=>type==='space'?publicBedLink(id):`${window.location.origin}${window.location.pathname}?gardenLabel=${encodeURIComponent(type)}:${encodeURIComponent(id)}`;
+const safe=s=>String(s||'').replace(/[\/:*?"<>|]+/g,'-').trim();
 const save=(doc,name)=>doc.save(`${safe(name)||'runyan-garden-labels'}.pdf`);
 const qr=link=>QRCode.toDataURL(link,{width:1000,margin:3,errorCorrectionLevel:'M',color:{dark:'#000000',light:'#ffffff'}});
 const text=(doc,value,x,y,size=12,style='normal',align='left')=>{doc.setFont('helvetica',style);doc.setFontSize(size);doc.text(String(value||''),x,y,{align})};
@@ -26,12 +27,17 @@ export async function downloadPlantTags(spaces,plants=[]){
  const active=plants.filter(p=>!p.archived&&!p.deletedAt);if(!active.length)throw new Error('No active plants are available for tags.');
  const doc=new jsPDF({unit:'in',format:'letter',orientation:'portrait'}),cols=2,rows=4,w=3.65,h=2.45,gap=.15,left=.45,top=.42;
  for(let i=0;i<active.length;i++){
-  if(i&&i%(cols*rows)===0)doc.addPage();const n=i%(cols*rows),col=n%cols,row=Math.floor(n/cols),x=left+col*(w+gap),y=top+row*(h+gap),p=active[i],s=spaces.find(v=>v.id===p.spaceId),link=publicBedLink(p.spaceId),code=await qr(link);
+  if(i&&i%(cols*rows)===0)doc.addPage();const n=i%(cols*rows),col=n%cols,row=Math.floor(n/cols),x=left+col*(w+gap),y=top+row*(h+gap),p=active[i],s=spaces.find(v=>v.id===p.spaceId),link=publicRecordLink('plant',p.id),code=await qr(link);
   doc.setLineWidth(.018);doc.setLineDashPattern([.06,.04],0);doc.roundedRect(x,y,w,h,.12,.12);doc.setLineDashPattern([],0);
   text(doc,'THE RUNYAN GARDEN',x+.18,y+.27,7,'bold');text(doc,p.name,x+.18,y+.62,17,'bold');
   const crop=[p.cropName||'',p.variety||''].filter(Boolean).join(' · ')||'Variety not recorded';doc.setFontSize(9);doc.setFont('helvetica','normal');doc.text(wrap(doc,crop,2.05),x+.18,y+.88);
   text(doc,s?.name||'Unassigned location',x+.18,y+1.38,9,'bold');text(doc,`${p.quantity||1} plant${Number(p.quantity||1)===1?'':'s'} · ${p.stage||'Growing'}`,x+.18,y+1.62,8);
-  doc.addImage(code,'PNG',x+2.52,y+.25,.92,.92);text(doc,'Scan for bed',x+2.98,y+1.35,7,'bold','center');text(doc,`Plant ID: ${p.id}`,x+.18,y+2.2,6);
+  doc.addImage(code,'PNG',x+2.52,y+.25,.92,.92);text(doc,'Scan for plant',x+2.98,y+1.35,7,'bold','center');text(doc,`Plant ID: ${p.id}`,x+.18,y+2.2,6);
  }
  save(doc,'Runyan-Garden-plant-tags');
+}
+
+export async function downloadCustomQrLabel({title,subtitle='',note='',link,type='record'}){
+ if(!link)throw new Error('Choose a saved garden record first.');const doc=new jsPDF({unit:'in',format:'letter',orientation:'portrait'}),code=await qr(link);
+ doc.setDrawColor(20);doc.setLineWidth(.03);doc.roundedRect(1.1,1.05,6.3,8.35,.2,.2);text(doc,'THE RUNYAN GARDEN',4.25,1.5,11,'bold','center');text(doc,title,4.25,2.02,23,'bold','center');if(subtitle)text(doc,subtitle,4.25,2.38,10,'normal','center');doc.addImage(code,'PNG',2.05,2.72,4.4,4.4);text(doc,'SCAN TO OPEN THIS GARDEN RECORD',4.25,7.42,10,'bold','center');if(note){doc.setFontSize(10);doc.setFont('helvetica','normal');doc.text(wrap(doc,note,5.2),4.25,7.82,{align:'center'})}text(doc,`${type} label`,1.42,9.03,7);text(doc,'Green Bay, Wisconsin',7.08,9.03,7,'normal','right');save(doc,`${title}-${type}-label`);
 }
