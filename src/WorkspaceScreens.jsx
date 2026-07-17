@@ -1,5 +1,5 @@
 import React from'react';
-import{AlertTriangle,Bell,Check,ChevronDown,ChevronRight,Cloud,CloudRain,CloudSun,Leaf,Megaphone,Moon,RefreshCw,Snowflake,Sun}from'lucide-react';
+import{AlertTriangle,Bell,Check,ChevronDown,ChevronRight,Cloud,CloudRain,CloudSun,Droplets,Leaf,Megaphone,Moon,RefreshCw,Snowflake,Sun}from'lucide-react';
 import{formatDateTime}from'./data.js';
 import{WisconsinLandscape}from'./art.jsx';
 
@@ -18,13 +18,23 @@ const weatherTime=value=>{
   try{return new Intl.DateTimeFormat('en-US',{hour:'numeric',minute:'2-digit'}).format(new Date(value))}catch{return'time unavailable'}
 };
 
-function WeatherLine({weather,loading,error,refresh,alert,source,stale,savedAt}){
+function WeatherLine({weather,loading,error,refresh,alert,source,stale,savedAt,recordRain}){
   const calm=!alert||alert.type==='good';
-  const freshness=source==='live'&&!stale?`Live · updated ${weatherTime(savedAt||weather?.fetchedAt)}`:`Saved weather · updated ${weatherTime(savedAt||weather?.fetchedAt)}`;
+  const sourceLabel=weather?.provider||'Weather source unavailable';
+  const freshness=source==='live'&&!stale?`${sourceLabel} · updated ${weatherTime(savedAt||weather?.fetchedAt)}`:source==='fallback'?`${sourceLabel} · fallback · updated ${weatherTime(savedAt||weather?.fetchedAt)}`:`Saved weather · updated ${weatherTime(savedAt||weather?.fetchedAt)}`;
+  const addRain=()=>{
+    const value=window.prompt('How much rain fell at your home in inches? Example: 0.56');
+    if(value===null)return;
+    const amount=Number(value);
+    if(!Number.isFinite(amount)||amount<=0){window.alert('Enter a rain amount greater than zero, such as 0.56.');return}
+    if(recordRain?.(amount))window.alert(`${amount.toFixed(2)} inches recorded. Outdoor watering is paused for 24 hours.`);
+  };
   return <section className={`compact-weather-line ${stale?'weather-is-stale':''}`}>
-    <div className="compact-weather-reading"><WeatherIcon weather={weather}/><span><strong>{weather?`${weather.temperature}° · ${weather.condition}`:'Green Bay weather'}</strong><small>{loading?'Updating live weather…':error||`High ${weather?.high??'—'}° · ${weather?.rainChance??'—'}% rain`}</small><em className="weather-freshness">{freshness}</em></span></div>
-    <button className="weather-refresh-button" onClick={refresh} aria-label="Refresh live weather"><RefreshCw/></button>
-    {stale&&<div className="weather-stale-warning" role="status"><AlertTriangle/><span><strong>Weather may be outdated</strong><small>Do not use this reading for watering or storm decisions until live weather refreshes.</small></span></div>}
+    <div className="compact-weather-reading"><WeatherIcon weather={weather}/><span><strong>{weather?`${weather.temperature}° · ${weather.condition}`:'Green Bay 54302 weather'}</strong><small>{loading?'Updating official weather…':error||`High ${weather?.high??'—'}° · Low ${weather?.low??'—'}°`}</small><em className="weather-freshness">{freshness}</em></span></div>
+    <button className="weather-refresh-button" onClick={refresh} aria-label="Refresh official weather"><RefreshCw/></button>
+    <button className="weather-rain-record" onClick={addRain}><Droplets/>Record rain at home</button>
+    {weather?.rainHoldAmount>0&&<div className="weather-rain-hold"><Droplets/><span><strong>{Number(weather.rainHoldAmount).toFixed(2)} in. rain hold active</strong><small>{weather.rainHoldSource||'Recent rainfall'} · outdoor watering paused</small></span></div>}
+    {stale&&<div className="weather-stale-warning" role="status"><AlertTriangle/><span><strong>Weather may be outdated</strong><small>Do not use this reading for watering or storm decisions until official weather refreshes.</small></span></div>}
     <div className={`compact-weather-message ${calm?'is-calm':''}`}><Check/><span><strong>{calm?'No major weather concerns today':alert.title}</strong><small>{calm?'Normal garden care should be fine.':alert.detail}</small></span></div>
   </section>;
 }
