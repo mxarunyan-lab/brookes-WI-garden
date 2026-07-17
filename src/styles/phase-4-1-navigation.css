@@ -110,6 +110,10 @@
 .settings-back{position:absolute;left:18px;top:20px;z-index:5}
 .visually-hidden-input{position:absolute!important;width:1px!important;height:1px!important;padding:0!important;margin:-1px!important;overflow:hidden!important;clip:rect(0,0,0,0)!important;white-space:nowrap!important;border:0!important}
 .restore-message{margin:4px 0 0;padding:10px;border-radius:10px;background:#e9f0e5;color:#31543c;font-size:11px;line-height:1.4}
+.notification-settings-card{margin-bottom:10px;padding:13px;border:1px solid #d8cfbd;border-radius:13px;display:grid;grid-template-columns:34px minmax(0,1fr);gap:10px;align-items:center;background:#fffdfa;color:var(--green-900)}
+.notification-settings-card span{min-width:0;display:grid;gap:3px}
+.notification-settings-card strong{font-size:12px}
+.notification-settings-card small{color:#5e685f;font-size:10px;line-height:1.4;word-break:normal;overflow-wrap:break-word}
 .profile-form-wrap{padding-bottom:calc(112px + env(safe-area-inset-bottom))}
 
 @media(max-width:360px){
