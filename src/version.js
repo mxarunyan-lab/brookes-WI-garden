@@ -1,17 +1,19 @@
-export const APP_VERSION='0.14.0';
-export const BUILD_ID='weather-aware-chore-board';
+export const APP_VERSION='0.14.1';
+export const BUILD_ID='chore-planting-stabilization';
 export const UPDATED_AT='July 17, 2026';
 export const WHATS_NEW=[
- 'The existing Garden Chore Board now combines plant lifecycle, growing-space conditions, weather, and manual reminders in one task engine',
- 'Weather-driven alerts support Frost Risk, Heat Risk, Heavy Rain, High Wind, and Storm Warning without changing the existing weather APIs',
- 'Weather alerts explain what is happening, why it matters to the garden, and when action matters',
- 'Supported chore types now include Water, Check Moisture, Fertilize, Prune, Harvest, Stake, Hill Potatoes, Harden Off, Deadhead, and Inspect For Pests',
- 'Task cards now show task type, plant, growing space, priority, due date, reason, and weather timing when relevant',
- 'Tasks can be marked Completed, Skipped, or Not Needed and each decision is saved to permanent task history',
- 'Completed plant tasks also appear in the existing Plant Journey through the shared activity log',
- 'The Chore Board now separates urgent, weather-driven, overdue, upcoming, and completed work',
- 'Manual reminders are added directly to the existing garden record and flow through the same Chore Board instead of a parallel reminder system',
- 'Existing plants, growing spaces, weather behavior, dashboard navigation, seasonal reminders, and rain-based task suppression remain intact',
- 'Sync-ready garden data now uses schema version 7 for reminders and task history',
- 'Offline cache v34 refreshes installed copies with Garden Chore Intelligence'
+ 'Garden Chore Board counts now come from one shared source of truth used by both the dashboard and full board',
+ 'Needs Attention counts unique unfinished chores due today or overdue without adding overlapping Urgent or Weather labels twice',
+ 'Urgent, Do Today, Overdue, Weather Alerts, and Upcoming are compact collapsible sections with intentional empty states',
+ 'Outdoor, Indoor, and Greenhouse filters now recalculate visible cards and every displayed count immediately',
+ 'Task cards clearly show action, plant, growing space, due timing, priority, reason, and weather timing where relevant',
+ 'Done, Skip, Not Needed, Dismiss, Open Plant, Open Growing Space, Show All, and section expansion use the existing task and status systems',
+ 'Completed, skipped, and not-needed tasks leave active totals immediately while completion history and Plant Journey activity remain preserved',
+ 'Planting Desk now separates actionable To Do items from informational Plant Updates',
+ 'Imported lifecycle events such as a plant becoming Established no longer receive a Done button or count as chores',
+ 'Today and This Week use calendar dates correctly, This Week includes today, and every period has a purposeful empty state',
+ 'The former Coming Soon view is merged into a distinct Upcoming view so future work is not duplicated',
+ 'Mobile layouts were tightened for 320px, 375px, 390px, and 430px widths without changing the existing visual theme',
+ 'Existing weather APIs, weather displays, reminders, navigation, plants, growing spaces, and completed-task history remain intact',
+ 'Offline cache v35 refreshes installed copies with the stabilization release'
 ];
