@@ -19,12 +19,20 @@ jobs:
           ref: agent/phase-4-4b-weather-decisions
       - name: Apply Phase 4.4B validation fixes
         run: |
-          python .github/scripts/fix_phase_4_4b.py
+          set -o pipefail
+          python .github/scripts/fix_phase_4_4b.py 2>&1 | tee patch.log
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add -A
           git commit -m "Fix Phase 4.4B weather decision validation"
           git push origin HEAD:agent/phase-4-4b-weather-decisions
+      - name: Upload patch log
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: phase-4-4b-patch-log
+          path: patch.log
+          retention-days: 2
       - name: Set up Node
         uses: actions/setup-node@v4
         with:
