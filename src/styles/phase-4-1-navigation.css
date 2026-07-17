@@ -1,0 +1,116 @@
+:root{
+ --tool-card-title:#173d2b;
+ --tool-card-description:#4f6256;
+ --tool-card-muted-text:#6f786f;
+ --tool-card-dark-title:#ffffff;
+ --tool-card-dark-description:#e6f0e8;
+ --tool-card-dark-muted:#c9d9ce;
+}
+
+.bottom-nav{
+ display:grid!important;
+ grid-template-columns:repeat(5,minmax(0,1fr))!important;
+ gap:0!important;
+ left:0;
+ right:0;
+ bottom:0;
+ padding:7px 3px calc(7px + env(safe-area-inset-bottom))!important;
+}
+.bottom-nav button{
+ min-width:0!important;
+ min-height:58px;
+ padding:6px 1px!important;
+ display:flex!important;
+ flex-direction:column;
+ align-items:center;
+ justify-content:center;
+ gap:3px;
+ overflow:visible;
+}
+.bottom-nav button span{
+ display:block!important;
+ max-width:100%;
+ color:inherit;
+ font-size:10px!important;
+ font-weight:750;
+ line-height:1;
+ white-space:nowrap!important;
+ overflow:visible!important;
+ text-overflow:clip!important;
+ word-break:normal!important;
+}
+.bottom-nav button svg{flex:0 0 auto}
+.bottom-nav button.active{color:var(--gold)}
+.bottom-nav button.active span{color:inherit}
+
+.tool-shed-screen,.more-screen{background:var(--cream)}
+.tool-shed-header,.more-header{min-height:214px;padding:38px 22px 30px}
+.tool-shed-header h1,.more-header h1{margin:7px 0 7px}
+.tool-shed-header p,.more-header p{max-width:340px;margin:0 auto;color:rgba(255,255,255,.82);font-size:13px;line-height:1.45}
+.tool-shed-content,.more-content,.garden-center-content{padding-top:18px;padding-bottom:calc(112px + env(safe-area-inset-bottom))}
+.tool-shed-group-heading,.more-group-heading{display:grid;gap:3px;margin:0 2px 9px}
+.tool-shed-group-heading span,.more-group-heading span{color:var(--green-900);font-size:10px;font-weight:850;letter-spacing:.12em}
+.tool-shed-group-heading small,.more-group-heading small{color:#667168;font-size:11px;line-height:1.35}
+.tool-shed-card-list,.more-list{display:grid;gap:9px}
+.tool-shed-card{
+ width:100%;
+ min-height:86px;
+ padding:13px;
+ border:1px solid #d7cebd;
+ border-radius:17px;
+ display:grid;
+ grid-template-columns:48px minmax(0,1fr) 20px;
+ gap:12px;
+ align-items:center;
+ text-align:left;
+ box-shadow:0 5px 14px rgba(23,61,43,.11);
+ cursor:pointer;
+}
+.tool-shed-card.tone-gold{background:#fff3cf;color:var(--tool-card-title)}
+.tool-shed-card.tone-green{background:#0b4d33;color:var(--tool-card-dark-title);border-color:#0b4d33}
+.tool-card-icon{width:46px;height:46px;border-radius:13px;display:grid;place-items:center;background:rgba(239,181,43,.32);color:currentColor}
+.tool-shed-card.tone-green .tool-card-icon{background:rgba(255,255,255,.13);color:#f5c64f}
+.tool-card-copy{min-width:0;display:grid;gap:4px;align-content:center}
+.tool-card-copy strong{display:block;color:var(--tool-card-title);font-family:'Fraunces',Georgia,serif;font-size:17px;line-height:1.08;word-break:normal;overflow-wrap:break-word}
+.tool-card-copy small{display:block;color:var(--tool-card-description);font-size:11px;line-height:1.4;word-break:normal;overflow-wrap:break-word}
+.tool-shed-card.tone-green .tool-card-copy strong{color:var(--tool-card-dark-title)}
+.tool-shed-card.tone-green .tool-card-copy small{color:var(--tool-card-dark-description)}
+.tool-card-arrow{color:currentColor;opacity:.78}
+.tool-shed-card:active{transform:translateY(1px);filter:brightness(.96)}
+.tool-shed-card:focus-visible{outline:3px solid rgba(239,181,43,.78);outline-offset:2px}
+.tool-shed-card:disabled{opacity:.72}
+.tool-shed-card:disabled .tool-card-copy strong,.tool-shed-card:disabled .tool-card-copy small{color:inherit}
+.tool-shed-note{margin-top:14px;padding:12px;border:1px solid #ded4c3;border-radius:14px;display:grid;grid-template-columns:28px minmax(0,1fr);gap:9px;background:#f4ecdd;color:var(--green-900)}
+.tool-shed-note span{min-width:0;display:grid;gap:2px}
+.tool-shed-note strong{font-size:12px}
+.tool-shed-note small{color:#5c685f;font-size:10px;line-height:1.4}
+
+.more-group{display:grid;gap:9px;margin-bottom:19px}
+.more-link-row{min-height:76px!important;grid-template-columns:44px minmax(0,1fr) 18px!important}
+.more-link-row>span:nth-child(2){min-width:0}
+.more-link-row strong{word-break:normal;overflow-wrap:break-word}
+.more-link-row small{word-break:normal;overflow-wrap:break-word}
+.current-quick-help{margin-bottom:0}
+
+.garden-center-header h1{max-width:360px}
+.garden-center-content{gap:12px}
+.department-copy{min-width:0}
+.garden-center-department strong,.garden-center-department small,.garden-center-department em{word-break:normal;overflow-wrap:break-word}
+
+.seed-tools-header h1,.label-counter-header h1{max-width:340px}
+
+@media(max-width:360px){
+ .bottom-nav{padding-left:1px!important;padding-right:1px!important}
+ .bottom-nav button span{font-size:9px!important;letter-spacing:-.01em}
+ .bottom-nav button svg{width:20px;height:20px}
+ .tool-shed-card{grid-template-columns:42px minmax(0,1fr) 18px;gap:9px;padding:11px}
+ .tool-card-icon{width:40px;height:40px}
+ .tool-card-copy strong{font-size:16px}
+ .tool-card-copy small{font-size:10.5px}
+}
+
+@media(max-width:330px){
+ .bottom-nav button span{font-size:8.5px!important}
+ .tool-shed-card{grid-template-columns:38px minmax(0,1fr) 16px;gap:8px}
+ .tool-card-icon{width:37px;height:37px}
+}
