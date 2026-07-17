@@ -130,7 +130,7 @@ export function buildGrowNowRecommendations({garden,recommendations=[],weather=n
  const ownedIds=new Set(inventory.map(packet=>packet.cropId));
  for(const crop of catalogRows(recommendations)){if(ownedIds.has(crop.id)||cropAlreadyPlanned(garden,crop.id))continue;cards.push(filterDecision(recommendationCard({crop,garden,weather,source:DISCOVERY.some(row=>row.id===crop.id)?'discovery':'catalog'})))}
  const unique=new Map();for(const card of cards){const current=unique.get(card.subjectKey);if(!current||card.priority>current.priority)unique.set(card.subjectKey,card)}
- const ordered=[...unique.values()].sort((a,b)=>b.priority-a.priority||a.title.localeCompare(b.title)).slice(0,24);
+ const all=[...unique.values()].sort((a,b)=>b.priority-a.priority||a.title.localeCompare(b.title)),actionable=all.filter(card=>!['Save for Later','Not This Season'].includes(card.group)).slice(0,16),later=all.filter(card=>card.group==='Save for Later').slice(0,4),rejected=all.filter(card=>card.group==='Not This Season').slice(0,4),ordered=[...actionable,...later,...rejected];
  return{cards:ordered,groups:groupPlantingRecommendations(ordered),owned:ordered.filter(card=>card.owned),purchases:ordered.filter(card=>!card.owned),next:ordered.find(card=>card.group==='Save for Later')||null};
 }
 function byCropPlaceholder(inventory,cropId){return inventory.filter(packet=>packet.cropId===cropId)}
