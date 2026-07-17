@@ -32,6 +32,13 @@ jobs:
           name: production-build-log
           path: build.log
           retention-days: 2
+      - name: Upload compiled app
+        if: steps.production_build.outcome == 'success'
+        uses: actions/upload-artifact@v4
+        with:
+          name: compiled-garden-app
+          path: dist
+          retention-days: 2
       - name: Fail when production build failed
         if: steps.production_build.outcome == 'failure'
         run: exit 1
