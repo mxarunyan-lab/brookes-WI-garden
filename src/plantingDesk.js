@@ -1,5 +1,5 @@
 import { cropCatalog, newId } from './data.js';
-import { formatGardenDateRange } from './dateFormat.js';
+import { formatGardenDateRange, localDateInputValue } from './dateFormat.js';
 
 const DAY=86400000;
 const PLANTING_TASK_TYPES=new Set(['Start Seeds','Direct Sow','Transplant','Pot Up','Harden Off','Prepare Space','Install Support','Plan Succession','Thin Seedlings','Reserve Space']);
@@ -63,7 +63,8 @@ const DISCOVERY=[
 ];
 
 const todayKey=()=>new Date().toISOString().slice(0,10);
-const dateKey=value=>String(value||todayKey()).slice(0,10);
+export const plantingDateKey=value=>value instanceof Date?localDateInputValue(value):String(value||todayKey()).slice(0,10);
+const dateKey=plantingDateKey;
 const addDays=(value,days)=>{const date=new Date(`${dateKey(value)}T12:00:00`);date.setDate(date.getDate()+days);return date.toISOString().slice(0,10)};
 const normalize=value=>String(value||'').toLowerCase().replace(/[^a-z0-9]+/g,' ').trim();
 const packetKey=packet=>`${packet.exactPacket?'packet':'seed'}-${packet.id}`;

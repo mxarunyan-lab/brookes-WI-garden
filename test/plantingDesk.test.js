@@ -1,9 +1,11 @@
 import test from'node:test';
 import assert from'node:assert/strict';
-import{buildGrowNowRecommendations,groupPlantingRecommendations,seedInventory}from'../src/plantingDesk.js';
+import{buildGrowNowRecommendations,groupPlantingRecommendations,plantingDateKey,seedInventory}from'../src/plantingDesk.js';
 
 const baseGarden={profile:{gardenerName:'Brooke'},spaces:[{id:'bed',name:'Raised Bed',type:'black-square-bed',capacity:12,sunExposure:'Full sun'},{id:'greenhouse',name:'Greenhouse',type:'greenhouse',capacity:8},{id:'inside',name:'Basement Shelf',type:'indoor',capacity:12}],plants:[],seedPackets:[],seeds:[],plantingDecisions:[],yearPlan:{crops:[]}};
 const calmWeather={signals:{poorPlantingWindow:{status:false,reason:'No major conflict.'}},high:78,low:58};
+
+test('Date objects keep a sortable local YYYY-MM-DD planting key',()=>{assert.equal(plantingDateKey(new Date('2026-07-17T12:00:00-05:00')),'2026-07-17')});
 
 test('exact owned packet remains first-class when suitable',()=>{const garden={...baseGarden,seedPackets:[{id:'packet-1',cropId:'lettuce',name:'Lettuce',variety:'Amish Deer Tongue',brand:'Saved Brand',quantity:30,packetYear:2026,daysToMaturity:45}]};const result=buildGrowNowRecommendations({garden,recommendations:[],weather:calmWeather});const card=result.cards.find(row=>row.packet?.id==='packet-1');assert.ok(card);assert.equal(card.owned,true);assert.equal(card.statusLabel,'Owned Seed');assert.match(card.title,/Amish Deer Tongue/)});
 
