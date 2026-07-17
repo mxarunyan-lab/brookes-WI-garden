@@ -1,8 +1,9 @@
 import { useCallback, useEffect, useState } from 'react';
 import { GREEN_BAY } from './data.js';
 
-const CACHE_KEY = 'brookes-garden-weather-v2';
-const CACHE_MAX_AGE = 90 * 60 * 1000;
+const CACHE_KEY = 'brookes-garden-weather-v3';
+const CACHE_MAX_AGE = 5 * 60 * 1000;
+const STALE_AFTER = 15 * 60 * 1000;
 
 const weatherLabels = {
   0: 'Clear', 1: 'Mostly Clear', 2: 'Partly Cloudy', 3: 'Cloudy',
@@ -13,6 +14,9 @@ const weatherLabels = {
   85: 'Snow Showers', 86: 'Heavy Snow Showers',
   95: 'Thunderstorms', 96: 'Storms with Hail', 99: 'Severe Storms with Hail',
 };
+
+const rainCodes = new Set([51,53,55,61,63,65,66,67,80,81,82]);
+const stormCodes = new Set([95,96,99]);
 
 function nearestHourlyProbability(payload) {
   const times = payload.hourly?.time || [];
@@ -32,49 +36,52 @@ function nearestHourlyProbability(payload) {
 }
 
 function normalize(payload) {
+  const code = payload.current.weather_code;
+  const precipitation = Number(payload.current.precipitation || 0);
+  const fetchedAt = new Date().toISOString();
   return {
     temperature: Math.round(payload.current.temperature_2m),
     apparent: Math.round(payload.current.apparent_temperature),
-    weatherCode: payload.current.weather_code,
-    condition: weatherLabels[payload.current.weather_code] || 'Current Conditions',
+    weatherCode: code,
+    condition: weatherLabels[code] || 'Current Conditions',
     isDay: Boolean(payload.current.is_day),
     wind: Math.round(payload.current.wind_speed_10m || 0),
-    precipitation: payload.current.precipitation || 0,
+    precipitation,
+    isRainingNow: precipitation > 0 || rainCodes.has(code) || stormCodes.has(code),
+    isStormingNow: stormCodes.has(code),
     rainChance: Math.round(nearestHourlyProbability(payload)),
     high: Math.round(payload.daily.temperature_2m_max[0]),
     low: Math.round(payload.daily.temperature_2m_min[0]),
     dailyRainChance: Math.round(payload.daily.precipitation_probability_max[0] || 0),
     sunrise: payload.daily.sunrise?.[0],
     sunset: payload.daily.sunset?.[0],
-    updatedAt: payload.current.time,
-    fetchedAt: new Date().toISOString(),
+    observedAt: payload.current.time,
+    fetchedAt,
   };
 }
 
+function readCache() {
+  try {
+    return JSON.parse(localStorage.getItem(CACHE_KEY) || 'null');
+  } catch {
+    return null;
+  }
+}
+
 export function useGreenBayWeather() {
-  const [weather, setWeather] = useState(() => {
-    try {
-      const cached = JSON.parse(localStorage.getItem(CACHE_KEY) || 'null');
-      return cached?.weather || null;
-    } catch {
-      return null;
-    }
-  });
-  const [loading, setLoading] = useState(!weather);
+  const cachedOnLoad = readCache();
+  const [weather, setWeather] = useState(cachedOnLoad?.weather || null);
+  const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
-  const [source, setSource] = useState(weather ? 'cached' : '');
+  const [source, setSource] = useState(cachedOnLoad?.weather ? 'cached' : '');
+  const [savedAt, setSavedAt] = useState(cachedOnLoad?.savedAt || 0);
 
   const refresh = useCallback(async ({ force = false } = {}) => {
-    let cached = null;
-    try {
-      cached = JSON.parse(localStorage.getItem(CACHE_KEY) || 'null');
-    } catch {
-      cached = null;
-    }
-
+    const cached = readCache();
     if (!force && cached?.savedAt && Date.now() - cached.savedAt < CACHE_MAX_AGE) {
       setWeather(cached.weather);
       setSource('cached');
+      setSavedAt(cached.savedAt);
       setLoading(false);
       return;
     }
@@ -105,16 +112,20 @@ export function useGreenBayWeather() {
       if (!response.ok) throw new Error(`Weather service returned ${response.status}`);
       const payload = await response.json();
       const normalized = normalize(payload);
+      const now = Date.now();
       setWeather(normalized);
       setSource('live');
-      localStorage.setItem(CACHE_KEY, JSON.stringify({ savedAt: Date.now(), weather: normalized }));
+      setSavedAt(now);
+      localStorage.setItem(CACHE_KEY, JSON.stringify({ savedAt: now, weather: normalized }));
     } catch (err) {
       if (cached?.weather) {
         setWeather(cached.weather);
         setSource('cached');
-        setError('Live weather is temporarily unavailable. Showing the most recent saved conditions.');
+        setSavedAt(cached.savedAt || 0);
+        setError('Live weather failed. Showing saved conditions, which may be outdated.');
       } else {
-        setError(err.name === 'AbortError' ? 'Weather took too long to load.' : 'Weather is temporarily unavailable.');
+        setSource('unavailable');
+        setError(err.name === 'AbortError' ? 'Weather took too long to load.' : 'Live weather is unavailable.');
       }
     } finally {
       window.clearTimeout(timer);
@@ -123,14 +134,46 @@ export function useGreenBayWeather() {
   }, []);
 
   useEffect(() => {
-    refresh();
+    refresh({ force: true });
+    const onVisible = () => {
+      if (document.visibilityState === 'visible') refresh({ force: true });
+    };
+    const onOnline = () => refresh({ force: true });
+    document.addEventListener('visibilitychange', onVisible);
+    window.addEventListener('pageshow', onVisible);
+    window.addEventListener('online', onOnline);
+    return () => {
+      document.removeEventListener('visibilitychange', onVisible);
+      window.removeEventListener('pageshow', onVisible);
+      window.removeEventListener('online', onOnline);
+    };
   }, [refresh]);
 
-  return { weather, loading, error, source, refresh: () => refresh({ force: true }) };
+  const ageMs = savedAt ? Date.now() - savedAt : Infinity;
+  const stale = source !== 'live' || ageMs > STALE_AFTER;
+  return { weather, loading, error, source, stale, savedAt, refresh: () => refresh({ force: true }) };
 }
 
 export function gardenWeatherAlert(weather) {
   if (!weather) return null;
+  if (weather.isStormingNow) {
+    return {
+      type: 'storm',
+      label: 'Storm happening now',
+      title: weather.condition,
+      detail: 'Do not water or work outside during lightning. Recheck beds and containers after the storm passes.',
+      reading: `${weather.temperature}°`,
+    };
+  }
+  if (weather.isRainingNow) {
+    return {
+      type: 'rain',
+      label: 'Rain happening now',
+      title: weather.condition,
+      detail: 'Hold off on watering. Check drainage and recheck the soil after the rain ends.',
+      reading: `${weather.temperature}°`,
+    };
+  }
   if (weather.low <= 36) {
     return {
       type: 'frost',
@@ -138,15 +181,6 @@ export function gardenWeatherAlert(weather) {
       title: `Low near ${weather.low}° tonight`,
       detail: 'Move tender seedlings inside and protect warm-season plants before sunset.',
       reading: `${weather.low}°`,
-    };
-  }
-  if (weather.high >= 88) {
-    return {
-      type: 'heat',
-      label: 'Heat watch',
-      title: `High near ${weather.high}° today`,
-      detail: 'Check containers and seedlings early. Water only when the soil says they need it.',
-      reading: `${weather.high}°`,
     };
   }
   if (weather.dailyRainChance >= 70) {
@@ -165,6 +199,15 @@ export function gardenWeatherAlert(weather) {
       title: `Wind around ${weather.wind} mph`,
       detail: 'Secure lightweight pots, covers, and greenhouse vents.',
       reading: `${weather.wind}`,
+    };
+  }
+  if (weather.high >= 88) {
+    return {
+      type: 'heat',
+      label: 'Heat watch',
+      title: `High near ${weather.high}° today`,
+      detail: 'Check containers and seedlings early. Water only when the soil says they need it.',
+      reading: `${weather.high}°`,
     };
   }
   return {
