@@ -165,7 +165,14 @@ for(const width of widths){
   if(problems.length)throw new Error(`Browser errors: ${problems.join(' | ')}`);
  }catch(error){
   run.failure=error.stack||String(error);
+  run.url=page.url();
+  run.title=await page.title().catch(()=>"");
+  run.bodyText=(await page.locator('body').innerText().catch(()=>"")).slice(0,4000);
+  run.htmlFile=`${width}-failure.html`;
+  run.screenshotFile=`${width}-failure.png`;
   await fs.writeFile(path.join(outDir,`${width}-failure.txt`),run.failure);
+  await fs.writeFile(path.join(outDir,run.htmlFile),await page.content().catch(()=>''));
+  await page.screenshot({path:path.join(outDir,run.screenshotFile),fullPage:true}).catch(()=>{});
  }finally{
   await context.close();
   await browser.close();
