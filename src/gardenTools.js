@@ -87,9 +87,9 @@ export function calculateSeedQuantity({desiredPlants=1,germinationRate=85,surviv
 }
 
 export function parseFrostDate(value,kind='last'){
- const now=new Date(),fallback=kind==='last'?'May 15':'October 10',text=String(value||fallback).trim(),year=kind==='last'&&now.getMonth()>=7?now.getFullYear()+1:now.getFullYear(),candidate=new Date(`${text}, ${year} 12:00:00`);
+ const now=new Date(),fallback=kind==='last'?'May 15':'October 10',text=String(value||fallback).trim(),year=now.getFullYear(),candidate=new Date(`${text}, ${year} 12:00:00`);
  if(Number.isNaN(candidate.getTime()))return new Date(`${fallback}, ${year} 12:00:00`);
- if(kind==='first'&&candidate<now){candidate.setFullYear(candidate.getFullYear()+1)}
+ if(candidate<now)candidate.setFullYear(candidate.getFullYear()+1);
  return candidate;
 }
 
