@@ -39,6 +39,13 @@ jobs:
           name: compiled-garden-app
           path: dist
           retention-days: 2
+      - name: Upload route source snapshot
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: app-route-source
+          path: src/App.jsx
+          retention-days: 1
       - name: Fail when production build failed
         if: steps.production_build.outcome == 'failure'
         run: exit 1
