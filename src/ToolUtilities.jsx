@@ -1,5 +1,5 @@
 import React,{useEffect,useMemo,useState}from'react';
-import{ArrowRight,Calculator,Clipboard,Copy,FileText,Frost,PackageSearch,Printer,Ruler,Seedling,Sprout}from'lucide-react';
+import{ArrowRight,Calculator,Copy,FileText,PackageSearch,Printer,Ruler,Snowflake,Sprout}from'lucide-react';
 import{SecondaryHero,SecondarySectionHeader}from'./SecondaryUI.jsx';
 import{cropCatalog}from'./data.js';
 import{gardenShoppingItems}from'./gardenShopping.js';
@@ -9,8 +9,8 @@ import{calculateMeasurement,calculatePlantingDates,calculateSeedQuantity,calcula
 const toolInfo={
  spacing:{icon:Ruler,eyebrow:'CALCULATE',title:'Spacing Calculator',description:'Estimate how many plants fit without changing the Growing Space.'},
  soil:{icon:PackageSearch,eyebrow:'CALCULATE',title:'Soil & Container Calculator',description:'Estimate soil volume, gallons, and common bag quantities.'},
- frost:{icon:Frost,eyebrow:'CALCULATE',title:'Frost & Planting Dates',description:'Check a planting scenario against saved Green Bay frost timing.'},
- seeds:{icon:Seedling,eyebrow:'CALCULATE',title:'Seed Quantity Calculator',description:'Estimate how many seeds to start for the final number of plants needed.'},
+ frost:{icon:Snowflake,eyebrow:'CALCULATE',title:'Frost & Planting Dates',description:'Check a planting scenario against saved Green Bay frost timing.'},
+ seeds:{icon:Sprout,eyebrow:'CALCULATE',title:'Seed Quantity Calculator',description:'Estimate how many seeds to start for the final number of plants needed.'},
  measurements:{icon:Ruler,eyebrow:'MEASURE',title:'Garden Measurements',description:'Use common garden dimensions and conversions without a generic calculator.'},
  print:{icon:Printer,eyebrow:'CREATE AND PRINT',title:'Printable Garden Pack',description:'Create blank or prefilled garden logs, maps, and planning sheets.'}
 };
