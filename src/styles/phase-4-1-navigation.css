@@ -106,6 +106,14 @@
 .grow-now-card.is-purchase{border-color:#e2c676;background:#fffaf0}
 .grow-now-card.is-purchase .planting-card-actions button:not(.primary-button){color:#694a15;border-color:#dbc68e;background:#fff8e5}
 .grow-now-card.is-purchase .primary-button{background:#8a5d11;color:#fff}
+.planting-shopping-list{margin-bottom:16px;padding:13px;border:1px solid #dfc777;border-radius:15px;background:#fff8df}
+.planting-shopping-list>div:last-child{display:grid;gap:8px}
+.planting-shopping-list article{padding:10px;border:1px solid #ead99d;border-radius:12px;display:grid;grid-template-columns:28px minmax(0,1fr);gap:8px;background:#fffdf5;color:#5d4317}
+.planting-shopping-list article>span{min-width:0;display:grid;gap:2px}
+.planting-shopping-list article strong{font-size:12px;word-break:normal;overflow-wrap:break-word}
+.planting-shopping-list article small{color:#715b31;font-size:10px;line-height:1.4;word-break:normal;overflow-wrap:break-word}
+.planting-shopping-list article>div{grid-column:1/-1;display:grid;grid-template-columns:1fr 1fr;gap:7px}
+.planting-shopping-list button{min-height:42px;border:1px solid #d4bd76;border-radius:10px;background:#fff8df;color:#624815;font-size:10px;font-weight:750}
 
 .settings-back{position:absolute;left:18px;top:20px;z-index:5}
 .visually-hidden-input{position:absolute!important;width:1px!important;height:1px!important;padding:0!important;margin:-1px!important;overflow:hidden!important;clip:rect(0,0,0,0)!important;white-space:nowrap!important;border:0!important}
@@ -131,4 +139,5 @@
  .bottom-nav button span{font-size:8.5px!important}
  .tool-shed-card{grid-template-columns:38px minmax(0,1fr) 16px;gap:8px}
  .tool-card-icon{width:37px;height:37px}
+ .planting-shopping-list article>div{grid-template-columns:1fr}
 }
