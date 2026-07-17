@@ -21,7 +21,7 @@ jobs:
           node-version: 22
       - name: Install dependencies
         run: npm install
-      - name: Run environmental and planting tests
+      - name: Run environmental and weather-decision tests
         id: tests
         continue-on-error: true
         run: npm test > test.log 2>&1

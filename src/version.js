@@ -1,17 +1,15 @@
-export const APP_VERSION='0.16.0';
-export const BUILD_ID='phase-4-4a-weather-intelligence';
+export const APP_VERSION='0.17.0';
+export const BUILD_ID='phase-4-4b-weather-decisions';
 export const UPDATED_AT='July 17, 2026';
 export const WHATS_NEW=[
- 'One unified garden weather system now separates observed conditions, forecasts, home-monitor corrections, and cautious estimates',
- 'National Weather Service KGRB observations, hourly and daily forecasts, rainfall, and alerts now pass through one normalized provider adapter, with Open-Meteo retained as a labeled fallback',
- 'Record rain at home now supports precise decimal inches, measurement time, optional temperature, source, notes, correction history, editing, and removal',
- 'Smart Watering now applies effective rain by Growing Space: exposed beds receive rain credit, partial cover receives reduced credit, and indoor or protected greenhouse spaces receive none',
- 'Forecast rain may cautiously delay watering but never marks watering complete; stale weather changes advice to a lower-confidence soil check',
- 'The Chore Board can change Water to Check Soil, create frost, heat, wind, drainage, greenhouse-ventilation, spraying-delay, and fertilizing-delay tasks, and explain why the plan changed',
- 'Planting Desk recommendations now identify the specific crop type, present action, direct sow versus transplant, shopping traits, example varieties when curated, Green Bay fit, Growing Space fit, harvest timing, weather risk, and realistic failure conditions',
- 'Planting opportunities are organized into compact collapsible action groups such as Direct Sow, Start Indoors, Buy Transplants, Perennials and Plants, Save for Later, and Not This Season',
- 'The large owned-seed explanation card was removed; owned packets still take priority only when they are a realistic fit',
- 'User-facing planting and weather dates use MM-DD-YYYY while stored dates remain ISO for sorting and future household sync',
- 'A dormant personal-weather-station adapter is ready for Phase 4.4B; no Sainlogic or Weather Underground connection is active and no credentials are stored in the app',
- 'Today and The Runyan Garden retain their approved layout and visual system'
+ 'Garden weather now interprets conditions for the actual plants and Growing Spaces instead of only displaying measurements',
+ 'Today prioritizes the one to three most useful weather decisions and keeps confidence, source, freshness, affected plants, and the reason available in compact details',
+ 'Smart Watering now combines observed rain, forecast rain, heat, wind, containers, protected spaces, recent watering, plant stage, and stale-data safeguards',
+ 'Forecast rain is never counted as completed watering, low rain probability does not cancel watering, and uncertain evidence becomes Check Soil rather than a false definite answer',
+ 'Frost and freeze guidance excludes indoor plants, distinguishes tender and cold-tolerant crops, and respects recorded protection',
+ 'Heat, wind, storm, heavy-rain, greenhouse, and damp-weather risk guidance now produces stable garden actions without duplicating official emergency alerts',
+ 'Planting Desk keeps its seasonal recommendation and adds a separate short-term weather readiness label such as Good conditions, Acceptable with caution, Delay, or Recheck forecast soon',
+ 'Weather recommendations can be dismissed, marked handled, recorded as already watered, or marked not useful without immediately returning unchanged',
+ 'Upcoming weather is grouped into a compact preparation view instead of creating one card for every forecast day',
+ 'The app remains fully useful with public weather data alone; live Sainlogic and Weather Underground integration remains deferred'
 ];
