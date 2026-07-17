@@ -1,14 +1,15 @@
 export const APP_VERSION='0.12.10';
-export const BUILD_ID='mobile-acceptance-working-bed-labels';
+export const BUILD_ID='qr-label-studio-pdf-exports';
 export const UPDATED_AT='July 16, 2026';
 export const WHATS_NEW=[
- 'QR codes now open a read-only profile for the exact bed instead of only opening the Garden tab',
- 'Public bed profiles show plants, varieties, quantities, stages, and public-safe care information without edit controls',
- 'Label Counter now includes Test QR, exact-link copying, honest installation status, and laminate-ready label content',
- 'Single and multi-label printing now use a true print-only sheet with cut borders and high-contrast QR codes',
- 'Plant creation now confirms the plant, variety, quantity, and exact destination with View Bed and Add Another actions',
- 'Bed move up, move down, hide, restore, and remove controls now perform their promised data actions',
- 'Missing or retired QR destinations now show a helpful recovery screen',
- 'iPhone safe areas, modal scrolling, keyboard-sized inputs, wrapping, and bottom-navigation clearance received a final acceptance pass',
- 'Offline cache v26 refreshes installed iPhone copies with the mobile acceptance and working-label release'
+ 'QR & Label Studio now separates permanent garden-bed signs from individual plant tags',
+ 'Bed Sign PDF creates a real downloadable file with the exact bed name, large QR code, current plants, and stable bed code',
+ 'Plant Tag PDF creates cut-apart labels for identifiers such as Pepper #1, varieties, quantities, stages, and exact garden locations',
+ 'PDF downloads replace unreliable iPhone browser printing as the primary physical-label workflow',
+ 'Each bed can be tested, shared through the iPhone share sheet, copied as an exact link, or opened for editing',
+ 'QR codes use permanent bed IDs so renaming a bed will not break a laminated sign',
+ 'Exact public bed profiles remain read-only and are prepared for cloud-backed access from any phone in v1.0.0',
+ 'Plant creation confirms the individual identifier, variety, quantity, and exact destination',
+ 'iPhone safe areas, modal scrolling, keyboard-sized inputs, wrapping, and bottom-navigation clearance remain included',
+ 'Offline cache v27 refreshes installed iPhone copies with QR & Label Studio'
 ];
