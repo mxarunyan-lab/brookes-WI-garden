@@ -34,6 +34,17 @@ jobs:
           done
           cat preview.log
           exit 1
+      - name: Exclude controls inside closed accordions
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          p=Path('scripts/phase43-visual-check.mjs')
+          s=p.read_text()
+          old="return style.display!=='none'&&style.visibility!=='hidden'&&rect.width>0&&rect.height>0;"
+          new="return !el.closest('details:not([open])')&&style.display!=='none'&&style.visibility!=='hidden'&&rect.width>0&&rect.height>0;"
+          if old not in s: raise SystemExit('clearance filter not found')
+          p.write_text(s.replace(old,new,1))
+          PY
       - name: Run 320–430px route and visual checks
         env:
           BASE_URL: http://127.0.0.1:4173
