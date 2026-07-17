@@ -1,4 +1,10 @@
-const localDateKey=value=>{const d=value?new Date(`${String(value).slice(0,10)}T12:00:00`):new Date();return Number.isNaN(d.getTime())?new Date().toISOString().slice(0,10):d.toISOString().slice(0,10)};
+const localDateKey=value=>{
+ if(typeof value==='string'&&/^\d{4}-\d{2}-\d{2}/.test(value))return value.slice(0,10);
+ const d=value instanceof Date?value:new Date(value||Date.now());
+ if(Number.isNaN(d.getTime()))return new Date().toISOString().slice(0,10);
+ const year=d.getFullYear(),month=String(d.getMonth()+1).padStart(2,'0'),day=String(d.getDate()).padStart(2,'0');
+ return`${year}-${month}-${day}`;
+};
 
 const INDOOR_TYPES=new Set(['indoor','basement','hydro','seed-tray']);
 const GREENHOUSE_TYPES=new Set(['greenhouse']);
