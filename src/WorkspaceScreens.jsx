@@ -1,5 +1,5 @@
 import React from'react';
-import{Bell,Check,ChevronDown,ChevronRight,Cloud,CloudRain,CloudSun,Leaf,Megaphone,Moon,RefreshCw,Snowflake,Sun}from'lucide-react';
+import{AlertTriangle,Bell,Check,ChevronDown,ChevronRight,Cloud,CloudRain,CloudSun,Leaf,Megaphone,Moon,RefreshCw,Snowflake,Sun}from'lucide-react';
 import{formatDateTime}from'./data.js';
 import{WisconsinLandscape}from'./art.jsx';
 
@@ -13,11 +13,18 @@ function WeatherIcon({weather,size=34}){
   return <CloudSun size={size}/>;
 }
 
-function WeatherLine({weather,loading,error,refresh,alert}){
+const weatherTime=value=>{
+  if(!value)return 'time unavailable';
+  try{return new Intl.DateTimeFormat('en-US',{hour:'numeric',minute:'2-digit'}).format(new Date(value))}catch{return'time unavailable'}
+};
+
+function WeatherLine({weather,loading,error,refresh,alert,source,stale,savedAt}){
   const calm=!alert||alert.type==='good';
-  return <section className="compact-weather-line">
-    <div className="compact-weather-reading"><WeatherIcon weather={weather}/><span><strong>{weather?`${weather.temperature}° · ${weather.condition}`:'Green Bay weather'}</strong><small>{loading?'Updating weather…':error||`High ${weather?.high??'—'}° · ${weather?.rainChance??'—'}% rain`}</small></span></div>
-    <button className="weather-refresh-button" onClick={refresh} aria-label="Refresh weather"><RefreshCw/></button>
+  const freshness=source==='live'&&!stale?`Live · updated ${weatherTime(savedAt||weather?.fetchedAt)}`:`Saved weather · updated ${weatherTime(savedAt||weather?.fetchedAt)}`;
+  return <section className={`compact-weather-line ${stale?'weather-is-stale':''}`}>
+    <div className="compact-weather-reading"><WeatherIcon weather={weather}/><span><strong>{weather?`${weather.temperature}° · ${weather.condition}`:'Green Bay weather'}</strong><small>{loading?'Updating live weather…':error||`High ${weather?.high??'—'}° · ${weather?.rainChance??'—'}% rain`}</small><em className="weather-freshness">{freshness}</em></span></div>
+    <button className="weather-refresh-button" onClick={refresh} aria-label="Refresh live weather"><RefreshCw/></button>
+    {stale&&<div className="weather-stale-warning" role="status"><AlertTriangle/><span><strong>Weather may be outdated</strong><small>Do not use this reading for watering or storm decisions until live weather refreshes.</small></span></div>}
     <div className={`compact-weather-message ${calm?'is-calm':''}`}><Check/><span><strong>{calm?'No major weather concerns today':alert.title}</strong><small>{calm?'Normal garden care should be fine.':alert.detail}</small></span></div>
   </section>;
 }
