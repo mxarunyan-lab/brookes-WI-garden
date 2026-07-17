@@ -1,0 +1,13 @@
+.label-counter-content>.label-studio-tabs button.active{
+ color:var(--secondary-green-text)!important;
+ background:#eef4ec!important;
+ border-color:var(--secondary-green)!important;
+ box-shadow:inset 0 0 0 1px var(--secondary-green)!important;
+}
+.label-counter-content>.label-studio-tabs button.active svg{color:var(--secondary-green)!important}
+.label-counter-content>.label-studio-tabs button:active{color:var(--secondary-green-text)!important}
+.indoor-record-focus{
+ border-color:var(--secondary-gold)!important;
+ box-shadow:0 0 0 3px rgba(239,181,43,.26)!important;
+ background:#fff8df!important;
+}
