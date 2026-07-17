@@ -15,6 +15,13 @@ async function waitRoute(page,name){
  await page.waitForTimeout(120);
 }
 
+async function enterGarden(page){
+ if(await page.getByText('Who’s in the garden?',{exact:true}).count()){
+  await page.getByRole('button',{name:/^Brooke\b/i}).click();
+  await page.waitForTimeout(200);
+ }
+}
+
 async function clickBottom(page,label,route){
  const nav=page.locator('nav.bottom-nav');
  await nav.getByRole('button',{name:label,exact:true}).click();
@@ -81,6 +88,7 @@ for(const width of widths){
  report.runs.push(run);
  try{
   await page.goto(baseUrl,{waitUntil:'domcontentloaded',timeout:30000});
+  await enterGarden(page);
   await waitRoute(page,'today');
   await activeTab(page,'Today');
   await noOverflow(page,`${width}-today`);
