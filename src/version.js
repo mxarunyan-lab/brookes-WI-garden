@@ -1,16 +1,17 @@
-export const APP_VERSION='0.13.0';
-export const BUILD_ID='garden-intelligence-foundation';
+export const APP_VERSION='0.14.0';
+export const BUILD_ID='weather-aware-chore-board';
 export const UPDATED_AT='July 17, 2026';
 export const WHATS_NEW=[
- 'Garden Intelligence now tracks a complete plant lifecycle from Planned through Finished',
- 'Existing plant records are migrated into the expanded lifecycle without losing their current stage, location, notes, or care history',
- 'Every lifecycle change can record the date entered, a note, and an optional photo',
- 'The Plant Control Center now includes a Journey view combining stage history, completed care activity, harvests, problems, notes, and photos chronologically',
- 'Plants remain linked to the existing named growing-space records instead of using a second location system',
- 'New growing-space types include raised beds, in-ground beds, container planters, potato grow bags, seed trays, indoor plant areas, and greenhouse spaces',
- 'Growing spaces can now capture soil, drainage, mulch, irrigation, sun exposure, container construction, and potato grow-bag hilling details where relevant',
- 'The existing planning timeline now understands lifecycle history and the expanded stage names',
- 'The existing reminder engine now recognizes early-stage, fruiting, harvesting, indoor, and recent-rain conditions without replacing weather or task systems',
- 'Sync-ready records now use schema version 6 so future weather, watering, pruning, fertilizing, and harvest prediction systems can extend the same data model',
- 'Offline cache v33 refreshes installed copies with the Garden Intelligence foundation'
+ 'The existing Garden Chore Board now combines plant lifecycle, growing-space conditions, weather, and manual reminders in one task engine',
+ 'Weather-driven alerts support Frost Risk, Heat Risk, Heavy Rain, High Wind, and Storm Warning without changing the existing weather APIs',
+ 'Weather alerts explain what is happening, why it matters to the garden, and when action matters',
+ 'Supported chore types now include Water, Check Moisture, Fertilize, Prune, Harvest, Stake, Hill Potatoes, Harden Off, Deadhead, and Inspect For Pests',
+ 'Task cards now show task type, plant, growing space, priority, due date, reason, and weather timing when relevant',
+ 'Tasks can be marked Completed, Skipped, or Not Needed and each decision is saved to permanent task history',
+ 'Completed plant tasks also appear in the existing Plant Journey through the shared activity log',
+ 'The Chore Board now separates urgent, weather-driven, overdue, upcoming, and completed work',
+ 'Manual reminders are added directly to the existing garden record and flow through the same Chore Board instead of a parallel reminder system',
+ 'Existing plants, growing spaces, weather behavior, dashboard navigation, seasonal reminders, and rain-based task suppression remain intact',
+ 'Sync-ready garden data now uses schema version 7 for reminders and task history',
+ 'Offline cache v34 refreshes installed copies with Garden Chore Intelligence'
 ];
