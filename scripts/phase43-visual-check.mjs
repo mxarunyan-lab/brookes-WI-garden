@@ -17,7 +17,7 @@ async function waitRoute(page,name){
 
 async function enterGarden(page){
  if(await page.getByText('Who’s in the garden?',{exact:true}).count()){
-  await page.locator('.runyan-choice-list button').filter({hasText:'Brooke'}).first().click();
+  await page.locator('.profile-choice-list button').filter({hasText:'Brooke'}).first().click();
   await page.waitForTimeout(200);
  }
 }
