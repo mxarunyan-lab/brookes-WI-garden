@@ -81,28 +81,25 @@ export default function App(){
  const activeGarden=useMemo(()=>({...garden,spaces:garden.spaces.filter(space=>!space.hidden&&!space.deletedAt),plants:garden.plants.filter(plant=>!plant.archived&&!plant.deletedAt)}),[garden]);
  const tasks=useMemo(()=>buildYearRoundTasks({garden:activeGarden,weather:weatherState.weather,date:new Date()}),[activeGarden,weatherState.weather]);
  const todayTasks=tasks.filter(task=>(!task.dueDate||task.dueDate<=dayKey())&&(!daily.snoozed?.[task.id]||daily.snoozed[task.id]<=dayKey()));
+ const boardTasks=tasks.filter(task=>!daily.snoozed?.[task.id]||daily.snoozed[task.id]<=dayKey());
  const tomorrowTasks=useMemo(()=>{const date=new Date();date.setDate(date.getDate()+1);const tomorrow=date.toISOString().slice(0,10);return buildYearRoundTasks({garden:activeGarden,weather:weatherState.weather,date}).filter(task=>!task.dueDate||task.dueDate<=tomorrow)},[activeGarden,weatherState.weather]);
  const timeline=useMemo(()=>buildTimeline(activeGarden),[activeGarden]);
  const openTask=task=>{if(task.kind==='setup'||task.kind==='setupPlant')setModal({type:'addPlant'});else if(task.kind==='soil')setModal({type:'soilCheck',plant:task.plant,crop:task.crop});else if(task.kind==='seasonalGuide')setModal({type:'seasonalChore',task});else if(task.kind==='navigate')navigate(task.target);else if(task.kind==='greenhouse')setModal({type:'greenhouseCheck'});else if(task.kind==='plantDetail'&&task.plant)setModal({type:'managePlant',plant:task.plant});else if(task.kind==='weather'&&task.weatherAlert)setModal({type:'weatherAlert',alert:{label:task.weatherAlert.type,title:task.weatherAlert.what,detail:`${task.weatherAlert.why} ${task.weatherAlert.when}`,reading:task.weatherAlert.severity},weather:weatherState.weather});else if(task.kind==='manual'&&task.plant)setModal({type:'managePlant',plant:task.plant});else showToast(task.reason||'This reminder has no additional screen.')};
+ const openSpace=id=>{if(id)sessionStorage.setItem('garden-open-bed',id);navigate('garden')};
  const controlModal=modal?.type==='managePlant',navPage=['indoor','memory','seed-tools','chores','profile','labels'].includes(page)?'more':page;
  const viewConfirmedBed=()=>{if(confirmation?.spaceId)sessionStorage.setItem('garden-open-bed',confirmation.spaceId);setConfirmation(null);navigate('garden')};
  const addAnother=()=>{const spaceId=confirmation?.spaceId;setConfirmation(null);setModal({type:'addPlant',spaceId})};
  return <div className="site-stage"><div className={`app-shell page-${page}`}>
-  {page==='today'&&<TodayWorkspace profile={garden.profile} garden={garden} tasks={todayTasks} tomorrowTasks={tomorrowTasks} dailyDone={daily.done} noticeOpen={noticeOpen} setNoticeOpen={setNoticeOpen} weatherState={weatherState} weatherAlert={weatherAlert} activity={garden.activity} seasonMode={seasonMode} navigate={navigate} onTask={openTask}/>} 
-  {page==='chores'&&<ChoreBoard todayTasks={todayTasks} tomorrowTasks={tomorrowTasks} dailyDone={daily.done} onOpen={openTask} onStatus={recordTaskStatus} onUndo={undoDaily} navigate={navigate} garden={activeGarden} onAddReminder={addReminder}/>} 
+  {page==='today'&&<TodayWorkspace profile={garden.profile} garden={garden} tasks={boardTasks} tomorrowTasks={tomorrowTasks} dailyDone={daily.done} noticeOpen={noticeOpen} setNoticeOpen={setNoticeOpen} weatherState={weatherState} weatherAlert={weatherAlert} activity={garden.activity} seasonMode={seasonMode} navigate={navigate} onTask={openTask}/>} 
+  {page==='chores'&&<ChoreBoard todayTasks={boardTasks} dailyDone={daily.done} onOpen={openTask} onOpenSpace={openSpace} onStatus={recordTaskStatus} onUndo={undoDaily} navigate={navigate} garden={activeGarden} onAddReminder={addReminder}/>} 
   {page==='garden'&&<BedWorkspace garden={garden} setModal={setModal} manageSpace={manageSpace} saveSpace={saveSpace}/>} 
   {page==='plan-plant'&&<PlanPlantHub recommendations={recommendations} setModal={setModal} garden={garden} timeline={timeline} completePlanItem={completePlanItem} updatePlantStage={updatePlantStage} recordHarvest={recordHarvest} scheduleSuccession={scheduleSuccession} saveYearPlan={saveYearPlan}/>} 
-  {page==='center'&&<GardenCenter garden={garden} navigate={navigate}/>} 
-  {page==='more'&&<MoreHub garden={garden} navigate={navigate}/>} 
-  {page==='profile'&&<SettingsCenter garden={garden}/>} 
+  {page==='center'&&<GardenCenter garden={garden} navigate={navigate}/>} {page==='more'&&<MoreHub garden={garden} navigate={navigate}/>} {page==='profile'&&<SettingsCenter garden={garden}/>} 
   {page==='indoor'&&<IndoorCenter garden={garden} navigate={navigate} addTray={addTray} addLight={addLight} toggleLight={toggleLight} startHardening={startHardening} advanceHardening={advanceHardening} saveHydroPod={saveHydroPod} setModal={setModal}/>} 
-  {page==='memory'&&<GardenMemory garden={garden} navigate={navigate} resolveProblem={resolveProblem}/>} 
-  {page==='seed-tools'&&<SeedTools garden={garden} navigate={navigate} savePacket={savePacket} deletePacket={deletePacket}/>} 
-  {page==='labels'&&<LabelCounter garden={garden} navigate={navigate}/>} 
+  {page==='memory'&&<GardenMemory garden={garden} navigate={navigate} resolveProblem={resolveProblem}/>} {page==='seed-tools'&&<SeedTools garden={garden} navigate={navigate} savePacket={savePacket} deletePacket={deletePacket}/>} {page==='labels'&&<LabelCounter garden={garden} navigate={navigate}/>} 
   <BottomNav page={navPage} navigate={navigate}/>
   {controlModal&&<GardenControls modal={modal} garden={garden} close={()=>setModal(null)} savePlant={savePlant} archivePlant={archivePlant} deletePlant={deletePlant} saveHarvest={saveHarvest} saveProblem={saveProblem}/>} 
   {modal&&!controlModal&&<ClearDetailModal modal={modal} close={()=>setModal(null)} garden={garden} addPlant={addPlant} addSpace={addSpace} recordSoilCheck={recordSoilCheck} recordWatered={recordWatered} logGreenhouseCheck={logGreenhouseCheck} setModal={setModal} completeTask={id=>markDaily(id,'done')} snoozeTask={snoozeTask} skipTask={skipTask}/>} 
-  {confirmation&&<PlantConfirmation data={confirmation} onClose={()=>setConfirmation(null)} onView={viewConfirmedBed} onAdd={addAnother}/>} 
-  {toast&&<div className="toast">{toast}</div>}
- </div></div>
+  {confirmation&&<PlantConfirmation data={confirmation} onClose={()=>setConfirmation(null)} onView={viewConfirmedBed} onAdd={addAnother}/>} {toast&&<div className="toast">{toast}</div>}
+ </div></div>;
 }
