@@ -1,15 +1,15 @@
-export const APP_VERSION='0.12.11';
-export const BUILD_ID='qr-studio-cleanup-pdf-only';
-export const UPDATED_AT='July 16, 2026';
+export const APP_VERSION='0.12.12';
+export const BUILD_ID='live-weather-reliability';
+export const UPDATED_AT='July 17, 2026';
 export const WHATS_NEW=[
- 'All legacy QR browser-print controls and blank iPhone print-preview paths have been removed',
- 'QR & Label Studio is now the single source for physical garden-bed signs and individual plant tags',
- 'Garden and bed-detail screens direct physical label creation to downloadable PDF exports only',
- 'Bed Sign PDF includes the exact garden-space name, permanent QR code, current plants, and stable bed code',
- 'Plant Tag PDF creates cut-apart tags for Pepper #1-style identifiers, varieties, quantities, stages, and exact locations',
- 'Bed QR links can still be tested, copied, and shared without exposing private editing controls',
- 'Plant editor language now consistently uses Plant location and Plant name or identifier',
- 'The public read-only bed framework remains prepared for cloud-backed access from any phone in v1.0.0',
- 'Obsolete QR print-sheet styles and window.print behavior have been removed',
- 'Offline cache v28 refreshes installed iPhone copies with the completed QR Studio cleanup'
+ 'Weather now requests fresh Green Bay conditions whenever the app opens or returns from the background',
+ 'The weather cache was reduced from 90 minutes to 5 minutes',
+ 'Current rain and thunderstorms now override heat and generic daily forecast messages',
+ 'The weather card shows whether conditions are live or saved and displays the update time',
+ 'Saved or failed weather is clearly marked as potentially outdated and is not presented as live',
+ 'The app refreshes weather when the phone comes back online',
+ 'Active rain guidance tells gardeners to hold off on watering and recheck soil after the rain',
+ 'Storm guidance prioritizes lightning safety and pauses outdoor garden work',
+ 'QR & Label Studio remains the single PDF-based physical label workflow',
+ 'Offline cache v29 refreshes installed iPhone copies with the weather reliability patch'
 ];
