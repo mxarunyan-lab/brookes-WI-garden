@@ -39,7 +39,7 @@ export function seedInventory(garden={}){
  const exact=(garden.seedPackets||[]).map(packet=>({...packet,exactPacket:true}));
  const legacy=(garden.seeds||[]).map(seed=>({...seed,exactPacket:false}));
  const rows=[...exact,...legacy].map(record=>{const stock=stockFor(record);return{...record,cropId:inferCropId(record),quantityAvailable:stock.available,blocked:stock.blocked||stock.available===0}}).filter(record=>!record.blocked);
- const exactKeys=new Set(exact.map(record=>`${inferCropId(record)||normalize(record.name)}|${normalize(record.variety)}`));
+ const exactKeys=new Set(rows.filter(record=>record.exactPacket).map(record=>`${record.cropId||normalize(record.name)}|${normalize(record.variety)}`));
  return rows.filter(record=>record.exactPacket||!exactKeys.has(`${record.cropId||normalize(record.name)}|${normalize(record.variety)}`));
 }
 
@@ -47,7 +47,7 @@ function modeFrom(packet,recommendation){
  const notes=normalize(packet.seedStartingGuidance||packet.startGuidance||packet.notes);
  if(/direct sow|sow outdoors|plant outdoors/.test(notes))return'Direct sow';
  if(/start indoors|sow indoors|indoor start/.test(notes))return'Start indoors';
- if(/transplant/.test(notes))return'Transplant';
+ if(/transplant/.test(notes))return'Start indoors';
  const status=normalize(recommendation?.status);
  if(status.includes('start seeds indoors'))return'Start indoors';
  if(status.includes('grow indoors'))return'Grow indoors';
@@ -64,7 +64,7 @@ function isStrongNow(mode,recommendation){
  return false;
 }
 
-function activeCount(space,garden){return(garden.plants||[]).filter(plant=>!plant.deletedAt&&!plant.archived&&plant.spaceId===space.id).length}
+function activeCount(space,garden){return(garden.plants||[]).filter(plant=>!plant.deletedAt&&!plant.archived&&plant.spaceId===space.id).reduce((sum,plant)=>sum+(Number(plant.quantity)||1),0)}
 
 function suitableSpaces(garden,crop,mode){
  return(garden.spaces||[]).filter(space=>!space.hidden&&!space.deletedAt).map(space=>{
@@ -169,7 +169,7 @@ export function plantingItems(timeline=[],{tasks=[],garden={},completions=[]}={}
   const subjectKey=`task-${task.id}`,decision=decisions.get(subjectKey);if(decision?.decision==='not-this-season')return;
   items.push({id:subjectKey,subjectKey,type:'task',task,plantId:task.plant?.id||'',date:decision?.decision==='later'&&decision.dueDate?decision.dueDate:task.dueDate,title:task.title,detail:task.subtitle||task.reason||'',reason:task.reason||'',priority:task.priority||50,confirmed:Boolean(task.manual||decision?.decision==='later'),estimated:!task.manual,decision});
  });
- const unique=new Map();items.forEach(item=>{const key=`${item.plantId||item.id}|${normalize(item.type==='task'?item.task?.taskType:item.type)}|${dateKey(item.date)}`;const current=unique.get(key);if(!current||item.type==='task'||Number(item.priority)>Number(current.priority))unique.set(key,item)});
+ const unique=new Map();items.forEach(item=>{const plant=(garden.plants||[]).find(entry=>entry.id===item.plantId),kind=item.type==='task'?item.task?.taskType:item.type==='stage'&&plant?.stage==='Hardening Off'?'Harden Off':item.type;const key=`${item.plantId||item.id}|${normalize(kind)}|${dateKey(item.date)}`;const current=unique.get(key);if(!current||item.type==='task'||Number(item.priority)>Number(current.priority))unique.set(key,item)});
  return[...unique.values()].sort((a,b)=>dateKey(a.date).localeCompare(dateKey(b.date))||Number(b.priority||0)-Number(a.priority||0));
 }
 
