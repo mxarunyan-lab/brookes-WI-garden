@@ -1,21 +1,21 @@
 import React from'react';
-import{BookOpen,CalendarDays,ClipboardList,PackageSearch,ShoppingBasket,Sprout,Warehouse}from'lucide-react';
-import{cropCatalog}from'./data.js';
+import{BookOpen,CalendarDays,ChevronRight,ClipboardList,PackageSearch,ShoppingBasket,Sprout,Warehouse}from'lucide-react';
 import{activeShoppingCount}from'./gardenShopping.js';
-import{SecondaryCard,SecondaryHero,SecondarySectionHeader}from'./SecondaryUI.jsx';
+import{SecondaryHero}from'./SecondaryUI.jsx';
+import{buildTaskBoard}from'./taskBoard.js';
 
-const SLOGANS=['Questionable expertise since opening day.','Extremely organized seeds. Moderately organized gardeners.','Open daily, weather and motivation permitting.','Two directors. No idea where the trowel went.'];
+function DepartmentTile({icon:Icon,title,status,onClick,tone='cream',featured=false}){return <button type="button" className={`garden-center-tile tone-${tone}${featured?' is-featured':''}`} onClick={onClick} aria-label={`${title}. ${status}`}><span className="garden-center-tile-icon" aria-hidden="true"><Icon/></span><span className="garden-center-tile-copy"><strong>{title}</strong><small>{status}</small></span><ChevronRight aria-hidden="true"/></button>}
 
-export default function GardenCenter({garden,navigate}){
- const trays=(garden.trays||[]).length,lights=(garden.growLights||[]).length,packets=(garden.seedPackets||[]).filter(item=>!item.deletedAt).length,seeds=(garden.seeds||[]).filter(item=>!item.deletedAt).length,harvests=(garden.harvests||[]).length,problems=(garden.problems||[]).filter(item=>item.status!=='resolved').length,openTasks=(garden.reminders||[]).filter(item=>!item.deletedAt&&item.enabled!==false).length,planned=(garden.yearPlan?.crops||[]).filter(item=>item.status==='definitely'||item.status==='maybe'),missing=planned.filter(item=>!(garden.seeds||[]).some(seed=>!seed.deletedAt&&seed.cropId===item.cropId)&&!(garden.seedPackets||[]).some(packet=>!packet.deletedAt&&packet.cropId===item.cropId)),shopping=activeShoppingCount(garden),slogan=SLOGANS[Math.floor(Date.now()/86400000)%SLOGANS.length];
- const openNext=section=>{sessionStorage.setItem('planting-desk-destination',`next:${section}`);navigate('plan-plant')};
- return <main className="screen secondary-screen garden-center-screen"><SecondaryHero icon={Sprout} eyebrow="ARCHIE & BROOKE’S GARDEN STORE" title="Runyan Garden Center" description={`Planning, seeds, care, records, and the next useful garden move. ${slogan}`} className="garden-center-hero"/><section className="screen-pad secondary-screen-content garden-center-content"><SecondarySectionHeader eyebrow="PICK A DEPARTMENT" description="Choose what you need to plan, care for, review, or prepare."/><div className="secondary-card-list garden-center-grid">
-  <SecondaryCard kind="department" tone="gold" icon={ClipboardList} title="Care Desk" description="Review and complete Garden Chore Board tasks" meta={openTasks?`${openTasks} saved reminder${openTasks===1?'':'s'}`:'Open the full chore board'} onClick={()=>navigate('chores')}/>
-  <SecondaryCard kind="department" tone="green" icon={PackageSearch} title="Seed Department" description="Review exact packets, varieties, quantities, photos, and notes" meta={`${packets} exact packet${packets===1?'':'s'} · ${seeds} saved seed record${seeds===1?'':'s'}`} onClick={()=>navigate('seed-tools')}/>
-  <SecondaryCard kind="department" tone="rust" icon={Sprout} title="Planting Department" description="Open Grow Now, Today, This Week, and Plan Ahead" meta="Seasonal and year-round planting guidance" onClick={()=>navigate('plan-plant')}/>
-  <SecondaryCard kind="department" tone="gold" icon={ShoppingBasket} title="Garden Shopping List" description="Seeds, plants, and supplies to pick up for the garden" meta={shopping?`${shopping} item${shopping===1?'':'s'} still needed`:'Nothing to pick up right now'} count={shopping||undefined} onClick={()=>navigate('shopping-list')}/>
-  <SecondaryCard kind="department" tone="blue" icon={Warehouse} title="Indoor Growing" description="Manage seedling trays, grow lights, greenhouse work, and basement growing" meta={`${trays} tray${trays===1?'':'s'} · ${lights} light setup${lights===1?'':'s'}`} onClick={()=>navigate('indoor')}/>
-  <SecondaryCard kind="department" tone="cream" icon={BookOpen} title="Records Counter" description="Review harvests, problems, observations, photos, and garden history" meta={`${harvests} harvest${harvests===1?'':'s'} · ${problems} active issue${problems===1?'':'s'}`} onClick={()=>navigate('memory')}/>
-  <SecondaryCard kind="department" tone="gold" icon={CalendarDays} title="Next Season" description="Plan crops, seed purchases, spaces, supplies, and improvements" meta={missing.length?`${missing.length} planned crop${missing.length===1?'':'s'} may need seed`:`${planned.length} crop${planned.length===1?'':'s'} in the draft`} onClick={()=>openNext('supplies')}/>
- </div>{planned.length>0&&<button type="button" className="next-season-strip" onClick={()=>openNext('crops')}><CalendarDays/><span><strong>{planned.length} crop{planned.length===1?'':'s'} in next season’s draft</strong><small>{missing.length?`Seed may be needed for ${missing.map(item=>cropCatalog.find(crop=>crop.id===item.cropId)?.name).filter(Boolean).slice(0,3).join(', ')}`:'Saved seed currently covers the crop draft.'}</small></span></button>}</section></main>;
+export default function GardenCenter({garden,navigate,tasks=[],dailyDone=[]}){
+ const board=buildTaskBoard({tasks,completions:dailyDone}),due=board.counts.dueToday||0,packets=(garden.seedPackets||[]).filter(item=>!item.deletedAt).length,trays=(garden.trays||[]).filter(item=>!item.deletedAt).length,problems=(garden.problems||[]).filter(item=>item.status!=='resolved'&&!item.deletedAt).length,planned=(garden.yearPlan?.crops||[]).filter(item=>item.status==='definitely'||item.status==='maybe').length,shopping=activeShoppingCount(garden);
+ const openNext=()=>{sessionStorage.setItem('planting-desk-destination','next:supplies');navigate('plan-plant')};
+ return <main className="screen secondary-screen garden-center-screen"><SecondaryHero icon={Sprout} eyebrow="ARCHIE & BROOKE’S GARDEN STORE" title="Runyan Garden Center" description="Planning, seeds, care, records, and the next useful garden move." className="garden-center-hero"/><section className="screen-pad secondary-screen-content garden-center-content"><div className="garden-center-compact-grid">
+  <DepartmentTile icon={ClipboardList} title="Care Desk" status={`${due} due today`} tone="gold" onClick={()=>navigate('chores')}/>
+  <DepartmentTile icon={Sprout} title="Planting Department" status="Grow Now available" tone="rust" onClick={()=>navigate('plan-plant')}/>
+  <DepartmentTile icon={ShoppingBasket} title="Garden Shopping List" status={`${shopping} item${shopping===1?'':'s'} needed`} tone="gold" onClick={()=>navigate('shopping-list')}/>
+  <DepartmentTile icon={PackageSearch} title="Seed Department" status={`${packets} packet${packets===1?'':'s'}`} tone="green" onClick={()=>navigate('seed-tools')}/>
+  <DepartmentTile icon={Warehouse} title="Indoor Growing" status={`${trays} active tray${trays===1?'':'s'}`} tone="blue" onClick={()=>navigate('indoor')}/>
+  <DepartmentTile icon={BookOpen} title="Records Counter" status={`${problems} active issue${problems===1?'':'s'}`} tone="cream" onClick={()=>navigate('memory')}/>
+  <DepartmentTile icon={CalendarDays} title="Next Season" status={`${planned} draft crop${planned===1?'':'s'}`} tone="green" featured onClick={openNext}/>
+ </div></section></main>;
 }
