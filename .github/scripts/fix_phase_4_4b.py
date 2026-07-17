@@ -1,37 +1,47 @@
 from pathlib import Path
 
-def replace_required(text,old,new,label):
-    if old not in text:
-        raise SystemExit(f'Missing expected text for {label}')
-    return text.replace(old,new,1)
 
-path=Path('src/weatherDecisionEngine.js')
-text=path.read_text()
-text=replace_required(text,"const freshness=weather=>weather?.isStale?'Stale':weather?.freshness||'Unavailable';","const freshness=weather=>weather?.isStale?'Stale':weather?.freshness||(weather&&(weather.currentObservation||weather.forecasts?.length||weather.temperature!==null&&weather.temperature!==undefined||weather.high!==null&&weather.high!==undefined||weather.low!==null&&weather.low!==undefined||Object.keys(weather.signals||{}).length)?'Current':'Unavailable');",'legacy freshness inference')
-old="const rows=forecastRows(weather),forecastAmount=rows.slice(0,48).reduce((sum,row)=>sum+forecastAmount(row),0),probability=Math.max(0,...rows.slice(0,48).map(forecastProbability)),observed=number(weather?.recentRain24h)||0"
-new="const rows=forecastRows(weather),forecastTotal=rows.slice(0,48).reduce((sum,row)=>sum+forecastAmount(row),0),probability=Math.max(0,...rows.slice(0,48).map(forecastProbability)),observed=number(weather?.recentRain24h)||0"
-text=replace_required(text,old,new,'rain total shadowing')
+def save(path, text):
+    Path(path).write_text(text)
+    print(f'updated {path}')
+
+
+path='src/weatherDecisionEngine.js'
+text=Path(path).read_text()
+text=text.replace("const freshness=weather=>weather?.isStale?'Stale':weather?.freshness||'Unavailable';","const freshness=weather=>weather?.isStale?'Stale':weather?.freshness||(weather&&(weather.currentObservation||weather.forecasts?.length||weather.temperature!==null&&weather.temperature!==undefined||weather.high!==null&&weather.high!==undefined||weather.low!==null&&weather.low!==undefined||Object.keys(weather.signals||{}).length)?'Current':'Unavailable');")
+text=text.replace("forecastAmount=rows.slice(0,48).reduce((sum,row)=>sum+forecastAmount(row),0)","forecastTotal=rows.slice(0,48).reduce((sum,row)=>sum+forecastAmount(row),0)")
 text=text.replace("forecastAmount>=WEATHER_DECISION_THRESHOLDS.forecastHeavyRainIn","forecastTotal>=WEATHER_DECISION_THRESHOLDS.forecastHeavyRainIn",1)
-text=text.replace("`${forecastAmount.toFixed(2)} in of rain is forecast", "`${forecastTotal.toFixed(2)} in of rain is forecast",1)
+text=text.replace("`${forecastAmount.toFixed(2)} in of rain is forecast","`${forecastTotal.toFixed(2)} in of rain is forecast",1)
 text=text.replace("(heavyObserved?observed:forecastAmount).toFixed(2)","(heavyObserved?observed:forecastTotal).toFixed(2)",1)
-text=replace_required(text,"const spaces=spaceMap(garden),plants=activePlants(garden),vulnerable=plants.filter(plant=>{const space=spaces.get(plant.spaceId);return isContainer(space)||isNewPlant(plant)||HEAT_SENSITIVE.has(cropId(plant))}","const spaces=spaceMap(garden),plants=activePlants(garden),vulnerable=plants.filter(plant=>{const space=spaces.get(plant.spaceId);return!isIndoor(space)&&(isContainer(space)||isNewPlant(plant)||HEAT_SENSITIVE.has(cropId(plant))||high>=WEATHER_DECISION_THRESHOLDS.extremeHeatF)}",'extreme heat compatibility')
-old="const history=recommendationHistory||garden.weatherRecommendationHistory||[],hasWeather=Boolean(weather&&(weather.currentObservation||weather.forecasts?.length||weather.temperature!==null&&weather.temperature!==undefined)),raw=[];"
-new="const history=recommendationHistory||garden.weatherRecommendationHistory||[],hasWeather=Boolean(weather&&(weather.currentObservation||weather.forecasts?.length||weather.temperature!==null&&weather.temperature!==undefined||weather.high!==null&&weather.high!==undefined||weather.low!==null&&weather.low!==undefined||Object.keys(weather.signals||{}).length)),raw=[];"
-text=replace_required(text,old,new,'legacy weather presence')
-path.write_text(text)
+text=text.replace("return isContainer(space)||isNewPlant(plant)||HEAT_SENSITIVE.has(cropId(plant))","return!isIndoor(space)&&(isContainer(space)||isNewPlant(plant)||HEAT_SENSITIVE.has(cropId(plant))||high>=WEATHER_DECISION_THRESHOLDS.extremeHeatF)",1)
+text=text.replace("weather.temperature!==null&&weather.temperature!==undefined)),raw=[];","weather.temperature!==null&&weather.temperature!==undefined||weather.high!==null&&weather.high!==undefined||weather.low!==null&&weather.low!==undefined||Object.keys(weather.signals||{}).length)),raw=[];",1)
+checks={
+ 'freshness compatibility':"Object.keys(weather.signals||{}).length)?'Current':'Unavailable'" in text,
+ 'rain total rename':'forecastTotal=rows.slice(0,48)' in text and 'const rows=forecastRows(weather),forecastAmount=' not in text,
+ 'extreme heat compatibility':'high>=WEATHER_DECISION_THRESHOLDS.extremeHeatF)' in text,
+ 'legacy weather presence':'||Object.keys(weather.signals||{}).length)),raw=[];' in text,
+}
+if not all(checks.values()):
+    raise SystemExit(f'weather engine checks failed: {checks}')
+save(path,text)
 
-path=Path('src/yearRoundEngine.js')
-text=path.read_text()
-old="const WEATHER_TASK_CATEGORIES=new Set(['frost','heat','wind','storm','heavy-rain','disease-risk']);\nfunction weatherTasks(weather,date,garden,guidance=null){const decisionSet=guidance||buildWeatherDecisionEngine({garden,weather,now:date.getTime()}),rows=(decisionSet.recommendations||[]).filter(row=>WEATHER_TASK_CATEGORIES.has(row.category)&&row.priority>=65);return rows.map(row=>{const plant=(garden.plants||[]).find(item=>row.affectedPlants?.includes(item.id)),space=(garden.spaces||[]).find(item=>row.affectedGrowingSpaces?.includes(item.id)),alert={id:row.recommendationId,type:row.title,severity:row.priority>=90?'Urgent':row.priority>=70?'High':'Normal',what:row.plainLanguageExplanation,why:row.recommendedAction,when:row.timing,source:row.source};return task({id:row.recommendationId,kind:'weather',taskType:row.category==='disease-risk'?'Inspect For Problems':row.title,plant,space,priority:row.priority,title:row.title,subtitle:row.plainLanguageExplanation,reason:row.recommendedAction,when:row.timing,source:row.source,weatherAlert:alert,weatherDriven:true,action:'Review'},date)})}"
-new="const WEATHER_TASK_CATEGORIES=new Set(['frost','heat','wind','storm','heavy-rain','disease-risk']),WEATHER_TASK_TYPES={frost:'Frost Protection',heat:'Heat Protection',wind:'Wind Protection',storm:'Storm Preparation','heavy-rain':'Drainage Check','disease-risk':'Inspect For Problems'};\nfunction weatherTasks(weather,date,garden,guidance=null){const decisionSet=guidance||buildWeatherDecisionEngine({garden,weather,now:date.getTime()}),rows=(decisionSet.recommendations||[]).filter(row=>WEATHER_TASK_CATEGORIES.has(row.category)&&row.priority>=65);return rows.map(row=>{const plant=(garden.plants||[]).find(item=>row.affectedPlants?.includes(item.id)),space=(garden.spaces||[]).find(item=>row.affectedGrowingSpaces?.includes(item.id)),taskType=WEATHER_TASK_TYPES[row.category]||row.title,alert={id:row.recommendationId,type:taskType,severity:row.priority>=90?'Urgent':row.priority>=70?'High':'Normal',what:row.plainLanguageExplanation,why:row.recommendedAction,when:row.timing,source:row.source};return task({id:row.recommendationId,kind:'weather',taskType,plant,space,priority:row.priority,title:row.title,subtitle:row.plainLanguageExplanation,reason:row.recommendedAction,when:row.timing,source:row.source,weatherAlert:alert,weatherDriven:true,action:'Review'},date)})}"
-text=replace_required(text,old,new,'canonical weather task types')
-path.write_text(text)
+path='src/yearRoundEngine.js'
+text=Path(path).read_text()
+text=text.replace("const WEATHER_TASK_CATEGORIES=new Set(['frost','heat','wind','storm','heavy-rain','disease-risk']);","const WEATHER_TASK_CATEGORIES=new Set(['frost','heat','wind','storm','heavy-rain','disease-risk']),WEATHER_TASK_TYPES={frost:'Frost Protection',heat:'Heat Protection',wind:'Wind Protection',storm:'Storm Preparation','heavy-rain':'Drainage Check','disease-risk':'Inspect For Problems'};",1)
+text=text.replace("space=(garden.spaces||[]).find(item=>row.affectedGrowingSpaces?.includes(item.id)),alert=","space=(garden.spaces||[]).find(item=>row.affectedGrowingSpaces?.includes(item.id)),taskType=WEATHER_TASK_TYPES[row.category]||row.title,alert=",1)
+text=text.replace("alert={id:row.recommendationId,type:row.title,","alert={id:row.recommendationId,type:taskType,",1)
+text=text.replace("taskType:row.category==='disease-risk'?'Inspect For Problems':row.title,plant","taskType,plant",1)
+if "WEATHER_TASK_TYPES={frost:'Frost Protection',heat:'Heat Protection'" not in text or "taskType,plant,space" not in text:
+    raise SystemExit('canonical weather task type patch failed')
+save(path,text)
 
-path=Path('test/weatherDecisionEngine.test.js')
-text=path.read_text()
-text=replace_required(text,"observations:patch.observations||current?[current]:[]","observations:patch.observations||(current?[current]:[])",'observation fixture precedence')
-text=replace_required(text,"plant('kale','kale','bed',{lastWatered:iso(-2)})","plant('kale','kale','bed','Established',{lastWatered:iso(-2)})",'mild fixture stage')
-path.write_text(text)
+path='test/weatherDecisionEngine.test.js'
+text=Path(path).read_text()
+text=text.replace("observations:patch.observations||current?[current]:[]","observations:patch.observations||(current?[current]:[])",1)
+text=text.replace("plant('kale','kale','bed',{lastWatered:iso(-2)})","plant('kale','kale','bed','Established',{lastWatered:iso(-2)})",1)
+if "observations:patch.observations||(current?[current]:[])" not in text or "'bed','Established',{lastWatered" not in text:
+    raise SystemExit('weather scenario fixture patch failed')
+save(path,text)
 
 normal_validate="""name: Validate Garden App
 
@@ -94,3 +104,4 @@ jobs:
 """
 Path('.github/workflows/validate.yml').write_text(normal_validate)
 Path('.github/scripts/fix_phase_4_4b.py').unlink()
+print('restored validation workflow and removed temporary patch script')
