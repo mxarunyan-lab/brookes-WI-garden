@@ -1,165 +1,143 @@
 import { cropCatalog, newId } from './data.js';
+import { formatGardenDateRange, localDateInputValue } from './dateFormat.js';
 
 const DAY=86400000;
-const DIRECT_SOW_IDS=new Set(['lettuce','spinach','kale','radish','peas','carrot','corn','green-bean','cucumber','zucchini','winter-squash','pumpkin','green-onion','cilantro','dill','parsley']);
-const LARGE_CROP_IDS=new Set(['corn','cucumber','zucchini','winter-squash','pumpkin']);
-const COOL_FALL_IDS=new Set(['lettuce','spinach','kale','radish','carrot','peas','cabbage','broccoli','cauliflower']);
-const FALL_INDOOR_IDS=new Set(['cabbage','broccoli','cauliflower']);
-const WARM_START_IDS=new Set(['bell-pepper','hot-pepper','tomato','onion','marigold','basil']);
 const PLANTING_TASK_TYPES=new Set(['Start Seeds','Direct Sow','Transplant','Pot Up','Harden Off','Prepare Space','Install Support','Plan Succession','Thin Seedlings','Reserve Space']);
 const INDOOR_TYPES=new Set(['indoor','basement','seed-tray','greenhouse','hydro']);
-const OUTDOOR_TYPES=new Set(['bed','black-square-bed','white-oval-bed','in-ground','container','potato-grow-bag']);
+const OUTDOOR_TYPES=new Set(['bed','black-square-bed','white-oval-bed','in-ground','container','potato-grow-bag','raised-bed']);
+const LONG_SEASON=new Set(['bell-pepper','hot-pepper','tomato','eggplant','onion','leek','winter-squash','pumpkin','melon']);
+const DIRECT_SOW=new Set(['lettuce','spinach','kale','radish','peas','carrot','corn','green-bean','cucumber','zucchini','winter-squash','pumpkin','green-onion','cilantro','dill','parsley','chard','arugula','beet','turnip','bok-choy','nasturtium','calendula','sweet-alyssum']);
+const COOL_FALL=new Set(['lettuce','spinach','kale','radish','carrot','peas','cabbage','broccoli','cauliflower','chard','arugula','beet','turnip','bok-choy','cilantro','dill']);
+const TRANSPLANT_ONLY_NOW=new Set(['tomato','bell-pepper','hot-pepper','eggplant']);
+const LARGE_CROPS=new Set(['corn','cucumber','zucchini','winter-squash','pumpkin','melon']);
+const PERENNIALS=new Set(['strawberry','chives','thyme','oregano','sage','raspberry','asparagus']);
+const POLLINATORS=new Set(['marigold','nasturtium','calendula','sweet-alyssum','anise-hyssop','coneflower','bee-balm']);
+
+const GUIDANCE={
+ lettuce:{type:'heat-tolerant loose-leaf or summer-crisp lettuce',traits:['slow bolting','heat tolerant','baby-leaf suitable'],examples:['Amish Deer Tongue'],use:'Tender leaves for salads and sandwiches.',harvest:'30–55 days, sooner for baby leaves'},
+ spinach:{type:'slow-bolting spinach',traits:['slow bolting','cool tolerant','baby-leaf suitable'],examples:['Indian Summer','Olympia'],use:'Tender leaves for salads or cooking.',harvest:'35–50 days'},
+ kale:{type:'cold-tolerant leaf kale',traits:['cold tolerant','short season','repeat harvest'],examples:[],use:'Leaves for sautéing, soups, or salads.',harvest:'30–60 days for baby or mature leaves'},
+ radish:{type:'fast spring or fall radish',traits:['short season','direct sow','compact'],examples:[],use:'Crisp roots and edible greens.',harvest:'22–40 days'},
+ carrot:{type:'short-season or baby carrot',traits:['short season','smooth-rooted','suitable for loose soil'],examples:[],use:'Fresh eating, roasting, or storage depending on type.',harvest:'50–75 days'},
+ peas:{type:'short-season snap or snow pea',traits:['cool tolerant','short season','trellis suitable'],examples:[],use:'Sweet edible pods or shelling peas.',harvest:'55–70 days'},
+ cabbage:{type:'early-maturing fall cabbage',traits:['short season','cold tolerant','compact head'],examples:[],use:'Slaw, sautéing, roasting, or storage.',harvest:'60–90 days from transplant'},
+ broccoli:{type:'early-maturing broccoli',traits:['short season','cold tolerant','side-shoot production'],examples:[],use:'Main heads and later side shoots.',harvest:'55–80 days from transplant'},
+ cauliflower:{type:'short-season cauliflower',traits:['short season','cold tolerant','uniform maturity'],examples:[],use:'Fresh eating, roasting, or freezing.',harvest:'55–80 days from transplant'},
+ tomato:{type:'early-maturing tomato transplant',traits:['early maturing','disease resistant','appropriate growth habit'],examples:[],use:'Choose cherry, slicing, or paste fruit for the intended kitchen use.',harvest:'50–75 days from transplant'},
+ 'bell-pepper':{type:'early-maturing sweet pepper transplant',traits:['early maturing','compact when space is limited','thick-walled fruit'],examples:[],use:'Fresh eating, stuffing, roasting, or freezing.',harvest:'55–80 days from transplant'},
+ 'hot-pepper':{type:'early-maturing hot pepper transplant',traits:['early maturing','compact','heat level suited to the household'],examples:[],use:'Fresh salsa, pickling, drying, or hot sauce.',harvest:'60–90 days from transplant'},
+ eggplant:{type:'short-season eggplant transplant',traits:['short season','early maturing','compact'],examples:[],use:'Grilling, roasting, curries, or casseroles.',harvest:'55–80 days from transplant'},
+ 'green-bean':{type:'bush bean for speed or pole bean for vertical harvest',traits:['short season','disease resistant','growth habit matched to support'],examples:[],use:'Fresh snap beans, freezing, or pickling.',harvest:'50–65 days'},
+ cucumber:{type:'pickling or slicing cucumber',traits:['early maturing','disease resistant','trellis suitable when needed'],examples:[],use:'Choose pickling types for jars or slicing types for fresh eating.',harvest:'50–65 days'},
+ zucchini:{type:'compact zucchini or summer squash',traits:['early maturing','compact when space is limited','powdery-mildew resistance'],examples:[],use:'Fresh cooking, grilling, baking, or freezing.',harvest:'45–60 days'},
+ 'winter-squash':{type:'short-season winter squash',traits:['short season','compact vine when needed','storage quality'],examples:[],use:'Roasting, soups, baking, and winter storage.',harvest:'80–100 days'},
+ pumpkin:{type:'small-fruited short-season pumpkin',traits:['short season','smaller vine when space is limited','intended for cooking or carving'],examples:[],use:'Cooking, decorating, or carving depending on type.',harvest:'85–105 days'},
+ basil:{type:'culinary basil transplant or indoor planting',traits:['slow bolting','compact when container grown','disease resistant'],examples:['Genovese'],use:'Fresh leaves for pesto, sauces, and garnishing.',harvest:'30–50 days'},
+ cilantro:{type:'slow-bolting cilantro',traits:['slow bolting','cool tolerant','succession suitable'],examples:[],use:'Leaves for fresh cooking and mature seed for coriander.',harvest:'30–50 days'},
+ dill:{type:'leaf dill or pickling dill',traits:['slow bolting for leaf harvest','large seed heads for pickling when desired'],examples:['Hercules','Long Island Mammoth'],use:'Leaves, flowers, or seed for cooking and pickling.',harvest:'40–70 days'},
+ parsley:{type:'flat-leaf culinary parsley',traits:['cold tolerant','container suitable','repeat harvest'],examples:[],use:'Fresh herb for sauces, salads, and cooking.',harvest:'70–90 days'},
+ arugula:{type:'cool-season arugula',traits:['short season','baby-leaf suitable','slow bolting'],examples:[],use:'Peppery leaves for salads, pizza, or cooking.',harvest:'25–40 days'},
+ beet:{type:'baby or short-season beet',traits:['short season','dual-purpose roots and greens','compact'],examples:[],use:'Roots for roasting or pickling; young leaves are edible.',harvest:'45–65 days'},
+ turnip:{type:'salad or baby turnip',traits:['short season','cool tolerant','edible greens'],examples:[],use:'Tender roots and greens for fresh eating or cooking.',harvest:'35–55 days'},
+ 'bok-choy':{type:'baby or compact bok choy',traits:['short season','cold tolerant','compact'],examples:[],use:'Crisp stems and leaves for stir-fries or soups.',harvest:'30–50 days'},
+ chard:{type:'compact Swiss chard',traits:['heat tolerant','repeat harvest','container suitable'],examples:[],use:'Tender leaves and stems for cooking.',harvest:'30–60 days'},
+ leek:{type:'baby leek or early leek',traits:['early maturing','cold tolerant','baby harvest suitable'],examples:['Albinstar Baby Leek'],use:'Mild onion flavor for soups, roasting, and sautés.',harvest:'90–110 days'},
+ strawberry:{type:'hardy strawberry plant',traits:['Wisconsin hardy','disease resistant','June-bearing or day-neutral by preference'],examples:[],use:'Perennial fruit for fresh eating or preserving.',harvest:'Usually the following season after establishment'},
+ nasturtium:{type:'bush or trailing nasturtium',traits:['edible flowers','container suitable','growth habit matched to space'],examples:[],use:'Peppery edible leaves and flowers; also useful garden color.',harvest:'Blooms in roughly 50–70 days'},
+ calendula:{type:'single or semi-double calendula',traits:['cool tolerant','pollinator accessible','edible petals'],examples:[],use:'Bright flowers with edible petals; not a proven pest-control treatment.',harvest:'Blooms in roughly 45–60 days'},
+ 'sweet-alyssum':{type:'sweet alyssum',traits:['small flowers','container edge suitable','beneficial-insect forage'],examples:['Pastel Carpet Mix'],use:'Low flower border that provides pollen and nectar.',harvest:'Blooms in roughly 45–60 days'},
+ chives:{type:'hardy culinary chive plant',traits:['Wisconsin hardy','compact','pollinator flowers'],examples:[],use:'Perennial onion-flavored leaves and edible flowers.',harvest:'Light harvest after establishment'}
+};
+
+const DISCOVERY=[
+ {id:'arugula',name:'Arugula',family:'vegetables',sun:'4–6 hours',harvest:'25–40 days',summary:'Fast peppery salad green for cool weather.'},
+ {id:'beet',name:'Beets',family:'vegetables',sun:'6+ hours',harvest:'45–65 days',summary:'Roots and greens from one compact crop.'},
+ {id:'turnip',name:'Baby Turnips',family:'vegetables',sun:'5–6 hours',harvest:'35–55 days',summary:'Fast cool-season roots with edible greens.'},
+ {id:'bok-choy',name:'Baby Bok Choy',family:'vegetables',sun:'4–6 hours',harvest:'30–50 days',summary:'Compact Asian green for stir-fries and soups.'},
+ {id:'nasturtium',name:'Nasturtiums',family:'flowers',sun:'6+ hours',harvest:'Blooms in 50–70 days',summary:'Edible flowers and leaves in bush or trailing forms.'},
+ {id:'calendula',name:'Calendula',family:'flowers',sun:'6+ hours',harvest:'Blooms in 45–60 days',summary:'Cool-tolerant edible flower with open blooms for insects.'},
+ {id:'sweet-alyssum',name:'Sweet Alyssum',family:'flowers',sun:'4–6 hours',harvest:'Blooms in 45–60 days',summary:'Low flowering edge plant that provides pollen and nectar.'},
+ {id:'chives',name:'Chives',family:'herbs',sun:'6+ hours',harvest:'Perennial harvest after establishment',summary:'Hardy culinary perennial with edible flowers.'},
+ {id:'eggplant',name:'Eggplant',family:'vegetables',sun:'8+ hours',harvest:'55–80 days from transplant',summary:'Heat-loving crop that must be treated as a transplant opportunity this late.'},
+ {id:'leek',name:'Leeks',family:'vegetables',sun:'6+ hours',harvest:'90–120 days',summary:'Long-season onion relative; baby-leek types are the practical shorter option.'}
+];
 
 const todayKey=()=>new Date().toISOString().slice(0,10);
-const dateKey=value=>String(value||todayKey()).slice(0,10);
+export const plantingDateKey=value=>value instanceof Date?localDateInputValue(value):String(value||todayKey()).slice(0,10);
+const dateKey=plantingDateKey;
 const addDays=(value,days)=>{const date=new Date(`${dateKey(value)}T12:00:00`);date.setDate(date.getDate()+days);return date.toISOString().slice(0,10)};
 const normalize=value=>String(value||'').toLowerCase().replace(/[^a-z0-9]+/g,' ').trim();
 const packetKey=packet=>`${packet.exactPacket?'packet':'seed'}-${packet.id}`;
 const decisionMap=garden=>new Map((garden.plantingDecisions||[]).filter(item=>!item.deletedAt).map(item=>[item.subjectKey,item]));
 const firstNumber=value=>{const values=String(value||'').match(/\d+/g)?.map(Number)||[];return values.length?Math.max(...values):null};
-const firstFrost=()=>{const now=new Date(`${todayKey()}T12:00:00`),frost=new Date(`${now.getFullYear()}-10-10T12:00:00`);if(frost<now)frost.setFullYear(frost.getFullYear()+1);return frost};
+const frostDate=year=>new Date(`${year}-10-10T12:00:00`);
+const daysRemaining=(date=new Date())=>Math.max(0,Math.floor((frostDate(date.getFullYear())-new Date(`${dateKey(date)}T12:00:00`))/DAY));
 
-function inferCropId(record={}){
- if(record.cropId&&cropCatalog.some(crop=>crop.id===record.cropId))return record.cropId;
- const text=normalize(`${record.name||''} ${record.variety||''}`);
- if(/california wonder|bell pepper|sweet pepper/.test(text))return'bell-pepper';
- if(/jalapeno|serrano|cayenne|hot pepper|chili|chile/.test(text))return'hot-pepper';
- const match=cropCatalog.find(crop=>{const name=normalize(crop.name);return text===name||text.includes(name)||name.includes(text)});
- return match?.id||'';
-}
-
-function stockFor(record={}){
- const status=normalize(`${record.status||''} ${record.availability||''}`),blocked=Boolean(record.deletedAt||record.discarded||record.available===false||/discarded|unavailable|used up|empty/.test(status)),raw=record.quantity??record.seedsRemaining??record.amount,quantity=raw===''||raw===null||raw===undefined?null:Number(raw),reserved=Number(record.reservedQuantity??record.reserved??0)||0,available=quantity===null?null:Math.max(0,quantity-reserved);
- return{blocked,quantity,reserved,available};
-}
-
-export function seedInventory(garden={}){
- const exact=(garden.seedPackets||[]).map(packet=>({...packet,exactPacket:true})),legacy=(garden.seeds||[]).map(seed=>({...seed,exactPacket:false})),rows=[...exact,...legacy].map(record=>{const stock=stockFor(record);return{...record,cropId:inferCropId(record),quantityAvailable:stock.available,blocked:stock.blocked||stock.available===0}}).filter(record=>!record.blocked),exactKeys=new Set(rows.filter(record=>record.exactPacket).map(record=>`${record.cropId||normalize(record.name)}|${normalize(record.variety)}`));
- return rows.filter(record=>record.exactPacket||!exactKeys.has(`${record.cropId||normalize(record.name)}|${normalize(record.variety)}`));
-}
-
-function modeFrom(packet,recommendation){
- const notes=normalize(packet.seedStartingGuidance||packet.startGuidance||packet.notes);
- if(/direct sow|sow outdoors|plant outdoors/.test(notes))return'Direct sow';
- if(/start indoors|sow indoors|indoor start|transplant/.test(notes))return'Start indoors';
- const status=normalize(recommendation?.status);
- if(status.includes('start seeds indoors'))return'Start indoors';
- if(status.includes('grow indoors'))return'Grow indoors';
- if(status.includes('plant or care for outdoors')&&DIRECT_SOW_IDS.has(packet.cropId))return'Direct sow';
- if(status.includes('plant or care for outdoors')&&!DIRECT_SOW_IDS.has(packet.cropId))return'Transplant';
- return'';
-}
-
-function isStrongNow(mode,recommendation){
- const status=normalize(recommendation?.status);
- if(mode==='Start indoors')return status.includes('start seeds indoors');
- if(mode==='Grow indoors')return status.includes('grow indoors');
- if(mode==='Direct sow'||mode==='Transplant')return status.includes('plant or care for outdoors');
- return false;
-}
-
-function maturityFit(packet,crop,mode){
- if(['Start indoors','Grow indoors'].includes(mode))return{fits:true,reason:''};
- const maturity=firstNumber(packet?.daysToMaturity)||firstNumber(crop?.harvest);
- if(!maturity)return{fits:true,reason:''};
- const remaining=Math.floor((firstFrost().getTime()-new Date(`${todayKey()}T12:00:00`).getTime())/DAY),buffer=mode==='Transplant'?7:14;
- if(maturity>remaining-buffer)return{fits:false,reason:`About ${maturity} days are needed, but only about ${remaining} days remain before the working first-frost date.`};
- return{fits:true,reason:''};
-}
+function inferCropId(record={}){if(record.cropId)return record.cropId;const text=normalize(`${record.name||''} ${record.variety||''}`);if(/eggplant/.test(text))return'eggplant';if(/california wonder|bell pepper|sweet pepper/.test(text))return'bell-pepper';if(/jalapeno|serrano|cayenne|hot pepper|chili|chile/.test(text))return'hot-pepper';const match=[...cropCatalog,...DISCOVERY].find(crop=>{const name=normalize(crop.name);return text===name||text.includes(name)||name.includes(text)});return match?.id||''}
+function stockFor(record={}){const status=normalize(`${record.status||''} ${record.availability||''}`),blocked=Boolean(record.deletedAt||record.discarded||record.available===false||/discarded|unavailable|used up|empty/.test(status)),raw=record.quantity??record.seedsRemaining??record.amount,quantity=raw===''||raw===null||raw===undefined?null:Number(raw),reserved=Number(record.reservedQuantity??record.reserved??0)||0;return{blocked,available:quantity===null?null:Math.max(0,quantity-reserved)}}
+export function seedInventory(garden={}){const exact=(garden.seedPackets||[]).map(packet=>({...packet,exactPacket:true})),legacy=(garden.seeds||[]).map(seed=>({...seed,exactPacket:false})),rows=[...exact,...legacy].map(record=>{const stock=stockFor(record);return{...record,cropId:inferCropId(record),quantityAvailable:stock.available,blocked:stock.blocked||stock.available===0}}).filter(record=>!record.blocked),exactKeys=new Set(rows.filter(record=>record.exactPacket).map(record=>`${record.cropId||normalize(record.name)}|${normalize(record.variety)}`));return rows.filter(record=>record.exactPacket||!exactKeys.has(`${record.cropId||normalize(record.name)}|${normalize(record.variety)}`))}
 
 function activeCount(space,garden){return(garden.plants||[]).filter(plant=>!plant.deletedAt&&!plant.archived&&plant.spaceId===space.id).reduce((sum,plant)=>sum+(Number(plant.quantity)||1),0)}
-
-function suitableSpaces(garden,crop,mode){
- return(garden.spaces||[]).filter(space=>!space.hidden&&!space.deletedAt).map(space=>{
-  const count=activeCount(space,garden),capacity=Number(space.capacity)||0;if(capacity&&count>=capacity)return null;
-  const indoor=['Start indoors','Grow indoors'].includes(mode);if(indoor&&!INDOOR_TYPES.has(space.type))return null;if(!indoor&&!OUTDOOR_TYPES.has(space.type))return null;
-  let score=100-count*4;const warnings=[],sun=normalize(space.sunExposure);
-  if(crop?.sun?.includes('8+')&&/shade|part shade/.test(sun)){score-=35;warnings.push('Sun exposure may be too low.')}
-  if(space.type==='container'&&LARGE_CROP_IDS.has(crop?.id)){score-=30;warnings.push('This crop may outgrow a typical container.')}
-  if(space.type==='container'&&!space.size)warnings.push('Container size is not recorded.');
-  if(/poor/.test(normalize(space.drainageQuality)))warnings.push('Drainage is recorded as poor.');
-  if(space.expectedAvailableDate&&space.expectedAvailableDate>todayKey()){score-=20;warnings.push(`Expected available ${space.expectedAvailableDate}.`)}
-  return{...space,score,warnings,activeCount:count};
- }).filter(Boolean).sort((a,b)=>b.score-a.score||a.name.localeCompare(b.name));
-}
-
-function packetAlreadyStarted(garden,packet){return(garden.plants||[]).some(plant=>!plant.deletedAt&&!plant.archived&&(plant.seedId===packet.id||plant.sourcePacketId===packet.id||(packet.cropId&&plant.cropId===packet.cropId&&normalize(plant.variety)===normalize(packet.variety))))}
+function suitableSpaces(garden,crop,method){return(garden.spaces||[]).filter(space=>!space.hidden&&!space.deletedAt).map(space=>{const count=activeCount(space,garden),capacity=Number(space.capacity)||0;if(capacity&&count>=capacity)return null;const indoor=['Start Indoors','Indoor Growing'].includes(method);if(indoor&&!INDOOR_TYPES.has(space.type))return null;if(!indoor&&method!=='Save for Later'&&method!=='Not This Season'&&!OUTDOOR_TYPES.has(space.type)&&space.type!=='greenhouse')return null;let score=100-count*4;const warnings=[],sun=normalize(space.sunExposure);if(String(crop?.sun||'').includes('8+')&&/shade|part shade/.test(sun)){score-=35;warnings.push('Recorded sunlight may be too low.')}if(space.type==='container'&&LARGE_CROPS.has(crop?.id)){score-=30;warnings.push('This crop may outgrow a typical container.')}if(space.type==='container'&&!space.size)warnings.push('Container size is not recorded.');if(/poor/.test(normalize(space.drainageQuality)))warnings.push('Drainage is recorded as poor.');if(space.expectedAvailableDate&&space.expectedAvailableDate>todayKey()){score-=20;warnings.push(`Expected available ${space.expectedAvailableDate}.`)}return{...space,score,warnings,activeCount:count}}).filter(Boolean).sort((a,b)=>b.score-a.score||a.name.localeCompare(b.name))}
 function cropAlreadyPlanned(garden,cropId){return(garden.plants||[]).some(plant=>!plant.deletedAt&&!plant.archived&&plant.cropId===cropId)||(garden.yearPlan?.crops||[]).some(item=>item.cropId===cropId&&['definitely','maybe'].includes(item.status))}
+function packetAlreadyStarted(garden,packet){return(garden.plants||[]).some(plant=>!plant.deletedAt&&!plant.archived&&(plant.seedId===packet.id||plant.sourcePacketId===packet.id||(packet.cropId&&plant.cropId===packet.cropId&&normalize(plant.variety)===normalize(packet.variety))))}
 
-function recommendationCard(packet,recommendation,garden,weather){
- const crop=cropCatalog.find(item=>item.id===packet.cropId)||recommendation||null,mode=modeFrom(packet,recommendation),spaces=suitableSpaces(garden,crop,mode),age=packet.packetYear?new Date().getFullYear()-Number(packet.packetYear):null,oldPacket=age!==null&&age>=4,subjectKey=packetKey(packet),decision=decisionMap(garden).get(subjectKey),uncertainty=[],fit=maturityFit(packet,crop,mode);
- if(!packet.notes&&!packet.seedStartingGuidance)uncertainty.push('Exact packet starting directions are not recorded; general crop timing is being used.');
- if(!packet.daysToMaturity)uncertainty.push('Days to maturity are not recorded.');
- if(!spaces.length)uncertainty.push('No clearly suitable open Growing Space is recorded.');
- if(!fit.fits)uncertainty.push(fit.reason);
- if(weather?.isStormingNow)uncertainty.push('Current storms may delay outdoor work.');else if(Number(weather?.high)>=92)uncertainty.push('Current heat may make transplanting risky.');else if(Number(weather?.low)<=36)uncertainty.push('Cold conditions may delay outdoor planting.');
- const statusLabel=decision?.decision==='later'?'Saved Idea':packet.exactPacket?'In Seed Inventory':'Another Owned Variety Available';
- return{id:subjectKey,subjectKey,source:packet.exactPacket?'owned-packet':'owned-seed-record',owned:true,packet,crop,cropId:packet.cropId,cropName:packet.name||crop?.name||'Saved seed',variety:packet.variety||crop?.variety||'',brand:packet.brand||'',title:[packet.brand,packet.variety||packet.name].filter(Boolean).join(' ')||packet.name||'Saved seed',quantity:packet.quantityAvailable,mode,timing:packet.plantingWindow||packet.startingWindow||recommendation?.timing||recommendation?.status||'Timing needs confirmation',reason:packet.notes||recommendation?.note||crop?.summary||'This seed is already owned.',uncertainty:uncertainty.join(' ')||'Exact packet and saved garden information were used.',spaces,spaceWarning:spaces.length?'':'No clearly suitable saved Growing Space is available.',oldPacket,germinationTest:oldPacket,decision,statusLabel,strongNow:Boolean(mode)&&isStrongNow(mode,recommendation)&&!oldPacket&&fit.fits};
+function seasonWindow(cropId,date=new Date()){
+ const year=date.getFullYear(),make=(sm,sd,em,ed,label)=>({start:`${year}-${String(sm).padStart(2,'0')}-${String(sd).padStart(2,'0')}`,end:`${year}-${String(em).padStart(2,'0')}-${String(ed).padStart(2,'0')}`,label});
+ if(COOL_FALL.has(cropId))return make(8,1,9,15,'Green Bay fall planting window');
+ if(cropId==='garlic')return make(9,20,10,25,'Green Bay fall garlic window');
+ if(PERENNIALS.has(cropId))return make(4,15,9,15,'Spring through early-fall establishment window');
+ if(['marigold','nasturtium','calendula','sweet-alyssum'].includes(cropId))return make(5,15,7,31,'Warm-season flower window');
+ if(LONG_SEASON.has(cropId))return make(2,15,4,1,'Indoor-start window');
+ return make(5,15,7,15,'Green Bay outdoor planting window');
 }
 
-function purchaseCard(item,garden,weather,date='',windowLabel='Current window'){
- const crop=cropCatalog.find(c=>c.id===item.id)||item,mode=modeFrom({cropId:item.id},item)||nextWindow(item.id).mode,subjectKey=`catalog-${item.id}`,decision=decisionMap(garden).get(subjectKey),spaces=suitableSpaces(garden,crop,mode),fit=maturityFit({},crop,mode),uncertainty=['General crop guidance is being used because no exact owned packet is recorded.'];
- if(!spaces.length)uncertainty.push('No clearly suitable open Growing Space is recorded.');
- if(!fit.fits)uncertainty.push(fit.reason);
- if(weather?.isStormingNow)uncertainty.push('Current storms may delay outdoor work.');
- return{id:subjectKey,subjectKey,source:'purchase',owned:false,crop,cropId:item.id,cropName:item.name,variety:'',brand:'',title:item.name,quantity:null,mode,timing:date?`${date}${windowLabel?` · ${windowLabel}`:''}`:item.timing||item.status,reason:item.note||crop.summary,uncertainty:uncertainty.join(' '),spaces,spaceWarning:spaces.length?'':'No clearly suitable saved Growing Space is available.',decision,statusLabel:decision?.decision==='later'?'Saved Idea':cropAlreadyPlanned(garden,item.id)?'Already Planned':'Seeds Needed',strongNow:Boolean(mode)&&isStrongNow(mode,item)&&fit.fits};
+function currentAction(crop,packet,weather,date=new Date(),garden={}){
+ const id=crop.id,window=seasonWindow(id,date),today=dateKey(date),maturity=firstNumber(packet?.daysToMaturity)||firstNumber(crop.harvest)||60,remaining=daysRemaining(date),weatherPoor=Boolean(weather?.signals?.poorPlantingWindow?.status),existingSeedling=(garden.plants||[]).find(plant=>!plant.deletedAt&&!plant.archived&&plant.cropId===id&&['Seedling','Potted Up','Hardening Off'].includes(plant.stage));
+ if(existingSeedling)return{method:'Transplant Existing Seedlings',status:weatherPoor?'Plant during the next suitable window':'Transplant an existing seedling',action:weatherPoor?'Wait for the next calm, moderate planting window, then transplant the saved seedling.':'Transplant the existing seedling when its hardening and space are ready.',group:'Transplant Existing Seedlings',window,priority:98,realistic:true};
+ if(TRANSPLANT_ONLY_NOW.has(id)){
+  const transplantDays=Math.max(45,maturity);
+  if(remaining<transplantDays+7)return{method:'Not This Season',status:'Too late this season',action:'Do not start from seed or buy a late transplant now. Save this crop for spring planning.',group:'Not This Season',window,priority:15,realistic:false,risk:`Only about ${remaining} frost-free days remain.`};
+  return{method:'Buy Transplants',status:weatherPoor?'Plant during the next suitable window':'Buy a transplant now',action:weatherPoor?'Choose a healthy nursery transplant, but wait for a calmer planting window.':'Buy a healthy, compact transplant and plant it promptly.',group:'Buy Transplants',window,priority:86,realistic:true};
+ }
+ if(PERENNIALS.has(id)){if(today<=window.end)return{method:'Perennials and Plants',status:weatherPoor?'Plant during the next suitable window':'Plant now',action:weatherPoor?'Choose a healthy plant and wait for a moderate establishment window.':'Buy or divide a healthy plant and establish it now.',group:'Perennials and Plants',window,priority:70,realistic:true};return{method:'Save for Later',status:'Save for spring',action:'Plan this perennial for spring establishment.',group:'Save for Later',window:{...window,start:`${date.getFullYear()+1}-04-15`,end:`${date.getFullYear()+1}-06-15`},priority:30,realistic:true}}
+ if(POLLINATORS.has(id)&&!DIRECT_SOW.has(id))return{method:'Buy Transplants',status:'Buy a transplant now',action:'Choose a healthy flowering plant with accessible single or semi-double blooms.',group:'Buy Transplants',window,priority:62,realistic:true};
+ if(today<window.start)return{method:LONG_SEASON.has(id)?'Start Indoors':DIRECT_SOW.has(id)?'Direct Sow':'Buy Transplants',status:`Wait until ${formatGardenDateRange(window.start,window.end)}`,action:LONG_SEASON.has(id)?'Save for the indoor-start window.':`Wait for the recommended window, then ${DIRECT_SOW.has(id)?'direct sow':'use a transplant'}.`,group:'Save for Later',window,priority:40,realistic:true};
+ if(today>window.end){
+  if(COOL_FALL.has(id)){const next={...window,start:`${date.getFullYear()+1}-08-01`,end:`${date.getFullYear()+1}-09-15`};return{method:'Save for Later',status:'Save for fall',action:'This fall window has passed. Save it for the next cool-season window.',group:'Save for Later',window:next,priority:35,realistic:true}}
+  if(DIRECT_SOW.has(id)&&maturity<=remaining-14)return{method:'Direct Sow',status:weatherPoor?'Plant during the next suitable window':'Plant now',action:weatherPoor?'Wait for the next suitable weather window, then direct sow.':'Direct sow now and keep the seed zone evenly moist.',group:POLLINATORS.has(id)?'Pollinator and Companion Plants':'Direct Sow',window,priority:78,realistic:true};
+  return{method:'Not This Season',status:'Too late this season',action:'The remaining season is unlikely to support a reliable harvest. Save this crop for next year.',group:'Not This Season',window,priority:10,realistic:false,risk:`About ${maturity} days are needed and only about ${remaining} frost-free days remain.`};
+ }
+ if(LONG_SEASON.has(id))return{method:'Start Indoors',status:'Start indoors now',action:'Start indoors under strong light, then transplant after hardening when the outdoor window arrives.',group:'Start Indoors',window,priority:84,realistic:true};
+ if(DIRECT_SOW.has(id)){if(maturity>remaining-14)return{method:'Not This Season',status:'Too late this season',action:'Do not direct sow now; maturity before frost is unlikely.',group:'Not This Season',window,priority:12,realistic:false,risk:`About ${maturity} days are needed and only about ${remaining} frost-free days remain.`};return{method:'Direct Sow',status:weatherPoor?'Plant during the next suitable window':'Plant now',action:weatherPoor?'Wait for the next moderate, lower-risk weather window, then direct sow.':'Direct sow now in the selected Growing Space.',group:POLLINATORS.has(id)?'Pollinator and Companion Plants':'Direct Sow',window,priority:90,realistic:true}}
+ return{method:'Buy Transplants',status:weatherPoor?'Plant during the next suitable window':'Buy a transplant now',action:weatherPoor?'Choose a healthy transplant and wait for a better planting window.':'Buy a healthy transplant and plant it now.',group:'Buy Transplants',window,priority:75,realistic:true};
 }
+
+function traitsFor(crop,packet){const guide=GUIDANCE[crop.id]||{};return packet?.variety?[`Saved variety: ${packet.variety}`,...(guide.traits||[])]:guide.traits||['short season','locally appropriate','matched to the selected Growing Space']}
+function recommendationCard({crop,packet=null,garden,weather,source='discovery'}){
+ const guide=GUIDANCE[crop.id]||{},action=currentAction(crop,packet,weather,new Date(),garden),spaces=suitableSpaces(garden,crop,action.method),subjectKey=packet?packetKey(packet):`catalog-${crop.id}`,decision=decisionMap(garden).get(subjectKey),owned=Boolean(packet),windowText=formatGardenDateRange(action.window.start,action.window.end),title=packet?[packet.brand,packet.variety||packet.name].filter(Boolean).join(' ')||packet.name:guide.type||crop.name,subtitle=guide.type&&title!==guide.type?guide.type:guide.use||crop.summary||'',weatherReason=weather?.signals?.poorPlantingWindow?.status?weather.signals.poorPlantingWindow.reason:'No major weather conflict is active in the available planting window.',risks=[action.risk,...(spaces[0]?.warnings||[])].filter(Boolean);
+ return{id:subjectKey,subjectKey,source,owned,packet,crop,cropId:crop.id,cropName:crop.name,variety:packet?.variety||'',brand:packet?.brand||'',title,subtitle,statusLabel:owned?'Owned Seed':action.method==='Buy Transplants'?'Transplant Needed':action.method==='Perennials and Plants'?'Plant Available':'Seeds Needed',status:action.status,actionNow:action.action,method:action.method,group:decision?.decision==='later'?'Save for Later':decision?.decision==='not-this-season'?'Not This Season':action.group,date:decision?.decision==='later'&&decision.dueDate?decision.dueDate:action.window.start,windowEnd:action.window.end,timing:decision?.decision==='later'?`Review ${formatGardenDateRange(decision.dueDate,decision.dueDate)}`:windowText,recommendedWindow:windowText,reason:guide.use||crop.summary||'A locally appropriate garden option.',whyGreenBay:action.realistic?`${action.status}. The method and maturity are matched to Green Bay’s remaining season.`:'The remaining Green Bay season does not support a reliable result.',uncertainty:owned?'Use the exact packet directions when they are more specific than general guidance.':'Choose a packet or plant with the listed traits; no matching owned packet is currently saved.',traits:traitsFor(crop,packet),examples:guide.examples||[],harvestTime:packet?.daysToMaturity?`${packet.daysToMaturity} days to maturity`:guide.harvest||crop.harvest||'Variety dependent',commonUse:guide.use||crop.summary||'',spaces,weatherNote:weatherReason,needs:owned?'Owned seed packet':action.method==='Buy Transplants'||action.method==='Perennials and Plants'?'Plant or transplant needed':'Seeds needed',confidence:owned&&action.realistic?'High':action.realistic?'Medium':'High',risks,priority:action.priority+(owned?10:0),decision,strongNow:action.realistic&&['Plant now','Buy a transplant now','Start indoors now','Transplant an existing seedling','Plant during the next suitable window'].includes(action.status)};
+}
+
+function catalogRows(recommendations=[]){const map=new Map([...cropCatalog,...DISCOVERY].map(crop=>[crop.id,crop]));for(const row of recommendations)map.set(row.id,{...map.get(row.id),...row});return[...map.values()]}
+function filterDecision(card){const decision=card.decision;if(decision?.decision==='not-this-season')return{...card,group:'Not This Season',status:'Not this season',actionNow:'This opportunity was removed from the current season.'};if(decision?.decision==='later'&&decision.dueDate>todayKey())return{...card,group:'Save for Later',status:'Saved for later',actionNow:`Review this opportunity on ${formatGardenDateRange(decision.dueDate,decision.dueDate)}.`};return card}
+
+export function groupPlantingRecommendations(cards=[]){const order=['Direct Sow','Start Indoors','Buy Transplants','Transplant Existing Seedlings','Perennials and Plants','Pollinator and Companion Plants','Indoor Growing','Save for Later','Not This Season'],descriptions={'Direct Sow':'Seeds planted directly in a bed or container','Start Indoors':'Seeds that need protected indoor growth first','Buy Transplants':'Healthy nursery plants are the realistic present option','Transplant Existing Seedlings':'Saved seedlings ready for their next move','Perennials and Plants':'Established plants, divisions, and long-term crops','Pollinator and Companion Plants':'Useful flowers and garden-supporting plants','Indoor Growing':'Crops that can continue under suitable lights','Save for Later':'Worth keeping for the next realistic window','Not This Season':'Opportunities rejected to avoid false optimism'};return order.map(name=>({name,description:descriptions[name],items:cards.filter(card=>card.group===name).sort((a,b)=>b.priority-a.priority||a.title.localeCompare(b.title))})).filter(group=>group.items.length)}
 
 export function buildGrowNowRecommendations({garden,recommendations=[],weather=null}){
- const byId=new Map(recommendations.map(item=>[item.id,item])),decisions=decisionMap(garden),inventory=seedInventory(garden),owned=inventory.map(packet=>recommendationCard(packet,byId.get(packet.cropId),garden,weather)).filter(card=>card.strongNow&&!packetAlreadyStarted(garden,card.packet)&&decisions.get(card.subjectKey)?.decision!=='not-this-season'&&!(decisions.get(card.subjectKey)?.decision==='later'&&decisions.get(card.subjectKey)?.dueDate>todayKey())).sort((a,b)=>Number(b.packet.exactPacket)-Number(a.packet.exactPacket)||Number(b.quantity||0)-Number(a.quantity||0)),ownedIds=new Set(inventory.map(packet=>packet.cropId).filter(Boolean)),purchases=recommendations.filter(item=>!ownedIds.has(item.id)&&!cropAlreadyPlanned(garden,item.id)).map(item=>purchaseCard(item,garden,weather)).filter(card=>card.strongNow&&card.decision?.decision!=='not-this-season'&&!(card.decision?.decision==='later'&&card.decision.dueDate>todayKey())).sort((a,b)=>(firstNumber(a.crop?.harvest)||999)-(firstNumber(b.crop?.harvest)||999));
- const exact=owned.find(card=>card.packet.exactPacket),sameCrop=exact&&owned.find(card=>card.id!==exact.id&&card.cropId===exact.cropId),another=owned.find(card=>card.id!==exact?.id&&card.id!==sameCrop?.id),purchase=purchases[0],next=buildPlanAheadRecommendations({garden,recommendations,weather}).find(card=>card.date>todayKey()),cards=[];
- [exact,sameCrop,another,purchase,next].filter(Boolean).forEach(card=>{if(cards.length<4&&!cards.some(item=>item.subjectKey===card.subjectKey))cards.push(card)});
- [...owned,...purchases].forEach(card=>{if(cards.length<4&&!cards.some(item=>item.subjectKey===card.subjectKey))cards.push(card)});
- return{cards:cards.slice(0,4),owned,purchases,next:next||null};
+ const inventory=seedInventory(garden),byCrop=new Map(inventory.map(packet=>[packet.cropId,[...(byCropPlaceholder(inventory,packet.cropId))]])),cards=[];
+ for(const packet of inventory){if(!packet.cropId||packetAlreadyStarted(garden,packet))continue;const crop=catalogRows(recommendations).find(row=>row.id===packet.cropId);if(crop)cards.push(filterDecision(recommendationCard({crop,packet,garden,weather,source:packet.exactPacket?'owned-packet':'owned-seed-record'})))}
+ const ownedIds=new Set(inventory.map(packet=>packet.cropId));
+ for(const crop of catalogRows(recommendations)){if(ownedIds.has(crop.id)||cropAlreadyPlanned(garden,crop.id))continue;cards.push(filterDecision(recommendationCard({crop,garden,weather,source:DISCOVERY.some(row=>row.id===crop.id)?'discovery':'catalog'})))}
+ const unique=new Map();for(const card of cards){const current=unique.get(card.subjectKey);if(!current||card.priority>current.priority)unique.set(card.subjectKey,card)}
+ const all=[...unique.values()].sort((a,b)=>b.priority-a.priority||a.title.localeCompare(b.title)),actionable=all.filter(card=>!['Save for Later','Not This Season'].includes(card.group)).slice(0,16),later=all.filter(card=>card.group==='Save for Later').slice(0,4),rejected=all.filter(card=>card.group==='Not This Season').slice(0,4),ordered=[...actionable,...later,...rejected];
+ return{cards:ordered,groups:groupPlantingRecommendations(ordered),owned:ordered.filter(card=>card.owned),purchases:ordered.filter(card=>!card.owned),next:ordered.find(card=>card.group==='Save for Later')||null};
 }
+function byCropPlaceholder(inventory,cropId){return inventory.filter(packet=>packet.cropId===cropId)}
 
-function nextWindow(cropId){
- const year=new Date().getFullYear(),today=todayKey(),range=(sm,sd,em,ed,label,reason,mode)=>{let y=year,start=`${y}-${String(sm).padStart(2,'0')}-${String(sd).padStart(2,'0')}`,end=`${y}-${String(em).padStart(2,'0')}-${String(ed).padStart(2,'0')}`;if(end<today){y+=1;start=`${y}-${String(sm).padStart(2,'0')}-${String(sd).padStart(2,'0')}`;end=`${y}-${String(em).padStart(2,'0')}-${String(ed).padStart(2,'0')}`}return{start,end,label,reason,mode}};
- if(COOL_FALL_IDS.has(cropId))return range(8,1,9,15,'Estimated fall planting window','This cool-season crop may fit Green Bay’s late-summer or early-fall window.',FALL_INDOOR_IDS.has(cropId)?'Start indoors':'Direct sow');
- if(cropId==='garlic')return range(9,20,10,25,'Estimated fall planting window','Hardneck garlic is generally planted before the ground freezes.','Direct sow');
- if(WARM_START_IDS.has(cropId))return range(2,15,4,1,'Estimated indoor-start window','This long-season crop usually needs an indoor head start before Green Bay’s outdoor season.','Start indoors');
- return range(5,15,6,15,'Estimated outdoor planting window','General Green Bay seasonal guidance is being used because an exact packet window is not recorded.',DIRECT_SOW_IDS.has(cropId)?'Direct sow':'Transplant');
-}
+export function buildPlanAheadRecommendations({garden,recommendations=[],weather=null}){const result=buildGrowNowRecommendations({garden,recommendations,weather});return result.cards.filter(card=>['Save for Later','Not This Season'].includes(card.group)||!card.strongNow).sort((a,b)=>String(a.date).localeCompare(String(b.date))||b.priority-a.priority)}
 
-export function buildPlanAheadRecommendations({garden,recommendations=[],weather=null}){
- const byId=new Map(recommendations.map(item=>[item.id,item])),decisions=decisionMap(garden),items=[],inventory=seedInventory(garden),ownedIds=new Set(inventory.map(packet=>packet.cropId).filter(Boolean));
- inventory.forEach(packet=>{
-  const card=recommendationCard(packet,byId.get(packet.cropId),garden,weather),decision=decisions.get(card.subjectKey);if(decision?.decision==='not-this-season'||packetAlreadyStarted(garden,packet))return;
-  if(decision?.decision==='later'&&decision.dueDate){items.push({...card,statusLabel:'Saved Idea',date:decision.dueDate,windowLabel:'Saved Idea',timing:`Scheduled for ${decision.dueDate}`,reason:decision.note||card.reason});return}
-  if(card.strongNow)return;
-  if(card.oldPacket&&(garden.reminders||[]).some(reminder=>!reminder.deletedAt&&reminder.enabled!==false&&reminder.title===`Test germination: ${card.title}`))return;
-  if(card.oldPacket){items.push({...card,date:addDays(todayKey(),7),mode:'Germination Test',windowLabel:'Suggested',timing:'Within the next week',reason:'This owned packet is old enough that a germination test is recommended before relying on it.'});return}
-  const window=nextWindow(packet.cropId);items.push({...card,date:window.start,windowEnd:window.end,windowLabel:'Estimated',mode:window.mode,timing:`${window.start}–${window.end}`,reason:window.reason});
- });
- recommendations.filter(item=>!ownedIds.has(item.id)&&!cropAlreadyPlanned(garden,item.id)).forEach(item=>{
-  const subjectKey=`catalog-${item.id}`,decision=decisions.get(subjectKey);if(decision?.decision==='not-this-season')return;
-  const window=nextWindow(item.id),date=decision?.decision==='later'&&decision.dueDate?decision.dueDate:window.start,card=purchaseCard(item,garden,weather,date,window.label);
-  items.push({...card,date,windowEnd:window.end,windowLabel:decision?.decision==='later'?'Saved Idea':'Estimated',statusLabel:decision?.decision==='later'?'Saved Idea':'Seeds Needed',mode:window.mode,timing:decision?.decision==='later'?`Scheduled for ${date}`:`${window.start}–${window.end}`,reason:decision?.note||window.reason});
- });
- return items.sort((a,b)=>a.date.localeCompare(b.date)||Number(b.owned)-Number(a.owned)).slice(0,10);
-}
-
-export function plantingActionLabel(item,plant){
- const stage=String(plant?.stage||'');
- if(item.task?.taskType==='Harden Off'||/hardening/i.test(`${item.type||''} ${item.title||''}`))return'Complete Today’s Step';
- if(item.type==='succession')return'Start Next Batch';
- if(item.type==='transplant')return'Mark as Transplanted';
- if(item.type==='pot-up')return'Mark as Potted Up';
- if(item.type==='space-prep')return'Prepare Space';
- if(item.type==='support')return'Install Support';
- if(item.type==='stage'){
-  if(stage==='Planned')return'Mark Seed Purchased';if(stage==='Seed Purchased')return'Start Seeds';if(stage==='Seed Started')return'Mark Germinating';if(stage==='Germinating')return'Mark Seedling';if(stage==='Seedling')return'Mark as Potted Up';if(stage==='Potted Up')return'Begin Hardening Off';if(stage==='Hardening Off')return'Complete Today’s Step';
- }
- return'Open Plant';
-}
-
-export function plantingItems(timeline=[],{tasks=[],garden={},completions=[]}={}){
- const decisions=decisionMap(garden),completedIds=new Set((completions||[]).map(item=>typeof item==='string'?item:item.id)),items=[];
- timeline.filter(item=>!item.historical&&!item.informational&&['stage','succession','planting','transplant','hardening','pot-up','space-prep','support'].includes(item.type)).forEach(item=>{const decision=decisions.get(item.id);if(decision?.decision==='not-this-season')return;items.push({...item,date:decision?.decision==='later'&&decision.dueDate?decision.dueDate:item.date,decision,confirmed:Boolean(decision?.decision==='later')})});
- tasks.filter(task=>!completedIds.has(task.id)&&!task.weatherDriven&&(PLANTING_TASK_TYPES.has(task.taskType)||task.kind==='seasonalGuide'||task.kind==='setupPlant')).forEach(task=>{const subjectKey=`task-${task.id}`,decision=decisions.get(subjectKey);if(decision?.decision==='not-this-season')return;items.push({id:subjectKey,subjectKey,type:'task',task,plantId:task.plant?.id||'',date:decision?.decision==='later'&&decision.dueDate?decision.dueDate:task.dueDate,title:task.title,detail:task.subtitle||task.reason||'',reason:task.reason||'',priority:task.priority||50,confirmed:Boolean(task.manual||decision?.decision==='later'),estimated:!task.manual,decision})});
- const unique=new Map();items.forEach(item=>{const plant=(garden.plants||[]).find(entry=>entry.id===item.plantId),kind=item.type==='task'?item.task?.taskType:item.type==='stage'&&plant?.stage==='Hardening Off'?'Harden Off':item.type,key=`${item.plantId||item.id}|${normalize(kind)}|${dateKey(item.date)}`,current=unique.get(key);if(!current||item.type==='task'||Number(item.priority)>Number(current.priority))unique.set(key,item)});
- return[...unique.values()].sort((a,b)=>dateKey(a.date).localeCompare(dateKey(b.date))||Number(b.priority||0)-Number(a.priority||0));
-}
-
+export function plantingActionLabel(item,plant){const stage=String(plant?.stage||'');if(item.task?.taskType==='Harden Off'||/hardening/i.test(`${item.type||''} ${item.title||''}`))return'Complete Today’s Step';if(item.type==='succession')return'Start Next Batch';if(item.type==='transplant')return'Mark as Transplanted';if(item.type==='pot-up')return'Mark as Potted Up';if(item.type==='space-prep')return'Prepare Space';if(item.type==='support')return'Install Support';if(item.type==='stage'){if(stage==='Planned')return'Mark Seed Purchased';if(stage==='Seed Purchased')return'Start Seeds';if(stage==='Seed Started')return'Mark Germinating';if(stage==='Germinating')return'Mark Seedling';if(stage==='Seedling')return'Mark as Potted Up';if(stage==='Potted Up')return'Begin Hardening Off';if(stage==='Hardening Off')return'Complete Today’s Step'}return'Open Plant'}
+export function plantingItems(timeline=[],{tasks=[],garden={},completions=[]}={}){const decisions=decisionMap(garden),completedIds=new Set((completions||[]).map(item=>typeof item==='string'?item:item.id)),items=[];timeline.filter(item=>!item.historical&&!item.informational&&['stage','succession','planting','transplant','hardening','pot-up','space-prep','support'].includes(item.type)).forEach(item=>{const decision=decisions.get(item.id);if(decision?.decision==='not-this-season')return;items.push({...item,date:decision?.decision==='later'&&decision.dueDate?decision.dueDate:item.date,decision,confirmed:Boolean(decision?.decision==='later')})});tasks.filter(task=>!completedIds.has(task.id)&&!task.weatherDriven&&(PLANTING_TASK_TYPES.has(task.taskType)||task.kind==='seasonalGuide'||task.kind==='setupPlant')).forEach(task=>{const subjectKey=`task-${task.id}`,decision=decisions.get(subjectKey);if(decision?.decision==='not-this-season')return;items.push({id:subjectKey,subjectKey,type:'task',task,plantId:task.plant?.id||'',date:decision?.decision==='later'&&decision.dueDate?decision.dueDate:task.dueDate,title:task.title,detail:task.subtitle||task.reason||'',reason:task.reason||'',priority:task.priority||50,confirmed:Boolean(task.manual||decision?.decision==='later'),estimated:!task.manual,decision})});const unique=new Map();items.forEach(item=>{const plant=(garden.plants||[]).find(entry=>entry.id===item.plantId),kind=item.type==='task'?item.task?.taskType:item.type==='stage'&&plant?.stage==='Hardening Off'?'Harden Off':item.type,key=`${item.plantId||item.id}|${normalize(kind)}|${dateKey(item.date)}`,current=unique.get(key);if(!current||item.type==='task'||Number(item.priority)>Number(current.priority))unique.set(key,item)});return[...unique.values()].sort((a,b)=>dateKey(a.date).localeCompare(dateKey(b.date))||Number(b.priority||0)-Number(a.priority||0))}
 export function recentPlantUpdates(timeline=[]){return timeline.filter(item=>item.type==='lifecycle'||item.historical||item.informational).sort((a,b)=>String(b.date).localeCompare(String(a.date)))}
 export function createPlantingDecision({subjectKey,decision,dueDate='',note=''},actor='System'){const now=new Date().toISOString();return{id:newId('planting-decision'),subjectKey,decision,dueDate:dueDate||todayKey(),note,actor,at:now,createdAt:now,updatedAt:now,createdBy:actor,updatedBy:actor,revision:1,deletedAt:null}}
