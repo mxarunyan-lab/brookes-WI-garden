@@ -20,12 +20,12 @@ export default function GardenControls({ modal, garden, close, savePlant, archiv
     <span className="modal-kicker">PLANT CONTROL CENTER</span><h2>{plant.name}</h2>
     <div className="control-tabs"><button className={view==='plant'?'active':''} onClick={()=>setView('plant')}>Details</button><button className={view==='harvest'?'active':''} onClick={()=>setView('harvest')}>Harvest</button><button className={view==='problem'?'active':''} onClick={()=>setView('problem')}>Problem</button></div>
     {view === 'plant' && <form className="modal-form" onSubmit={save}>
-      <label>Plant name<input value={draft.name || ''} onChange={(event)=>setDraft({...draft,name:event.target.value})} required /></label>
+      <label>Plant name or identifier<input value={draft.name || ''} onChange={(event)=>setDraft({...draft,name:event.target.value})} required /></label>
       <label>Variety<input value={draft.variety || ''} onChange={(event)=>setDraft({...draft,variety:event.target.value})} /></label>
       <div className="two-field-row"><label>Quantity<input type="number" min="1" value={draft.quantity || 1} onChange={(event)=>setDraft({...draft,quantity:Number(event.target.value)})} /></label><label>Started<input type="date" value={draft.plantedAt || ''} onChange={(event)=>setDraft({...draft,plantedAt:event.target.value})} /></label></div>
-      <label>Growing space<select value={draft.spaceId || ''} onChange={(event)=>setDraft({...draft,spaceId:event.target.value})}>{garden.spaces.map((space)=><option key={space.id} value={space.id}>{space.name}{space.hidden?' (hidden)':''}</option>)}</select></label>
+      <label>Plant location<select value={draft.spaceId || ''} onChange={(event)=>setDraft({...draft,spaceId:event.target.value})}>{garden.spaces.filter(space=>!space.deletedAt).map((space)=><option key={space.id} value={space.id}>{space.name}{space.hidden?' (hidden)':''}</option>)}</select><small className="field-help">Choose the exact named bed, container, greenhouse, or indoor growing area.</small></label>
       <label>Current stage<select value={draft.stage || 'Growing'} onChange={(event)=>setDraft({...draft,stage:event.target.value})}>{stages.map((stage)=><option key={stage}>{stage}</option>)}</select></label>
-      <label>Notes<textarea value={draft.notes || ''} onChange={(event)=>setDraft({...draft,notes:event.target.value})} placeholder="Growth, flavor, pests, things to remember next year…" /></label>
+      <label>Private notes<textarea value={draft.notes || ''} onChange={(event)=>setDraft({...draft,notes:event.target.value})} placeholder="Growth, flavor, pests, things to remember next year…" /></label>
       <button className="primary-button" type="submit">Save plant changes</button>
       <div className="record-danger-zone"><button type="button" onClick={()=>archivePlant(plant.id)}><Archive /> Archive / finish</button><button type="button" className="danger-control" onClick={()=>deletePlant(plant.id)}><Trash2 /> Delete plant</button></div>
     </form>}
