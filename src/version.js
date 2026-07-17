@@ -1,17 +1,16 @@
-export const APP_VERSION='0.15.2';
-export const BUILD_ID='phase-4-1-secondary-continuity-shopping-labels';
+export const APP_VERSION='0.15.3';
+export const BUILD_ID='phase-4-1-tool-shed-expansion';
 export const UPDATED_AT='July 17, 2026';
 export const WHATS_NEW=[
- 'Runyan Garden Center, Care Desk, Planting Desk, Garden Shopping List, Tool Shed, More, and focused settings now share one mobile secondary-screen design family',
- 'Garden Chore Board now uses a Back to Garden Center arrow while preserving task calculations, filters, statuses, reminders, and collapsed behavior',
- 'Grow Now is now the first and default Planting Desk view, with Today, This Week, and Plan Ahead visible in a compact two-by-two selector',
- 'Garden Shopping List is now a persistent Center destination for seeds, starter plants, bulbs, soil, containers, supports, indoor-growing equipment, and other supplies',
- 'Planting recommendations save real shopping items immediately, prevent silent duplicates, allow quantity increases, and preserve crop, reason, timing, source, and intended Growing Space',
- 'Purchased seeds can be handed to Seed Inventory without inventing packet details, and purchased starter plants can begin Add Plant only after confirmation',
- 'More now opens focused Garden Profile, Location and Frost Dates, Notification Settings, Backup and Restore, Quick Help, What’s New, Support, and About screens',
- 'The former large Garden Settings route is now a compact overview linking to focused settings pages',
- 'Tool Shed now contains one Plant Labels utility with Bed Signs, Plant Tags, and Custom QR Label modes',
- 'Existing bed, plant, tray, and hydroponic QR identifiers remain stable; old Record QR routes open Plant Labels in Custom QR Label mode',
- 'Today and Runyan Garden retain their approved visual designs and behavior',
- 'Offline cache v41 refreshes installed copies with the Phase 4.1 follow-up'
+ 'Tool Shed now includes working Spacing, Soil and Container, Frost and Planting Date, Seed Quantity, and Garden Measurement calculators',
+ 'Printable Garden Pack now creates garden notes, Growing Space maps, seed-starting logs, harvest logs, watering sheets, seasonal plans, and shopping checklists',
+ 'Plant Labels remains the primary create-and-print utility with Bed Signs, Plant Tags, Custom QR Labels, existing links, PDFs, sharing, and installed status preserved',
+ 'Spacing Calculator prefers exact packet spacing and otherwise labels general crop guidance; estimates never add plants automatically',
+ 'Seed Quantity Calculator shows packet availability and never reduces Seed Inventory until seeds are actually recorded as started',
+ 'Runyan Garden Center now keeps all seven departments in a substantially shorter two-column mobile tile layout',
+ 'More is now one compact list of eight focused destinations without category headings or a duplicate Garden Settings Overview',
+ 'Old Garden Settings routes redirect safely to More while focused profile, location, notification, backup, help, update, support, and About screens remain',
+ 'Today and Runyan Garden retain their approved appearance and behavior',
+ 'Existing weather, Smart Watering, chores, planting recommendations, shopping items, records, seed packets, Growing Spaces, QR identifiers, and lifecycle history remain intact',
+ 'Offline cache v42 refreshes installed copies with the Tool Shed expansion'
 ];
