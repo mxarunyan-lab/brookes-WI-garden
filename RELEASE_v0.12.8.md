@@ -1,17 +1,31 @@
-# v0.12.8 — Full Visual QA & Unification
+# v0.12.10 — Mobile Acceptance & Working Bed Labels
 
-- Removed the oversized Garden Center introduction box
-- Added a lightweight Pick a Department heading
-- Tightened every Garden Center department card
-- Renamed More to Tool Shed and committed to the Tools & Accessories concept
-- Removed the empty More identity block
-- Reduced the Home Garden Bulletin
-- Made Latest Handoff collapsible
-- Standardized header scale, section rhythm, card weight, icons, and supporting text
-- Reduced oversized secondary-screen introductions
-- Added a final mobile consistency layer for iPhone browser and installed app use
+## Exact QR bed routing
+- Every QR code now carries the stable bed ID and opens a read-only profile for that exact bed.
+- Public bed profiles show plant names, varieties, quantities, stages, and public-safe care information.
+- Private notes, household activity, and edit controls stay out of the public view.
+- Missing or retired bed IDs show a clear recovery screen.
+- Owners can move from the scanned profile into the editable bed workspace on the local device.
 
-Build: full-visual-qa-unification
-Offline cache: v24
+## Laminate-ready printing
+- Single and multi-label printing use a dedicated print-only sheet.
+- Each label includes a large high-contrast QR code, bed name, Runyan Garden branding, scan instructions, bed code, and cut border.
+- Printing no longer marks a label as printed automatically.
+- Labels can be marked installed after laminating and mounting.
+- Test QR and Copy Exact Link actions use the same permanent bed URL.
 
-Deployment retrigger: latest v0.12.9 code on July 16, 2026.
+## Mobile acceptance
+- Added iPhone safe-area spacing for Safari and installed-app use.
+- Added bottom-navigation clearance to long pages.
+- Modals scroll within the available viewport and keep actions reachable.
+- Form controls use keyboard-safe mobile sizing.
+- Long labels, bed names, and buttons wrap instead of clipping.
+
+## Workflow integrity
+- Plant creation confirms plant name, variety, quantity, and exact destination.
+- Confirmation offers View Bed and Add Another Plant actions.
+- Bed move, hide, restore, and remove controls now perform their promised data changes.
+
+Version: 0.12.10
+Build: mobile-acceptance-working-bed-labels
+Offline cache: v26
