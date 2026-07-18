@@ -22,11 +22,24 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 22
-      - name: Reconstruct and apply implementation
+      - name: Reconstruct implementation artifact
         run: |
           set -euo pipefail
+          sha256sum .github/phase46x3_payload/part*.txt > phase46x3-payload-hashes.txt
           cat .github/phase46x3_payload/part*.txt > /tmp/phase46x3.patch.gz.b64
+          sha256sum /tmp/phase46x3.patch.gz.b64 >> phase46x3-payload-hashes.txt
           base64 -d /tmp/phase46x3.patch.gz.b64 > /tmp/phase46x3.patch.gz
+          sha256sum /tmp/phase46x3.patch.gz >> phase46x3-payload-hashes.txt
+      - name: Upload integrity report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: phase-4-6x-3-integrity
+          path: phase46x3-payload-hashes.txt
+          retention-days: 2
+      - name: Verify and apply implementation
+        run: |
+          set -euo pipefail
           echo '7708a6b04e38ee277ff03248910feb263a904bb5b480053249481f775a533816  /tmp/phase46x3.patch.gz' | sha256sum --check
           gzip -dc /tmp/phase46x3.patch.gz > /tmp/phase46x3.patch
           echo '5286c2323f0f903f411841856c9910f995a3759866d68316ad2eb99132720796  /tmp/phase46x3.patch' | sha256sum --check
