@@ -32,9 +32,9 @@ export default function IndoorCenter({garden,navigate,addTray,addLight,toggleLig
   return preferred.length?preferred:(garden.spaces||[]).filter(space=>!space.deletedAt&&!space.hidden);
  },[garden.spaces]);
  const packets=useMemo(()=>{
-  const rows=[...(garden.seedPackets||[]),...(garden.seeds||[])].filter(packet=>!packet.deletedAt&&packetAvailable(packet)>0);
+  const rows=(garden.seedPackets||[]).filter(packet=>!packet.deletedAt&&packetAvailable(packet)>0);
   return [...new Map(rows.map(packet=>[packet.id,packet])).values()];
- },[garden.seedPackets,garden.seeds]);
+ },[garden.seedPackets]);
  const defaultSpaceId=indoorSpaces[0]?.id||'';
  const[trayOpen,setTrayOpen]=useState(false),[lightOpen,setLightOpen]=useState(false),[podOpen,setPodOpen]=useState(false),[tray,setTray]=useState(()=>emptyTray(defaultSpaceId)),[light,setLight]=useState({name:'Basement Lights',onTime:'06:00',offTime:'22:00'}),[pod,setPod]=useState({position:'1',crop:'',status:'Planted'});
  const selectedPacket=packets.find(packet=>packet.id===tray.sourcePacketId)||null;

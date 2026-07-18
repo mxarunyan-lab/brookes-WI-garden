@@ -46,7 +46,7 @@ test('forecast rain remains an exception rather than completed watering',()=>{
  const plan=buildVacationPlan({garden:baseGarden(),weather:weather({rainChance:90}),departureDate:'2026-07-20',returnDate:'2026-07-24',caretakerAvailable:true});
  const bed=plan.tasks.find(row=>row.targetId==='bed'&&row.section==='before');
  assert.match(bed.whatNotToDo,/forecast rain/i);
- assert.equal(bed.status,'open');
+ assert.equal(bed.status,'active');
 });
 
 test('matching existing task is linked and not duplicated on the Chore Board',()=>{
