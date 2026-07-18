@@ -1,0 +1,3 @@
+const digits=value=>String(value||'').replace(/\D/g,'');
+export function validateBarcode(value){const code=digits(value);if(![8,12,13,14].includes(code.length))return{value:code,format:null,checkDigitValid:false};let sum=0,parity=code.length%2;for(let i=0;i<code.length-1;i++)sum+=Number(code[i])*(i%2===parity?3:1);const valid=(10-sum%10)%10===Number(code.at(-1));const format=code.length===12?'UPC-A':code.length===13?'EAN-13':code.length===8?'EAN-8':'unknown';return{value:code,format,checkDigitValid:valid}}
+export async function decodeBarcode(){return{value:null,format:null,confidence:null,method:'unavailable',checkDigitValid:null,visibleDigits:null}}
