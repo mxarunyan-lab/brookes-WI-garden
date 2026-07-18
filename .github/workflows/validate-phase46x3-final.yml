@@ -1,0 +1,31 @@
+name: Validate Phase 4.6X.3 Final
+
+on:
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    if: github.event.pull_request.head.ref == 'agent/phase-4-6x-3-multimodal-vision'
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: npm install
+      - name: Focused vision and persistence tests
+        run: node --test test/seedPacketVision.test.js test/seedPacketIntelligence.test.js test/seedProductLookup.test.js test/gardenPersistence.test.js
+      - name: Production build
+        run: npm run build
+      - name: Server health without secret
+        run: |
+          npm start > /tmp/server.log 2>&1 &
+          for i in $(seq 1 20); do curl -fsS http://127.0.0.1:4173/api/health > /tmp/health.json && break; sleep 1; done
+          node -e "const x=require('/tmp/health.json');if(!x.ok||x.packetVisionConfigured!==false)process.exit(1)"
+          status=$(curl -sS -o /tmp/analyze.json -w '%{http_code}' -X POST -H 'content-type: application/json' http://127.0.0.1:4173/api/seed-packets/analyze -d '{}')
+          test "$status" = "400"
