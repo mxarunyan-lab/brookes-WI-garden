@@ -1,0 +1,26 @@
+const normalize=value=>String(value??'').toLowerCase().replace(/[^a-z0-9]+/g,' ').trim();
+export const localDateKey=value=>{if(typeof value==='string'&&/^\d{4}-\d{2}-\d{2}/.test(value))return value.slice(0,10);const date=value instanceof Date?value:new Date(value||Date.now());if(Number.isNaN(date.getTime()))return'';return`${date.getFullYear()}-${String(date.getMonth()+1).padStart(2,'0')}-${String(date.getDate()).padStart(2,'0')}`};
+const targetFor=record=>record.targetId||record.plantId||record.spaceId||record.intendedSpaceId||record.linkedPlantId||record.linkedRecommendationId||record.sourceRecommendation||'';
+
+export function connectedDuplicateKey(kind,record={}){
+ const date=record.repeatable?record.id||record.createdAt||record.at:localDateKey(record.dueDate||record.date||record.at||record.createdAt);
+ return[kind,normalize(record.action||record.taskType||record.category||record.type||record.name||record.title),normalize(targetFor(record)),normalize(record.variety),normalize(record.sourceCategory||record.source||record.sourceRecommendation||record.vacationPlanId),date].join('|');
+}
+
+export function taskDuplicateKey(task={}){return task.duplicateKey||connectedDuplicateKey('task',{...task,action:task.taskType||task.action||task.title,targetId:task.plant?.id||task.space?.id||task.plantId||task.spaceId,sourceCategory:task.weatherAlert?.type||task.taskType||task.category||''})}
+export function shoppingDuplicateKey(item={}){return item.duplicateKey||connectedDuplicateKey('shopping',{...item,action:item.category,targetId:item.cropId||item.intendedSpaceId,date:'',sourceCategory:item.sourceRecommendation||item.sourceProjectId||''})}
+export function recordDuplicateKey(kind,record={}){return record.duplicateKey||connectedDuplicateKey(kind,record)}
+
+export function dedupeConnectedRows(rows=[],keyFor=record=>record.id){const map=new Map();for(const row of rows){if(!row||row.deletedAt)continue;const key=keyFor(row);const current=map.get(key);if(!current||Number(row.priority||0)>Number(current.priority||0)||String(row.updatedAt||row.createdAt||'')>String(current.updatedAt||current.createdAt||''))map.set(key,row)}return[...map.values()]}
+
+export function findTaskDuplicate(garden={},candidate={}){const key=taskDuplicateKey(candidate),rows=[...(garden.reminders||[]),...(garden.taskHistory||[])].filter(row=>!row.deletedAt&&row.status!=='skipped');return rows.find(row=>taskDuplicateKey(row)===key)||null}
+export function findRecordDuplicate(garden={},kind,candidate={}){const collection={plant:garden.plants,harvest:garden.harvests,issue:garden.problems,trip:garden.vacationPlans}[kind]||[];const key=recordDuplicateKey(kind,candidate);return collection.find(row=>!row.deletedAt&&recordDuplicateKey(kind,row)===key)||null}
+
+export const SOURCE_LABELS={packet:'Read from packet',online:'Found online',generic:'Generic crop guidance',manual:'Manually entered',corrected:'Corrected by user',inferred:'Inferred from context','official-guide':'Found online · official growing guide','official-product':'Found online · official product page'};
+export function fieldSourceLabel(meta={}){if(meta.manuallyCorrected||meta.source==='corrected')return SOURCE_LABELS.corrected;return SOURCE_LABELS[meta.sourceDetail]||SOURCE_LABELS[meta.source]||'Source not recorded'}
+export function certaintyLabel(value){const text=normalize(value);if(text==='high'||text==='confirmed'||text==='exact'||text==='observed')return'Confirmed';if(text==='medium'||text==='likely')return'Likely';if(text==='low'||text==='needs review')return'Needs review';return value||'Not available'}
+
+export function knownPlantContext(garden={},plantId){const plant=(garden.plants||[]).find(row=>row.id===plantId),space=(garden.spaces||[]).find(row=>row.id===plant?.spaceId),packet=(garden.seedPackets||[]).find(row=>row.id===(plant?.sourcePacketId||plant?.seedId))||(garden.seeds||[]).find(row=>row.id===(plant?.sourcePacketId||plant?.seedId));return{plant,space,packet}}
+export function prefillHarvest(garden={},plantId,now=new Date()){const{plant,space,packet}=knownPlantContext(garden,plantId);return{plantId:plant?.id||'',name:plant?.name||'',cropId:plant?.cropId||'',cropName:plant?.cropName||plant?.name||'',variety:plant?.variety||'',spaceId:space?.id||'',spaceName:space?.name||'',sourcePacketId:packet?.id||'',sourcePacketName:[packet?.brand,packet?.variety||packet?.name].filter(Boolean).join(' '),stage:plant?.stage||'',harvestedAt:now.toISOString(),amount:1,unit:'count',quality:'Good',note:'',photo:'',useDestination:'Kitchen',growAgain:'yes'}}
+export function prefillIssue(garden={},plantId,now=new Date()){const{plant,space}=knownPlantContext(garden,plantId);return{plantId:plant?.id||'',plantName:plant?.name||'',variety:plant?.variety||'',spaceId:space?.id||'',spaceName:space?.name||'',observedAt:now.toISOString(),type:'Pest spotted',severity:'Keep watching',note:'',actionTaken:'',photo:'',photoAnalysisStatus:'stored-only'}}
+export function photoCapabilityLabel(record={}){if(record.photoAnalysisStatus==='analyzed'||record.analysis?.completed)return'Photo analyzed';if(record.photoAnalysisStatus==='processing')return'Photo analysis in progress';return'Photo saved · no image diagnosis performed'}

@@ -5,8 +5,8 @@ const nowIso=()=>new Date().toISOString();
 const stampRecord=(record,actor='System')=>{const createdAt=record.createdAt||record.addedAt||record.at||record.plantedAt||nowIso();return{...record,createdAt,updatedAt:record.updatedAt||createdAt,createdBy:record.createdBy||record.actor||actor,updatedBy:record.updatedBy||record.actor||actor,deletedAt:record.deletedAt||null,revision:Number(record.revision)||1}};
 
 export function prepareGardenForSync(garden){
- const actor=garden.profile?.gardenerName||'System',collections=['spaces','plants','activity','seeds','seedPackets','seedUsage','harvests','problems','succession','trays','growLights','hardeningPlans','hydroPods','greenhouseReadings','reminders','taskHistory','plantingDecisions'];
- const prepared={...garden,schemaVersion:9,updatedAt:garden.updatedAt||nowIso()};
+ const actor=garden.profile?.gardenerName||'System',collections=['spaces','plants','activity','seeds','seedPackets','seedUsage','harvests','problems','succession','trays','growLights','hardeningPlans','hydroPods','greenhouseReadings','reminders','taskHistory','plantingDecisions','shoppingItems','weatherRecommendationHistory','vacationPlans','calculatorResults'];
+ const prepared={...garden,schemaVersion:10,updatedAt:garden.updatedAt||nowIso()};
  collections.forEach(key=>{prepared[key]=(garden[key]||[]).map(record=>stampRecord(record,actor))});
  prepared.spaces=prepared.spaces.map(space=>normalizeSpaceIntelligence(space));
  prepared.seedPackets=prepared.seedPackets.map(packet=>({...packet,cropId:packet.cropId||inferCropId(packet),quantity:Math.max(0,Number(packet.quantity)||0),reservedQuantity:Math.max(0,Number(packet.reservedQuantity)||0),countType:packet.countType||'estimated'}));
