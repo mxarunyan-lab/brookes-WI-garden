@@ -1,0 +1,22 @@
+name: Phase 4.6X.2 Source Export
+
+on:
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  export-source:
+    if: github.event.pull_request.head.ref == 'agent/phase-4-6x-2-one-tap-trust'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - run: tar --exclude=.git -czf /tmp/phase46x2-source.tar.gz .
+      - uses: actions/upload-artifact@v4
+        with:
+          name: phase-4-6x-2-source
+          path: /tmp/phase46x2-source.tar.gz
+          retention-days: 2
