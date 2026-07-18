@@ -43,6 +43,8 @@ jobs:
             page.on('pageerror',error=>errors.push(String(error)));
             try{
               await page.goto('http://127.0.0.1:3000/',{waitUntil:'domcontentloaded'});
+              const profile=page.getByRole('button',{name:/^Brooke/});
+              if(await profile.count())await profile.first().click();
               await page.locator('button[aria-label="Center"]').click();
               await page.locator('button[aria-label^="Seed Department."]').click();
               await page.waitForSelector('.seed-tools-screen');
