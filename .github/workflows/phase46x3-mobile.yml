@@ -1,0 +1,58 @@
+name: Validate Phase 4.6X.3 Mobile
+
+on:
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  mobile-seed-packet:
+    if: github.event.pull_request.head.ref == 'agent/phase-4-6x-3-multimodal-seed-vision'
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci --no-audit --no-fund
+      - run: npm install --no-save playwright
+      - run: npx playwright install chromium
+      - run: npm run build
+      - name: Check rebuilt Seed Department at mobile widths
+        run: |
+          PORT=3000 npm start > /tmp/phase46x3-server.log 2>&1 &
+          for attempt in $(seq 1 30); do curl -fsS http://127.0.0.1:3000/api/health >/dev/null && break; sleep 1; done
+          cat > /tmp/phase46x3-mobile.mjs <<'EOF'
+          import{chromium}from'playwright';
+          const browser=await chromium.launch({headless:true});
+          for(const width of [320,375,390,430]){
+            const page=await browser.newPage({viewport:{width,height:900}}),errors=[];
+            page.on('pageerror',error=>errors.push(String(error)));
+            await page.goto('http://127.0.0.1:3000/',{waitUntil:'networkidle'});
+            await page.getByRole('button',{name:'Center',exact:true}).click();
+            await page.getByText('Seed Department',{exact:true}).first().click();
+            await page.waitForSelector('.seed-tools-screen');
+            const result=await page.evaluate(()=>{
+              const analyze=[...document.querySelectorAll('button')].find(button=>/^Analyze packet$/i.test((button.textContent||'').trim()));
+              const save=[...document.querySelectorAll('button')].find(button=>/^Save packet$/i.test((button.textContent||'').trim()));
+              const forbidden=['Photos do the first pass','The front usually identifies','Reserved seeds','stops automatically','reading took too long'];
+              const body=document.body.innerText;
+              return{
+                overflow:document.documentElement.scrollWidth>document.documentElement.clientWidth,
+                photos:document.querySelectorAll('.vision-photo-panel').length,
+                analyzeHeight:analyze?.getBoundingClientRect().height||0,
+                saveHeight:save?.getBoundingClientRect().height||0,
+                detailsOpen:[...document.querySelectorAll('details.packet-all-details')].some(details=>details.open),
+                forbidden:forbidden.filter(text=>body.includes(text))
+              };
+            });
+            if(errors.length||result.overflow||result.photos!==2||result.analyzeHeight<42||result.saveHeight<42||result.detailsOpen||result.forbidden.length)throw new Error(JSON.stringify({width,errors,result}));
+            await page.close();
+          }
+          await browser.close();
+          EOF
+          node /tmp/phase46x3-mobile.mjs
