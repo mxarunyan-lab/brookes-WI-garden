@@ -1,15 +1,15 @@
-export const APP_VERSION='0.17.0';
-export const BUILD_ID='phase-4-4b-weather-decisions';
+export const APP_VERSION='0.18.0';
+export const BUILD_ID='phase-4-5-stabilization';
 export const UPDATED_AT='July 17, 2026';
 export const WHATS_NEW=[
- 'Garden weather now interprets conditions for the actual plants and Growing Spaces instead of only displaying measurements',
- 'Today prioritizes the one to three most useful weather decisions and keeps confidence, source, freshness, affected plants, and the reason available in compact details',
- 'Smart Watering now combines observed rain, forecast rain, heat, wind, containers, protected spaces, recent watering, plant stage, and stale-data safeguards',
- 'Forecast rain is never counted as completed watering, low rain probability does not cancel watering, and uncertain evidence becomes Check Soil rather than a false definite answer',
- 'Frost and freeze guidance excludes indoor plants, distinguishes tender and cold-tolerant crops, and respects recorded protection',
- 'Heat, wind, storm, heavy-rain, greenhouse, and damp-weather risk guidance now produces stable garden actions without duplicating official emergency alerts',
- 'Planting Desk keeps its seasonal recommendation and adds a separate short-term weather readiness label such as Good conditions, Acceptable with caution, Delay, or Recheck forecast soon',
- 'Weather recommendations can be dismissed, marked handled, recorded as already watered, or marked not useful without immediately returning unchanged',
- 'Upcoming weather is grouped into a compact preparation view instead of creating one card for every forecast day',
- 'The app remains fully useful with public weather data alone; live Sainlogic and Weather Underground integration remains deferred'
+ 'Seed packet saving now validates storage before clearing the form, preserves failed drafts, prevents rapid duplicate saves, and provides a recovery path instead of a blank screen',
+ 'Front and back packet photos now have separate capture controls: the front is used primarily for crop, variety, brand, year, count, weight, and packet identity while the back is used for planting and growing instructions',
+ 'Packet photos are compressed before storage and can prefill useful details through on-device text recognition; recognition is best-effort and does not claim every field can always be read',
+ 'Extracted packet details now retain confidence, source photo, original packet wording, and manual-correction status so uncertain fields can be reviewed without overwriting confirmed edits',
+ 'A temporary packet draft can be resumed after a reload or Seed Department display failure, while drafts remain separate from completed inventory records',
+ 'Possible duplicate packets now receive a non-blocking warning with options to open the existing packet, add quantity, continue editing, or save separately',
+ 'Today now shows one compact current-weather summary, only the top one to three grouped garden impacts, and the Garden Bulletin substantially earlier on the page',
+ 'Detailed forecast, rain history, all weather impacts, local corrections, confidence, and source information remain available in one consolidated Garden Weather Details drawer',
+ 'Related watering, heat-and-drying, frost-and-cold, storms-and-wind, greenhouse, and damp-weather messages are grouped to reduce repeated calls to action',
+ 'Forecast day and night periods are combined by date, missing highs or lows are labeled clearly, and weather values use sensible rounding instead of long decimals'
 ];
