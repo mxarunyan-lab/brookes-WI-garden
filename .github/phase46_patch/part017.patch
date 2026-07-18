@@ -1,0 +1,69 @@
+>setSpaceId(event.target.value)}><option value="all">All Growing Spaces</option>{activeSpaces(garden).map(space=><option key={space.id} value={space.id}>{space.name}</option>)}</select></label>}<button className="primary-button" onClick={print}>{template==='labels'?<><ArrowRight/>Open Plant Labels</>:<><Printer/>Print or Save as PDF</>}</button></div><section className="printable-preview-card"><FileText/><span><strong>{title}</strong><small>{template==='labels'?'Uses the existing Plant Labels workflow and preserves all QR destinations.':'A printer-friendly sheet using current garden records where appropriate.'}</small></span></section></>;
+ }
+ 
+-export default function ToolUtility({mode,garden,navigate,onSaveSpaceNote}){
+- const info=toolInfo[mode]||toolInfo.spacing,Icon=info.icon;
+- return <main className="screen secondary-screen tool-utility-screen"><SecondaryHero icon={Icon} eyebrow={info.eyebrow} title={info.title} description={info.description} onBack={()=>navigate('tools')} backLabel="Back to Tool Shed" className="tool-utility-hero"/><section className="screen-pad secondary-screen-content tool-utility-content">{mode==='spacing'&&<SpacingTool garden={garden} onSaveSpaceNote={onSaveSpaceNote}/>} {mode==='soil'&&<SoilTool garden={garden}/>} {mode==='frost'&&<FrostTool garden={garden}/>} {mode==='seeds'&&<SeedQuantityTool garden={garden}/>} {mode==='measurements'&&<MeasurementsTool garden={garden}/>} {mode==='print'&&<PrintableTool garden={garden} navigate={navigate}/>}</section></main>;
++export default function ToolUtility({mode,garden,navigate,onSaveSpaceNote,onSaveResult,onApplyToSpace,onAddShoppingItem,onOpenPlanting,onReserveSeeds,onOpenIndoor}){
++ const info=toolInfo[mode]||toolInfo.spacing,Icon=info.icon,shared={garden,onSaveResult,onApplyToSpace,onAddShoppingItem,onOpenPlanting,onReserveSeeds,onOpenIndoor};
++ return <main className="screen secondary-screen tool-utility-screen"><SecondaryHero icon={Icon} eyebrow={info.eyebrow} title={info.title} description={info.description} onBack={()=>navigate('tools')} backLabel="Back to Tool Shed" className="tool-utility-hero"/><section className="screen-pad secondary-screen-content tool-utility-content">{mode==='spacing'&&<SpacingTool {...shared} onSaveSpaceNote={onSaveSpaceNote}/>} {mode==='soil'&&<SoilTool {...shared}/>} {mode==='frost'&&<FrostTool {...shared}/>} {mode==='seeds'&&<SeedQuantityTool {...shared}/>} {mode==='measurements'&&<MeasurementsTool {...shared}/>} {mode==='print'&&<PrintableTool garden={garden} navigate={navigate}/>}</section></main>;
+ }
+diff --git a/src/gardenShopping.js b/src/gardenShopping.js
+index 10f89fe83a1e8ab1d19ac543825aeb5ae16f5431..35e576cf1a9759fe3d8d98480aa4b5bf52cdcdb1 100644
+--- a/src/gardenShopping.js
++++ b/src/gardenShopping.js
+@@ -1,11 +1,12 @@
+ import{cropCatalog,newId}from'./data.js';
++import{shoppingDuplicateKey}from'./connectedIntelligence.js';
+ 
+ export const SHOPPING_CATEGORIES=['Seeds','Starter Plant','Bulb or Tuber','Soil and Amendments','Container','Support and Trellis','Indoor Growing','Tool or Supply','Other'];
+ const normalize=value=>String(value||'').toLowerCase().replace(/[^a-z0-9]+/g,' ').trim();
+ const now=()=>new Date().toISOString();
+ 
+ export function shoppingIdentity(item={}){
+- return [normalize(item.category||'Other'),normalize(item.cropId),normalize(item.variety),normalize(item.name)].join('|');
++ return item.duplicateKey||shoppingDuplicateKey({...item,date:''});
+ }
+ 
+ export function legacyShoppingItems(garden={}){
+@@ -29,7 +30,7 @@ export function findShoppingDuplicate(garden={},candidate={}){
+ }
+ 
+ export function createShoppingItem(data={},actor='System'){
+- const at=now();return{id:newId('shopping'),name:String(data.name||'Garden item').trim(),category:SHOPPING_CATEGORIES.includes(data.category)?data.category:'Other',cropId:data.cropId||'',variety:data.variety||'',brand:data.brand||'',quantity:Math.max(1,Number(data.quantity)||1),note:data.note||'',reason:data.reason||'',sourceRecommendation:data.sourceRecommendation||'',sourceDecisionId:data.sourceDecisionId||'',intendedSpaceId:data.intendedSpaceId||'',desiredWindow:data.desiredWindow||'',purchased:Boolean(data.purchased),purchasedAt:data.purchasedAt||'',linkedSeedInventoryId:data.linkedSeedInventoryId||'',linkedPlantId:data.linkedPlantId||'',addedAt:data.addedAt||at,updatedAt:at,createdBy:actor,updatedBy:actor,revision:1,deletedAt:null};
++ const at=now();const category=data.category==='Plants'?'Starter Plant':SHOPPING_CATEGORIES.includes(data.category)?data.category:'Other',base={name:String(data.name||'Garden item').trim(),category,cropId:data.cropId||'',variety:data.variety||'',brand:data.brand||'',quantity:Math.max(1,Number(data.quantity)||1),note:data.note||'',reason:data.reason||'',sourceRecommendation:data.sourceRecommendation||'',sourceDecisionId:data.sourceDecisionId||'',sourceProjectId:data.sourceProjectId||'',linkedTaskId:data.linkedTaskId||'',intendedSpaceId:data.intendedSpaceId||'',desiredWindow:data.desiredWindow||'',priority:Number(data.priority)||50,alreadyOwned:Boolean(data.alreadyOwned),ownedRecordId:data.ownedRecordId||'',purchased:Boolean(data.purchased),purchasedAt:data.purchasedAt||'',linkedSeedInventoryId:data.linkedSeedInventoryId||'',linkedPlantId:data.linkedPlantId||'',addedAt:data.addedAt||at};return{id:newId('shopping'),...base,duplicateKey:data.duplicateKey||shoppingDuplicateKey({...base,date:''}),updatedAt:at,createdBy:actor,updatedBy:actor,revision:1,deletedAt:null};
+ }
+ 
+ export function materializeShoppingItem(item={},actor='System'){
+diff --git a/src/seedPacketIntelligence.js b/src/seedPacketIntelligence.js
+index d370741bc25f6e817d5ee67f974be46ddd6eedb0..3d24ef5aa3ae6e775da8857b0e8c4e63fa138168 100644
+--- a/src/seedPacketIntelligence.js
++++ b/src/seedPacketIntelligence.js
+@@ -8,6 +8,9 @@ const uniq=values=>[...new Set(values.filter(Boolean))];
+ const PREFILL_MANUAL_FIELDS=new Set(['name','variety','brand','notes','sourceShoppingItemId']);
+ const lineList=text=>asText(text).split(/\r?\n/).map(line=>line.replace(/\s+/g,' ').trim()).filter(Boolean);
+ const confidence=(score)=>score>=.86?'High':score>=.58?'Medium':'Low';
++const IDENTITY_STOPWORDS=new Set(['vegetable','vegetables','herb','herbs','flower','flowers','fruit','fruits','heirloom','hybrid','organic','annual','biennial','perennial','full sun','part sun','shade','seeds','seed','non gmo','untreated','easy to grow']);
++const plausibleIdentity=value=>{const text=normalized(value);return Boolean(text&&text.length>=2&&text.length<=60&&!IDENTITY_STOPWORDS.has(text)&&!/^\d+$/.test(text)&&!/(net wt|packed for|lot no|days to|planting depth|spacing|germination|www\.)/.test(text))};
++const validBarcode=value=>{const digits=String(value||'').replace(/\D/g,'');if(![8,12,13,14].includes(digits.length))return false;let sum=0,parity=digits.length%2;for(let i=0;i<digits.length-1;i++)sum+=Number(digits[i])*(i%2===parity?3:1);return(10-sum%10)%10===Number(digits.at(-1))};
+ const field=(value,{score=.75,sourcePhoto='front',originalText='',inferred=false}={})=>({value,confidence:confidence(score),sourcePhoto,originalText:originalText||asText(value),inferred:Boolean(inferred),extractedAt:new Date().toISOString(),correctedAt:null,manuallyCorrected:false,source:inferred?'inferred':'packet'});
+ const found=(text,regex,index=1)=>asText(text.match(regex)?.[index]);
+ const dimension=(text,regex)=>{const match=text.match(regex);return match?`${match[1]} ${match[2]}`.replace(/\s+/g,' ').trim():''};
+@@ -35,17 +38,17 @@ export function markManualField(draft,key,value){
+ function detectIdentity(text,side){
+  const lines=lineList(text),fields={};
+  const brand=BRAND_PATTERNS.find(([,regex])=>regex.test(text));if(brand)fields.brand=field(brand[0],{score:.96,sourcePhoto:side,originalText:lineContaining(lines,brand[1])});
+- const crop=CROPS.find(([,regex])=>regex.test(text));if(crop){fields.name=field(crop[0],{score:.92,sourcePhoto:side,originalText:lineContaining(lines,crop[1])});fields.category=field(crop[2],{score:.82,sourcePhoto:side,originalText:crop[0],inferred:true})}
+- const year=found(text,/(?:packed\s+for|packet\s+year|packed|sell\s+by|use\s+by)\D{0,8}(20\d{2})/i)||found(text,/\b(20(?:1\d|2\d|3\d))\b/);if(year)fields.packetYear=field(Number(year),{score:/packed|packet year/i.test(text)? .95:.62,sourcePhoto:side,originalText:lineContaining(lines,new RegExp(year))});
++ const exactCrop=CROPS.find(([,regex])=>regex.test(text)),genericPepper=!exactCrop&&lines.find(line=>/^peppers?$/i.test(line)),crop=exactCrop||(genericPepper&&['Pepper',/^peppers?$/i,'vegetable']);if(crop){fields.name=field(crop[0],{score:exactCrop?.92:.62,sourcePhoto:side,originalText:lineContaining(lines,crop[1]),inferred:!exactCrop});fields.category=field(crop[2],{score:.72,sourcePhoto:side,originalText:crop[0],inferred:true})}
++ const year=found(text,/(?:packed\s+for|packet\s+year|packed|sell\s+by|use\s+by|season)\D{0,12}(20\d{2})/i);if(year&&Number(year)>=2000&&Number(year)<=currentYear()+3)fields.packetYear=field(Number(year),{score:.95,sourcePhoto:side,originalText:lineContaining(lines,new RegExp(year))});
+  const countMatch=text.match(/(?:contains?|approximately|approx\.?|about)?\s*(\d{1,6})\s*(?:seeds?|ct\.?|count)\b/i);if(countMatch){fields.quantity=field(Number(countMatch[1]),{score:/contains|count/i.test(countMatch[0])?.9:.7,sourcePhoto:side,originalText:countMatch[0]});fields.originalQuantity=field(Number(countMatch[1]),{score:.8,sourcePhoto:side,originalText:countMatch[0]});fields.countType=field(/approximately|approx|about/i.test(countMatch[0])?'estimated':'exact',{score:.85,sourcePhoto:side,originalText:countMatch[0],inferred:true})}
+  const weight=found(text,/(?:net\s*wt\.?|packet\s*weight|weight)\s*[:.]?\s*([\d.]+\s*(?:oz|ounces?|g|grams?|mg))\b/i);if(weight)fields.packetWeight=field(weight,{score:.92,sourcePhoto:side,originalText:lineContaining(lines,/net\s*wt|weight/i)});
+  const lot=found(text,/\blot\s*(?:no\.?|number|#|:)??\s*([a-z0-9-]{3,})\b/i);if(lot)fields.lotNumber=field(lot,{score:.9,sourcePhoto:side,originalText:lineContaining(lines,/\blot\b/i)});
+- const barcode=found(text,/\b(\d{8,14})\b/);if(barcode)fields.barcode=field(barcode,{score:.62,sourcePhoto:side,originalText:barcode});
++ const barcodeCandidates=[...text.matchAll(/\b(\d{8,14})\b/g)].map(match=>match[1]),barcode=barcodeCandidates.find(validBarcode);if(barcode)fields.barcode=field(barcode,{score:.9,sourcePhoto:side,originalText:barcode});
+  const designations=uniq([/\borganic\b/i.test(text)&&'Organic',/\bheirloom\b/i.test(text)&&'Heirloom',/\bhybrid\b|\bf1\b/i.test(text)&&'Hybrid',/\bannual\b/i.test(text)&&'Annual',/\bbiennial\b/i.test(text)&&'Biennial',/\bperennial\b/i.test(text)&&'Perennial',/\bnon[- ]?gmo\b/i.test(text)&&'Non-GMO',/\buntreated\b/i.test(text)&&'Untreated']);if(designations.length)fields.designations=field(designations,{score:.9,sourcePhoto:side,originalText:designations.join(', ')});
+  const claims=uniq([/pollinator/i.test(text)&&'Pollinator friendly',/container|patio/i.test(text)&&'Container suitable',/disease resistant/i.test(text)&&'Disease resistant',/open pollinated/i.test(text)&&'Open pollinated',/easy to grow/i.test(text)&&'Easy to grow']);if(claims.length)fields.notableClaims=field(claims.join(' · '),{score:.78,sourcePhoto:side,originalText:claims.join(', ')});
+  if(/\bmix\b/i.test(text)){const mixLine=lineContaining(lines,/\bmix\b/i);fields.colorDescription=field(mixLine,{score:.68,sourcePhoto:side,originalText:mixLine})}
+- if(crop){const cropLineIndex=lines.findIndex(line=>crop[1].test(line)),candidate=lines.slice(Math.max(0,cropLineIndex-2),cropLineIndex+3).find(line=>!brand?.[1]?.test(line)&&!crop[1].test(line)&&line.length>=3&&line.length<=48&&!/organic|heirloom|hybrid|annual|perennial|seeds?|net wt|packed/i.test(line));if(candidate)fields.variety=field(candidate.replace(/^[^a-z0-9]+|[^a-z0-9]+$/gi,''),{score:.56,sourcePhoto:side,originalText:candidate})}
+- if(lines.length){const product=lines.find(line=>line.length>=3&&line.length<=70&&!/www\.|net wt|packed|l
