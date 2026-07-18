@@ -1,0 +1,24 @@
+name: Validate Phase 4.6X.2 Final
+
+on:
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    if: github.event.pull_request.head.ref == 'agent/phase-4-6x-2-one-tap-trust'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: npm install
+      - name: Run focused one-tap trust regression
+        run: node --test test/seedPacketIntelligence.test.js test/seedProductLookup.test.js test/seedPacketOneTapTrust.test.js test/gardenPersistence.test.js
+      - name: Build production app
+        run: npm run build
