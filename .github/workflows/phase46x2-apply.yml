@@ -1,0 +1,70 @@
+name: Apply Phase 4.6X.2
+
+on:
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: write
+
+jobs:
+  apply:
+    if: github.event.pull_request.head.ref == 'agent/phase-4-6x-2-one-tap-trust'
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.ref }}
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Apply one-tap trust fix
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          import json,re
+          p=Path('src/seedProductLookup.js');s=p.read_text()
+          replacement="""const hasValue=value=>value!==''&&value!==null&&value!==undefined&&!(Array.isArray(value)&&!value.length);
+          const isManual=meta=>meta?.source==='manual'||meta?.source==='corrected'||meta?.manuallyCorrected;
+          const trustedPacket=(key,value,meta)=>meta?.source==='packet'&&meta?.confidence==='High'&&isTrustedPacketValue(key,value,meta);
+          const OPTIONAL_PACKET_FIELDS=['packetYear','quantity','lotNumber','packetWeight','colorDescription','notes'];
+          export function approveExactSeedProduct(draft={},product={}){let completed=0,replacedInvalid=0,clearedInvalid=0;const priorMeta={...(draft.fieldMeta||{})},official={brand:product.brand,name:product.crop,cropId:product.cropId,variety:product.variety,productName:product.productName,category:product.category,...(product.productFields||{}),...(product.guideFields||{})},next={...draft,fieldMeta:priorMeta,exactProductId:product.officialProductId,onlineSourceUrl:product.sourceUrl},conflicts=[];
+           for(const [key,current] of Object.entries(draft)){const meta=priorMeta[key]||{};if(!hasValue(current)||isManual(meta)||!['packet','inferred'].includes(meta.source))continue;if(!trustedPacket(key,current,meta)&&!Object.prototype.hasOwnProperty.call(official,key)){next[key]=Array.isArray(current)?[]:'';delete next.fieldMeta[key];replacedInvalid++;clearedInvalid++}}
+           for(const [key,value] of Object.entries(official)){if(!hasValue(value))continue;const current=next[key],meta=next.fieldMeta[key]||{},detail=Object.prototype.hasOwnProperty.call(product.guideFields||{},key)?'official-guide':'official-product',incoming=onlineMeta(product,key,value,detail);if(isManual(meta))continue;const hasCurrent=hasValue(current),packetTrusted=hasCurrent&&trustedPacket(key,current,meta);if(packetTrusted&&!same(current,value)){conflicts.push({field:key,activeValue:current,activeSource:fieldSourceLabel(meta),onlineValue:value,onlineSource:incoming.sourceLabel,sourceUrl:incoming.sourceUrl,detectedAt:now(),status:'needs-review'});continue}if(hasCurrent&&!packetTrusted&&!same(current,value))replacedInvalid++;if(!hasCurrent)completed++;next[key]=value;next.fieldMeta[key]=incoming}
+           const optionalMissing=OPTIONAL_PACKET_FIELDS.filter(key=>!hasValue(next[key]));const completedCount=Object.entries(next.fieldMeta).filter(([key,meta])=>hasValue(next[key])&&(isManual(meta)||meta?.source==='online'||trustedPacket(key,next[key],meta))).length;return{...next,draftStatus:'Ready to save',packetIntelligence:{...(draft.packetIntelligence||{}),onlineLookup:{exactProductId:product.officialProductId,productId:product.id,sourceName:product.sourceName,sourceUrl:product.sourceUrl,guideSourceName:product.guideSourceName,guideUrl:product.guideUrl,matchedAt:now(),approvedAt:now(),approved:true,match:product.match||null,selected:true},conflicts,qualityStatus:conflicts.length?'trusted-conflicts':'approved-exact-product',sourceSummary:{identity:'Packet identity verified using photos and approved official product data.',growing:'Growing instructions filled from trusted packet text and the approved official product source.'},applicationSummary:{completed,replacedInvalid,clearedInvalid,completedCount,optionalMissing,appliedAt:now()}}}}
+          export const applySeedProductCandidate=approveExactSeedProduct;
+          """
+          s=re.sub(r"export function applySeedProductCandidate\(draft=\{\},product=\{\}\).*?(?=export function clearSeedProductMatch)",replacement,s,flags=re.S);p.write_text(s)
+          p=Path('src/seedPacketIntelligence.js');s=p.read_text();s=s.replace("if(['name','variety','productName'].includes(key))return plausibleIdentity(value)&&!/^(?:om|rr|rn)\\b/i.test(asText(value));","if(['name','variety','productName'].includes(key)){const text=asText(value);if(key==='variety'&&/(full sun|vegetable|heirloom|organic|container|days? to|sow|depth|spacing)/i.test(text))return false;return plausibleIdentity(text)&&!/^(?:om|rr|rn)\\b/i.test(text)}");s=s.replace("const essential=['name','variety','brand','packetYear','quantity','daysToMaturity','depth','thinningSpacing','germinationEstimate','sunlight'];const missing=essential.filter","const exactApproved=Boolean(draft.packetIntelligence?.onlineLookup?.approved);const essential=exactApproved?['name']:['name','variety','brand','packetYear','quantity','daysToMaturity','depth','thinningSpacing','germinationEstimate','sunlight'];const missing=essential.filter");s=s.replace("return{ready,check,missing,completedCount:ready.length,attentionCount:check.length+missing.length};","const optionalFields=['packetYear','quantity','lotNumber'];const optionalMissing=optionalFields.filter(key=>draft[key]===''||draft[key]===null||draft[key]===undefined||(Array.isArray(draft[key])&&!draft[key].length)).map(key=>({key}));return{ready,check,missing,optionalMissing,completedCount:ready.length,attentionCount:check.length+missing.length};");p.write_text(s)
+          p=Path('src/SeedTools.jsx');s=p.read_text();s=s.replace("{attention.length>0&&<details open>","{review.optionalMissing?.length>0&&<p className=\"packet-optional-missing\">Optional details not found: {review.optionalMissing.map(row=>PACKET_FIELD_LABELS[row.key]||row.key).join(', ')}. You can save without them.</p>}{attention.length>0&&<details open>");s=s.replace("{primary.match.exact?'Use exact match':'Use this match'}","{primary.match.exact?'Yes, use this packet':'Use this match'}");s=s.replace("<strong>{draft.productName||`${draft.variety} ${draft.name}`}</strong><em>{exact.sourceName}</em>","<strong>{draft.productName||`${draft.variety} ${draft.name}`}</strong><em>Verified with {exact.sourceName}</em>");s=s.replace("{draft.packetIntelligence.applicationSummary.completed} fields filled · {draft.packetIntelligence.applicationSummary.replacedInvalid} malformed scanner value","{draft.packetIntelligence.applicationSummary.completedCount||draft.packetIntelligence.applicationSummary.completed} trusted fields ready · {draft.packetIntelligence.applicationSummary.replacedInvalid} malformed or low-confidence scanner value");s=s.replace("setLookup(current=>({...current,status:'matched',primaryCandidate:product,candidates:[product]}));setTimeout","setLookup(current=>({...current,status:'matched',primaryCandidate:product,candidates:[product],otherCandidates:[]}));if(frontPhoto)setSideState('front',{status:'Exact packet identified',progress:1,error:'',warnings:photoState.front.warnings||[]});setTimeout");p.write_text(s)
+          p=Path('src/styles/phase-4-6x-1-seed-trust.css');p.write_text(p.read_text()+"\n.packet-photo-state.state-exact-packet-identified{background:#dff0e2;color:#174d36}.packet-optional-missing{margin:0;padding:8px 10px;border-radius:10px;background:#fff8df;color:#66521e;font-size:.78rem}\n")
+          Path('src/version.js').write_text("export const APP_VERSION='0.20.2';\nexport const BUILD_ID='phase-4-6x-2-one-tap-trust';\nexport const UPDATED_AT='July 18, 2026';\nexport const WHATS_NEW=[\n 'Approving an exact seed packet now applies the trusted official details to the whole packet record in one step',\n 'Malformed and low-confidence scanner values are replaced automatically instead of becoming fake conflicts',\n 'Only genuine disagreements between clear packet text and approved official data require review',\n 'The front-photo status now updates when the exact packet is identified through the overall workflow',\n 'Optional packet details no longer block saving, and the full manual form remains collapsed unless needed',\n 'Seed packet entry is shorter and more trustworthy while recognition remains best-effort'\n];\n")
+          for f in ['package.json','package-lock.json']:
+           p=Path(f);d=json.loads(p.read_text());d['version']='0.20.2';
+           if f=='package-lock.json':d['packages']['']['version']='0.20.2'
+           p.write_text(json.dumps(d,indent=2)+'\n')
+          Path('test/seedPacketOneTapTrust.test.js').write_text("""import test from'node:test';
+          import assert from'node:assert/strict';
+          import{OFFICIAL_SEED_PRODUCTS,approveExactSeedProduct}from'../src/seedProductLookup.js';
+          const iceberg=OFFICIAL_SEED_PRODUCTS.find(row=>row.variety==='Iceberg A');const packetMeta=(confidence='Medium')=>({source:'packet',confidence});
+          test('Iceberg A approval removes malformed OCR and applies official record in one step',()=>{const draft={name:'Lettuce',brand:'Burpee',variety:'Iceberg A FULL SUN',productName:'Iceberg A FULL SUN Lettuce Seeds',directSowGuidance:'880 OUTDOOR SOWN',waterGuidance:'da keep evenly moist.',soilGuidance:'2 – SOW in average soil in full sun in DEPTH',containerSuitability:'Seedlings 5 Container',frontPhoto:'front',backPhoto:'back',fieldMeta:{name:packetMeta('High'),brand:packetMeta('High'),variety:packetMeta(),productName:packetMeta(),directSowGuidance:packetMeta(),waterGuidance:packetMeta(),soilGuidance:packetMeta(),containerSuitability:packetMeta()},packetIntelligence:{}};const next=approveExactSeedProduct(draft,{...iceberg,match:{exact:true,score:104}});assert.equal(next.variety,'Iceberg A');assert.equal(next.productName,'Iceberg A Lettuce Seeds');assert.equal(next.directSowGuidance,iceberg.guideFields.directSowGuidance);assert.equal(next.waterGuidance,iceberg.guideFields.waterGuidance);assert.equal(next.soilGuidance,iceberg.guideFields.soilGuidance);assert.equal(next.containerSuitability,iceberg.guideFields.containerSuitability);assert.equal(next.packetIntelligence.conflicts.length,0);assert.ok(next.packetIntelligence.applicationSummary.replacedInvalid>=5);assert.equal(next.frontPhoto,'front');assert.equal(next.backPhoto,'back');assert.equal(next.packetIntelligence.onlineLookup.approved,true)});
+          test('only high-confidence valid packet disagreement remains a conflict',()=>{const next=approveExactSeedProduct({name:'Lettuce',brand:'Burpee',variety:'Iceberg A',depth:'1/8 inch',fieldMeta:{name:packetMeta('High'),brand:packetMeta('High'),variety:packetMeta('High'),depth:packetMeta('High')},packetIntelligence:{}},iceberg);assert.equal(next.depth,'1/8 inch');assert.equal(next.packetIntelligence.conflicts[0].field,'depth')});
+          test('manual correction remains authoritative',()=>{const next=approveExactSeedProduct({variety:'My Iceberg',fieldMeta:{variety:{source:'manual',confidence:'High'}},packetIntelligence:{}},iceberg);assert.equal(next.variety,'My Iceberg');assert.equal(next.packetIntelligence.conflicts.length,0)});
+          test('optional missing values do not block ready state',()=>{const next=approveExactSeedProduct({fieldMeta:{},packetIntelligence:{}},iceberg);assert.equal(next.draftStatus,'Ready to save');assert.ok(next.packetIntelligence.applicationSummary.optionalMissing.includes('quantity'))});
+          """)
+          PY
+      - run: npm install
+      - name: Run focused one-tap trust tests
+        run: node --test test/seedPacketIntelligence.test.js test/seedProductLookup.test.js test/seedPacketOneTapTrust.test.js test/gardenPersistence.test.js
+      - name: Build production app
+        run: npm run build
+      - name: Commit clean implementation
+        run: |
+          rm -f .github/workflows/phase46x2-export.yml .github/workflows/phase46x2-apply.yml
+          git add -A
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git commit -m 'Implement Phase 4.6X.2 seed packet one-tap trust fix'
+          git push origin HEAD:${{ github.event.pull_request.head.ref }}
