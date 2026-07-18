@@ -8,6 +8,9 @@ const uniq=values=>[...new Set(values.filter(Boolean))];
 const PREFILL_MANUAL_FIELDS=new Set(['name','variety','brand','notes','sourceShoppingItemId']);
 const lineList=text=>asText(text).split(/\r?\n/).map(line=>line.replace(/\s+/g,' ').trim()).filter(Boolean);
 const confidence=(score)=>score>=.86?'High':score>=.58?'Medium':'Low';
+const IDENTITY_STOPWORDS=new Set(['vegetable','vegetables','herb','herbs','flower','flowers','fruit','fruits','heirloom','hybrid','organic','annual','biennial','perennial','full sun','part sun','shade','seeds','seed','non gmo','untreated','easy to grow']);
+const plausibleIdentity=value=>{const text=normalized(value);return Boolean(text&&text.length>=2&&text.length<=60&&!IDENTITY_STOPWORDS.has(text)&&!/^\d+$/.test(text)&&!/(net wt|packed for|lot no|days to|planting depth|spacing|germination|www\.)/.test(text))};
+const validBarcode=value=>{const digits=String(value||'').replace(/\D/g,'');if(![8,12,13,14].includes(digits.length))return false;let sum=0,parity=digits.length%2;for(let i=0;i<digits.length-1;i++)sum+=Number(digits[i])*(i%2===parity?3:1);return(10-sum%10)%10===Number(digits.at(-1))};
 const field=(value,{score=.75,sourcePhoto='front',originalText='',inferred=false}={})=>({value,confidence:confidence(score),sourcePhoto,originalText:originalText||asText(value),inferred:Boolean(inferred),extractedAt:new Date().toISOString(),correctedAt:null,manuallyCorrected:false,source:inferred?'inferred':'packet'});
 const found=(text,regex,index=1)=>asText(text.match(regex)?.[index]);
 const dimension=(text,regex)=>{const match=text.match(regex);return match?`${match[1]} ${match[2]}`.replace(/\s+/g,' ').trim():''};
@@ -35,17 +38,17 @@ export function markManualField(draft,key,value){
 function detectIdentity(text,side){
  const lines=lineList(text),fields={};
  const brand=BRAND_PATTERNS.find(([,regex])=>regex.test(text));if(brand)fields.brand=field(brand[0],{score:.96,sourcePhoto:side,originalText:lineContaining(lines,brand[1])});
- const crop=CROPS.find(([,regex])=>regex.test(text));if(crop){fields.name=field(crop[0],{score:.92,sourcePhoto:side,originalText:lineContaining(lines,crop[1])});fields.category=field(crop[2],{score:.82,sourcePhoto:side,originalText:crop[0],inferred:true})}
- const year=found(text,/(?:packed\s+for|packet\s+year|packed|sell\s+by|use\s+by)\D{0,8}(20\d{2})/i)||found(text,/\b(20(?:1\d|2\d|3\d))\b/);if(year)fields.packetYear=field(Number(year),{score:/packed|packet year/i.test(text)? .95:.62,sourcePhoto:side,originalText:lineContaining(lines,new RegExp(year))});
+ const exactCrop=CROPS.find(([,regex])=>regex.test(text)),genericPepper=!exactCrop&&lines.find(line=>/^peppers?$/i.test(line)),crop=exactCrop||(genericPepper&&['Pepper',/^peppers?$/i,'vegetable']);if(crop){fields.name=field(crop[0],{score:exactCrop?.92:.62,sourcePhoto:side,originalText:lineContaining(lines,crop[1]),inferred:!exactCrop});fields.category=field(crop[2],{score:.72,sourcePhoto:side,originalText:crop[0],inferred:true})}
+ const year=found(text,/(?:packed\s+for|packet\s+year|packed|sell\s+by|use\s+by|season)\D{0,12}(20\d{2})/i);if(year&&Number(year)>=2000&&Number(year)<=currentYear()+3)fields.packetYear=field(Number(year),{score:.95,sourcePhoto:side,originalText:lineContaining(lines,new RegExp(year))});
  const countMatch=text.match(/(?:contains?|approximately|approx\.?|about)?\s*(\d{1,6})\s*(?:seeds?|ct\.?|count)\b/i);if(countMatch){fields.quantity=field(Number(countMatch[1]),{score:/contains|count/i.test(countMatch[0])?.9:.7,sourcePhoto:side,originalText:countMatch[0]});fields.originalQuantity=field(Number(countMatch[1]),{score:.8,sourcePhoto:side,originalText:countMatch[0]});fields.countType=field(/approximately|approx|about/i.test(countMatch[0])?'estimated':'exact',{score:.85,sourcePhoto:side,originalText:countMatch[0],inferred:true})}
  const weight=found(text,/(?:net\s*wt\.?|packet\s*weight|weight)\s*[:.]?\s*([\d.]+\s*(?:oz|ounces?|g|grams?|mg))\b/i);if(weight)fields.packetWeight=field(weight,{score:.92,sourcePhoto:side,originalText:lineContaining(lines,/net\s*wt|weight/i)});
  const lot=found(text,/\blot\s*(?:no\.?|number|#|:)??\s*([a-z0-9-]{3,})\b/i);if(lot)fields.lotNumber=field(lot,{score:.9,sourcePhoto:side,originalText:lineContaining(lines,/\blot\b/i)});
- const barcode=found(text,/\b(\d{8,14})\b/);if(barcode)fields.barcode=field(barcode,{score:.62,sourcePhoto:side,originalText:barcode});
+ const barcodeCandidates=[...text.matchAll(/\b(\d{8,14})\b/g)].map(match=>match[1]),barcode=barcodeCandidates.find(validBarcode);if(barcode)fields.barcode=field(barcode,{score:.9,sourcePhoto:side,originalText:barcode});
  const designations=uniq([/\borganic\b/i.test(text)&&'Organic',/\bheirloom\b/i.test(text)&&'Heirloom',/\bhybrid\b|\bf1\b/i.test(text)&&'Hybrid',/\bannual\b/i.test(text)&&'Annual',/\bbiennial\b/i.test(text)&&'Biennial',/\bperennial\b/i.test(text)&&'Perennial',/\bnon[- ]?gmo\b/i.test(text)&&'Non-GMO',/\buntreated\b/i.test(text)&&'Untreated']);if(designations.length)fields.designations=field(designations,{score:.9,sourcePhoto:side,originalText:designations.join(', ')});
  const claims=uniq([/pollinator/i.test(text)&&'Pollinator friendly',/container|patio/i.test(text)&&'Container suitable',/disease resistant/i.test(text)&&'Disease resistant',/open pollinated/i.test(text)&&'Open pollinated',/easy to grow/i.test(text)&&'Easy to grow']);if(claims.length)fields.notableClaims=field(claims.join(' · '),{score:.78,sourcePhoto:side,originalText:claims.join(', ')});
  if(/\bmix\b/i.test(text)){const mixLine=lineContaining(lines,/\bmix\b/i);fields.colorDescription=field(mixLine,{score:.68,sourcePhoto:side,originalText:mixLine})}
- if(crop){const cropLineIndex=lines.findIndex(line=>crop[1].test(line)),candidate=lines.slice(Math.max(0,cropLineIndex-2),cropLineIndex+3).find(line=>!brand?.[1]?.test(line)&&!crop[1].test(line)&&line.length>=3&&line.length<=48&&!/organic|heirloom|hybrid|annual|perennial|seeds?|net wt|packed/i.test(line));if(candidate)fields.variety=field(candidate.replace(/^[^a-z0-9]+|[^a-z0-9]+$/gi,''),{score:.56,sourcePhoto:side,originalText:candidate})}
- if(lines.length){const product=lines.find(line=>line.length>=3&&line.length<=70&&!/www\.|net wt|packed|lot|seeds?\s*$/i.test(line));if(product)fields.productName=field(product,{score:.5,sourcePhoto:side,originalText:product})}
+ if(crop){const cropLineIndex=lines.findIndex(line=>crop[1].test(line)),nearby=lines.slice(Math.max(0,cropLineIndex-3),cropLineIndex+4),sameLine=lines[cropLineIndex]?.replace(crop[1],'').replace(/\bseeds?\b/ig,'').trim(),candidate=[sameLine,...nearby].find(line=>plausibleIdentity(line)&&!brand?.[1]?.test(line)&&!crop[1].test(line));if(candidate)fields.variety=field(candidate.replace(/^[^a-z0-9]+|[^a-z0-9]+$/gi,''),{score:.72,sourcePhoto:side,originalText:candidate})}
+ if(crop){const product=[fields.variety?.value,crop[0],'Seeds'].filter(Boolean).join(' ');fields.productName=field(product,{score:fields.variety?.value?.7:.58,sourcePhoto:side,originalText:[fields.variety?.originalText,lineContaining(lines,crop[1])].filter(Boolean).join(' · '),inferred:true})}
  return fields;
 }
 
@@ -83,13 +86,14 @@ function detectGrowingDetails(text,side){
 }
 
 export function parsePacketText(text,{side='front'}={}){
- const rawText=asText(text),identity=detectIdentity(rawText,side),growing=side==='back'?detectGrowingDetails(rawText,side):{},fields={...identity,...growing};
+ const rawText=asText(text),identity=detectIdentity(rawText,side),growing=detectGrowingDetails(rawText,side),fields=side==='front'?{...growing,...identity}:{...identity,...growing};
  return{side,rawText,fields,fieldCount:Object.keys(fields).length,extractedAt:new Date().toISOString(),status:Object.keys(fields).length?'read':'unreadable'};
 }
 
 export function applyPacketExtraction(draft,extraction){
  const next={...draft,fieldMeta:{...(draft.fieldMeta||{})},packetIntelligence:{front:null,back:null,...(draft.packetIntelligence||{}),[extraction.side]:extraction}};
  for(const [key,meta] of Object.entries(extraction.fields||{})){
+  if(['name','variety','productName'].includes(key)&&!plausibleIdentity(meta.value))continue;
   const existingMeta=next.fieldMeta[key],existing=next[key];
   if(existingMeta?.source==='manual'||existingMeta?.manuallyCorrected)continue;
   if(existing!==''&&existing!==null&&existing!==undefined&&!(Array.isArray(existing)&&!existing.length)&&!existingMeta)continue;

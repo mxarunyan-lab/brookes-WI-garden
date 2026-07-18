@@ -1,3 +1,4 @@
+import{taskDuplicateKey}from'./connectedIntelligence.js';
 const localDateKey=value=>{
  if(typeof value==='string'&&/^\d{4}-\d{2}-\d{2}/.test(value))return value.slice(0,10);
  const d=value instanceof Date?value:new Date(value||Date.now());
@@ -22,8 +23,8 @@ export function uniqueTasks(tasks=[]){
  const map=new Map();
  tasks.forEach(task=>{
   if(!task?.id||task.informational)return;
-  const current=map.get(task.id);
-  if(!current||Number(task.priority||0)>Number(current.priority||0))map.set(task.id,task);
+  const key=taskDuplicateKey(task),current=map.get(key);
+  if(!current||Number(task.priority||0)>Number(current.priority||0)||String(task.updatedAt||'')>String(current.updatedAt||''))map.set(key,{...task,duplicateKey:key});
  });
  return [...map.values()];
 }

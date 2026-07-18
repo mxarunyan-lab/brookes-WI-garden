@@ -1,11 +1,12 @@
 import{cropCatalog,newId}from'./data.js';
+import{shoppingDuplicateKey}from'./connectedIntelligence.js';
 
 export const SHOPPING_CATEGORIES=['Seeds','Starter Plant','Bulb or Tuber','Soil and Amendments','Container','Support and Trellis','Indoor Growing','Tool or Supply','Other'];
 const normalize=value=>String(value||'').toLowerCase().replace(/[^a-z0-9]+/g,' ').trim();
 const now=()=>new Date().toISOString();
 
 export function shoppingIdentity(item={}){
- return [normalize(item.category||'Other'),normalize(item.cropId),normalize(item.variety),normalize(item.name)].join('|');
+ return item.duplicateKey||shoppingDuplicateKey({...item,date:''});
 }
 
 export function legacyShoppingItems(garden={}){
@@ -29,7 +30,7 @@ export function findShoppingDuplicate(garden={},candidate={}){
 }
 
 export function createShoppingItem(data={},actor='System'){
- const at=now();return{id:newId('shopping'),name:String(data.name||'Garden item').trim(),category:SHOPPING_CATEGORIES.includes(data.category)?data.category:'Other',cropId:data.cropId||'',variety:data.variety||'',brand:data.brand||'',quantity:Math.max(1,Number(data.quantity)||1),note:data.note||'',reason:data.reason||'',sourceRecommendation:data.sourceRecommendation||'',sourceDecisionId:data.sourceDecisionId||'',intendedSpaceId:data.intendedSpaceId||'',desiredWindow:data.desiredWindow||'',purchased:Boolean(data.purchased),purchasedAt:data.purchasedAt||'',linkedSeedInventoryId:data.linkedSeedInventoryId||'',linkedPlantId:data.linkedPlantId||'',addedAt:data.addedAt||at,updatedAt:at,createdBy:actor,updatedBy:actor,revision:1,deletedAt:null};
+ const at=now();const category=data.category==='Plants'?'Starter Plant':SHOPPING_CATEGORIES.includes(data.category)?data.category:'Other',base={name:String(data.name||'Garden item').trim(),category,cropId:data.cropId||'',variety:data.variety||'',brand:data.brand||'',quantity:Math.max(1,Number(data.quantity)||1),note:data.note||'',reason:data.reason||'',sourceRecommendation:data.sourceRecommendation||'',sourceDecisionId:data.sourceDecisionId||'',sourceProjectId:data.sourceProjectId||'',linkedTaskId:data.linkedTaskId||'',intendedSpaceId:data.intendedSpaceId||'',desiredWindow:data.desiredWindow||'',priority:Number(data.priority)||50,alreadyOwned:Boolean(data.alreadyOwned),ownedRecordId:data.ownedRecordId||'',purchased:Boolean(data.purchased),purchasedAt:data.purchasedAt||'',linkedSeedInventoryId:data.linkedSeedInventoryId||'',linkedPlantId:data.linkedPlantId||'',addedAt:data.addedAt||at};return{id:newId('shopping'),...base,duplicateKey:data.duplicateKey||shoppingDuplicateKey({...base,date:''}),updatedAt:at,createdBy:actor,updatedBy:actor,revision:1,deletedAt:null};
 }
 
 export function materializeShoppingItem(item={},actor='System'){
