@@ -32,8 +32,6 @@ jobs:
       - name: Install dependencies
         run: npm install
       - name: Run targeted Phase 4.6 tests
-        id: targeted_tests
-        continue-on-error: true
         run: |
           node --test \
             test/connectedIntelligence.test.js \
@@ -42,8 +40,6 @@ jobs:
             test/gardenPersistence.test.js \
             test/weatherDecisionEngine.test.js > phase46-tests.log 2>&1
       - name: Build production app
-        id: production_build
-        continue-on-error: true
         run: npm run build > phase46-build.log 2>&1
       - name: Upload Phase 4.6 check logs
         if: always()
@@ -54,14 +50,6 @@ jobs:
             phase46-tests.log
             phase46-build.log
           retention-days: 2
-      - name: Stop on failed checks
-        if: steps.targeted_tests.outcome == 'failure' || steps.production_build.outcome == 'failure'
-        run: |
-          echo '--- targeted tests ---'
-          tail -200 phase46-tests.log || true
-          echo '--- production build ---'
-          tail -200 phase46-build.log || true
-          exit 1
       - name: Remove temporary delivery files
         run: |
           rm -rf .github/phase46_patch .github/phase46_payload
