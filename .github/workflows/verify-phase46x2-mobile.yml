@@ -35,10 +35,9 @@ jobs:
           for(const width of [320,375,390,430]){
             const page=await browser.newPage({viewport:{width,height:900}}),errors=[];page.on('pageerror',e=>errors.push(String(e)));
             await page.goto('http://127.0.0.1:4173/',{waitUntil:'networkidle'});
-            let seed=page.getByText('Seed Department',{exact:true}).first();
-            if(!(await seed.count())){const center=page.getByText('Garden Center',{exact:true}).first();if(await center.count())await center.click();seed=page.getByText('Seed Department',{exact:true}).first()}
-            if(await seed.count())await seed.click();
-            await page.waitForTimeout(250);
+            await page.getByRole('button',{name:'Center',exact:true}).click();
+            await page.getByRole('button',{name:/^Seed Department\./}).click();
+            await page.waitForSelector('.seed-tools-screen');
             const result=await page.evaluate(()=>({overflow:document.documentElement.scrollWidth>document.documentElement.clientWidth,save:[...document.querySelectorAll('button')].some(b=>/save packet/i.test(b.textContent||'')&&b.getBoundingClientRect().height>=42),details:[...document.querySelectorAll('details.packet-all-details')].some(d=>d.open)}));
             if(errors.length||result.overflow||!result.save||result.details)throw new Error(JSON.stringify({width,errors,result}));
             await page.close();
