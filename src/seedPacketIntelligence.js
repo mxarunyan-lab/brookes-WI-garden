@@ -5,6 +5,7 @@ const currentYear=()=>new Date().getFullYear();
 const asText=value=>String(value??'').trim();
 const normalized=value=>asText(value).toLowerCase().replace(/[^a-z0-9]+/g,' ').trim();
 const uniq=values=>[...new Set(values.filter(Boolean))];
+const PREFILL_MANUAL_FIELDS=new Set(['name','variety','brand','notes','sourceShoppingItemId']);
 const lineList=text=>asText(text).split(/\r?\n/).map(line=>line.replace(/\s+/g,' ').trim()).filter(Boolean);
 const confidence=(score)=>score>=.86?'High':score>=.58?'Medium':'Low';
 const field=(value,{score=.75,sourcePhoto='front',originalText='',inferred=false}={})=>({value,confidence:confidence(score),sourcePhoto,originalText:originalText||asText(value),inferred:Boolean(inferred),extractedAt:new Date().toISOString(),correctedAt:null,manuallyCorrected:false,source:inferred?'inferred':'packet'});
@@ -23,7 +24,7 @@ const CROPS=[
 export function emptyPacketDraft(prefill={}){
  const base={name:'',variety:'',brand:'',productName:'',category:'',packetYear:'',quantity:'',originalQuantity:'',reservedQuantity:0,countType:'estimated',packetWeight:'',lotNumber:'',barcode:'',designations:[],notableClaims:'',colorDescription:'',daysToMaturity:'',maturityBasis:'',germinationEstimate:'',germinationTemperature:'',seedStartingGuidance:'',sowingMethod:'',directSowGuidance:'',transplantGuidance:'',seasonalWindow:'',frostTiming:'',depth:'',spacing:'',thinningSpacing:'',rowSpacing:'',sunlight:'',waterGuidance:'',soilGuidance:'',fertilizingGuidance:'',plantHeight:'',plantSpread:'',growthHabit:'',successionGuidance:'',harvestGuidance:'',harvestWindow:'',supportNeeds:'',specialCare:'',regionalGuidance:'',packetWarnings:'',treatmentInformation:'',seedSavingRestrictions:'',containerSuitability:'',notes:'',sourceShoppingItemId:'',fieldMeta:{},packetIntelligence:{front:null,back:null},draftStatus:'Draft'};
  const merged={...base,...prefill,fieldMeta:{...(base.fieldMeta||{}),...(prefill.fieldMeta||{})},packetIntelligence:{front:null,back:null,...(prefill.packetIntelligence||{})}};
- for(const [key,value] of Object.entries(prefill)){if(value!==''&&value!==null&&value!==undefined&&!['fieldMeta','packetIntelligence'].includes(key)&&!merged.fieldMeta[key])merged.fieldMeta[key]={source:'manual',confidence:'High',manuallyCorrected:false,correctedAt:null}}
+ for(const [key,value] of Object.entries(prefill)){if(PREFILL_MANUAL_FIELDS.has(key)&&value!==''&&value!==null&&value!==undefined&&!merged.fieldMeta[key])merged.fieldMeta[key]={source:'manual',confidence:'High',manuallyCorrected:false,correctedAt:null}}
  return merged;
 }
 
@@ -99,7 +100,7 @@ export function applyPacketExtraction(draft,extraction){
 }
 
 export function extractionReview(draft){
- const entries=Object.entries(draft.fieldMeta||{}),ready=[],check=[];
+ const entries=Object.entries(draft.fieldMeta||{}).filter(([key])=>Boolean(PACKET_FIELD_LABELS[key])),ready=[],check=[];
  for(const [key,meta] of entries){const row={key,value:draft[key],...meta};if(meta.confidence==='High'||meta.source==='manual')ready.push(row);else check.push(row)}
  const essential=['name','variety','brand','packetYear','daysToMaturity','spacing'];const missing=essential.filter(key=>draft[key]===''||draft[key]===null||draft[key]===undefined).map(key=>({key}));
  return{ready,check,missing};

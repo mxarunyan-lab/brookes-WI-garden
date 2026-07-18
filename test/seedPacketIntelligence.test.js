@@ -35,3 +35,5 @@ test('saved payload does not invent seed count from weight',()=>{const payload=p
 test('reserved quantity remains packet-specific',()=>{const payload=packetPayload(emptyPacketDraft({name:'Pea',quantity:50,reservedQuantity:12}),{});assert.equal(payload.quantity,50);assert.equal(payload.reservedQuantity,12)});
 test('extraction provenance records source photo and date',()=>{const result=parsePacketText(front,{side:'front'});assert.equal(result.fields.name.sourcePhoto,'front');assert.ok(result.fields.name.extractedAt)});
 test('packet parser preserves original OCR wording',()=>{const result=parsePacketText(back,{side:'back'});assert.match(result.fields.seedStartingGuidance.originalText,/Start indoors/i)});
+
+test('recovered draft defaults are not counted as confirmed packet details',()=>{const original=emptyPacketDraft({name:'Radish'}),recovered=emptyPacketDraft(original),review=extractionReview(recovered);assert.deepEqual(review.ready.map(row=>row.key),['name'])});
