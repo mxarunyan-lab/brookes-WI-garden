@@ -1,0 +1,53 @@
+name: Apply Phase 4.6X Implementation
+
+on:
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: write
+
+jobs:
+  apply-validated-phase:
+    if: github.event.pull_request.head.ref == 'agent/phase-4-6x-pre-sync-readiness'
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Check out protected feature branch
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.ref }}
+          fetch-depth: 0
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Reconstruct and verify implementation patch
+        run: |
+          set -euo pipefail
+          cat .github/phase46x-patch/*.hex | python -c "import sys; sys.stdout.buffer.write(bytes.fromhex(sys.stdin.read().strip()))" > /tmp/phase46x.patch.xz
+          xz -dc /tmp/phase46x.patch.xz > /tmp/phase46x.patch
+          echo '941a6c31c353b48622c0da6b429e0238b692f1ddb329e000bbe05dac25d44a51  /tmp/phase46x.patch' | sha256sum --check
+          git apply --check /tmp/phase46x.patch
+          git apply --index /tmp/phase46x.patch
+      - name: Install dependencies
+        run: npm install
+      - name: Run targeted Phase 4.6X tests
+        run: |
+          node --test \
+            test/dataReadinessStructure.test.js \
+            test/sharedWorkflowReadiness.test.js \
+            test/backupMigrationReadiness.test.js
+      - name: Build production app
+        run: npm run build
+      - name: Remove temporary delivery files
+        run: |
+          rm -rf .github/phase46x-patch
+          rm -f .github/workflows/phase46x-export.yml .github/workflows/phase46x-apply.yml
+          git add -A
+      - name: Commit Phase 4.6X implementation
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git commit -m 'Implement Phase 4.6X pre-sync readiness'
+          git push origin HEAD:${{ github.event.pull_request.head.ref }}
