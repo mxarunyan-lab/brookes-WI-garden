@@ -1,19 +1,15 @@
-export const APP_VERSION='0.19.0';
-export const BUILD_ID='phase-4-6-intelligence-reality-check';
+export const APP_VERSION='0.20.0';
+export const BUILD_ID='phase-4-6x-pre-sync-readiness';
 export const UPDATED_AT='July 18, 2026';
 export const WHATS_NEW=[
- 'Seed Packet Intelligence now validates OCR before using it, rejects malformed identity fragments, compares the front and back using side-specific rules, and looks for supported exact official product matches',
- 'Supported exact packet matches can prefill missing official product and growing-guide fields while preserving a compact source label, original packet wording, confidence, and any conflicts that still need confirmation',
- 'Clear packet text remains authoritative when it conflicts with online information, and manually corrected values are never silently overwritten by a rescan, lookup, or generic guidance',
- 'Vacation Mode now builds a garden-specific before, during, and after plan from saved plants, stages, Growing Spaces, recent watering, observed rain, forecast risks, caretaker availability, and trip length',
- 'Caretaker handoffs now identify the exact plant or Growing Space, date, action, what to check first, what not to do, weather exceptions, urgency, completion state, and notes',
- 'Vacation tasks reuse matching Chore Board work instead of creating duplicate reminders, preserve manually edited instructions during forecast changes, and keep completed trip history when a plan closes',
- 'Smart Watering, Vacation Mode, the Garden Bulletin, and the Chore Board now share stronger duplicate keys so the same action is not repeated through disconnected cards',
- 'Planting Desk and Indoor Growing now reuse exact packet instructions, owned-seed status, calculator results, available Growing Spaces, expected emergence, seed usage, and the existing Plant Journey',
- 'Garden Shopping List handoffs now retain crop, variety, brand, quantity, reason, linked recommendation or calculator, intended Growing Space, timing, priority, and already-owned status while preventing duplicates',
- 'Harvest and issue forms now prefill the selected plant, variety, Growing Space, date, stage, and packet context instead of asking for known information again',
- 'Photo workflows now distinguish packet text recognition from ordinary stored photos; plant, issue, harvest, stage, and Growing Space photos are not described as analyzed unless analysis actually occurred',
- 'Spacing, soil, frost-date, seed-quantity, and measurement results can now be saved and applied to Growing Spaces, Planting Desk, Indoor Growing, seed reservations, or the Garden Shopping List',
- 'QR links continue to use stable record IDs after renaming and now show a safe unavailable-record screen when an old or deleted destination cannot be opened',
- 'Phase 5 shared sync was not started, and packet recognition remains best-effort because not every photo or official online product can be identified automatically'
+ 'Garden backups are now validated before download and again before restore, including record counts, linked records, integrity checks, and embedded photo references',
+ 'A Data Health summary under Backup and Restore now checks stable IDs, relationships, timestamps, duplicate risks, and safe recovery readiness without exposing technical logs by default',
+ 'Legacy seed records now consolidate into one Seed Inventory while preserving packet history, quantities, source details, photos, and existing links',
+ 'Watering and soil checks now retain attributable event records so Today, Smart Watering, the Chore Board, and garden history can share one source of truth',
+ 'Plants, Growing Spaces, seed packets, Vacation plans, tasks, shopping items, photos, QR labels, calculator results, and lifecycle events receive stronger stable IDs and relationship metadata',
+ 'Repeated task completions, watering saves, packet quantity changes, seed use, reservations, harvests, issues, Vacation actions, and calculator handoffs are better protected from duplicate processing',
+ 'Plant and Growing Space renames continue using stable IDs, so linked Plant Journeys, photos, tasks, harvests, issues, seed use, and QR destinations stay connected',
+ 'Vacation plans, task completion, watering history, seed quantities, shopping items, photos, and Plant Journeys now have record-specific future conflict rules instead of one generic overwrite rule',
+ 'A safe local restore and migration rehearsal can verify retry and rollback behavior using a copy of the garden without connecting to cloud sync or replacing active records',
+ 'Phase 5 cloud syncing, authentication, invitations, and production data migration have not started'
 ];
