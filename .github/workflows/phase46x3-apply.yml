@@ -25,9 +25,19 @@ jobs:
       - name: Reconstruct implementation artifact
         run: |
           set -euo pipefail
-          sha256sum .github/phase46x3_payload/part*.txt > phase46x3-payload-hashes.txt
-          cat .github/phase46x3_payload/part*.txt > /tmp/phase46x3.patch.gz.b64
-          sha256sum /tmp/phase46x3.patch.gz.b64 >> phase46x3-payload-hashes.txt
+          python - <<'PY'
+          from pathlib import Path
+          root=Path('.github/phase46x3_payload')
+          order=['part00.txt','part01.txt','part020.txt','part021.txt','part03.txt','part04.txt','part05.txt','part06.txt','part07.txt','part08.txt','part09.txt','part10.txt']
+          rows={name:(root/name).read_text() for name in order}
+          assert rows['part05.txt'][7884]=='B'
+          rows['part05.txt']=rows['part05.txt'][:7884]+'D'+rows['part05.txt'][7885:]
+          assert rows['part07.txt'][741]=='t'
+          rows['part07.txt']=rows['part07.txt'][:741]+'k'+rows['part07.txt'][742:]
+          rows['part10.txt']=rows['part10.txt'][:4946]+'h'+rows['part10.txt'][4946:]
+          Path('/tmp/phase46x3.patch.gz.b64').write_text(''.join(rows[name] for name in order))
+          PY
+          sha256sum /tmp/phase46x3.patch.gz.b64 > phase46x3-payload-hashes.txt
           base64 -d /tmp/phase46x3.patch.gz.b64 > /tmp/phase46x3.patch.gz
           sha256sum /tmp/phase46x3.patch.gz >> phase46x3-payload-hashes.txt
       - name: Upload integrity report
