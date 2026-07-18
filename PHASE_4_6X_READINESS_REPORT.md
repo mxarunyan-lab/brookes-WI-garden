@@ -83,7 +83,7 @@ Rollback rehearsal passed: the source dataset remains unchanged, a failed mock t
 
 - 50 targeted Phase 4.6X structural, shared-workflow, backup, restore, migration, and rollback scenarios passed.
 - The compact critical regression and full shared-model regression passed locally with 193 tests and no failures.
-- The production build passed.
+- The production build passed locally and in the targeted branch validation runner.
 - Backup/Data Health mobile checks passed at 320, 375, 390, and 430 pixels with no horizontal overflow, blank screens, script errors, hidden actions, or restore data loss.
 
 ## Known risks and Phase 5 requirements
