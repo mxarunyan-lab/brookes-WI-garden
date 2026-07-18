@@ -4,6 +4,7 @@ const unique=values=>[...new Set(values.filter(Boolean))];
 const overlap=(a=[],b=[])=>a.some(value=>b.includes(value));
 const cleanSentence=value=>String(value||'').replace(/\s+/g,' ').trim().replace(/\s*\.\s*$/,'');
 
+export function hasUsableWeather(weather){return Boolean(numeric(weather?.temperature)!==null||numeric(weather?.high)!==null||numeric(weather?.low)!==null||(weather?.condition&&!/unavailable/i.test(String(weather.condition))))}
 export function roundWeatherValue(value,{digits=0,suffix=''}={}){const number=numeric(value);if(number===null)return'';return`${Number(number.toFixed(digits))}${suffix}`}
 export function formatRainAmount(value){const number=numeric(value);if(number===null)return'';return`${Number(number.toFixed(number<1?2:1))} in`}
 

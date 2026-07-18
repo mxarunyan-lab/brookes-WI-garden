@@ -1,6 +1,6 @@
 import test from'node:test';
 import assert from'node:assert/strict';
-import{bestWeatherTimestamp,formatRainAmount,groupWeatherImpacts,normalizeForecastDays,roundWeatherValue}from'../src/weatherPresentation.js';
+import{bestWeatherTimestamp,formatRainAmount,groupWeatherImpacts,hasUsableWeather,normalizeForecastDays,roundWeatherValue}from'../src/weatherPresentation.js';
 
 const row=(overrides={})=>({recommendationId:Math.random().toString(36),category:'watering',actionKey:'check-soil',priority:70,title:'Check soil',plainLanguageExplanation:'Recent rain changed watering.',recommendedAction:'Check the root zone before watering.',affectedPlants:['p1'],affectedGrowingSpaces:['s1'],confidence:'Medium',source:'NWS',dataFreshness:'Current',destination:'chores',...overrides});
 
@@ -34,3 +34,5 @@ test('best timestamp uses app refresh only when better timestamps are absent',()
 test('provider failure can still produce an unavailable group',()=>{const groups=groupWeatherImpacts([row({category:'unavailable',actionKey:'manual-weather-check',priority:55,affectedPlants:[],affectedGrowingSpaces:[]})]);assert.equal(groups[0].key,'unavailable')});
 test('more than ten raw recommendations collapse into few categories',()=>{const rows=Array.from({length:12},(_,index)=>row({recommendationId:String(index),category:index%2?'watering':'heat',actionKey:index%2?'check-soil':'check-heat-stress'}));assert.ok(groupWeatherImpacts(rows,3).length<=2)});
 test('weather grouping preserves source and freshness',()=>{const groups=groupWeatherImpacts([row({source:'National Weather Service',dataFreshness:'Current'})]);assert.match(groups[0].source,/National Weather Service/);assert.match(groups[0].freshness,/Current/)});
+
+test('weather impacts wait for a usable reading or forecast summary',()=>{assert.equal(hasUsableWeather(null),false);assert.equal(hasUsableWeather({condition:'Current conditions unavailable'}),false);assert.equal(hasUsableWeather({high:82}),true);assert.equal(hasUsableWeather({temperature:71,condition:'Clear'}),true)});
