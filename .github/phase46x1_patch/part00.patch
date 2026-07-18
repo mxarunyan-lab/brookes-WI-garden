@@ -1,0 +1,72 @@
+diff --git a/package-lock.json b/package-lock.json
+index 6085c67..2c5fb69 100644
+--- a/package-lock.json
++++ b/package-lock.json
+@@ -1,12 +1,12 @@
+ {
+   "name": "brookes-wi-garden",
+-  "version": "0.20.0",
++  "version": "0.20.1",
+   "lockfileVersion": 3,
+   "requires": true,
+   "packages": {
+     "": {
+       "name": "brookes-wi-garden",
+-      "version": "0.20.0",
++      "version": "0.20.1",
+       "dependencies": {
+         "@vitejs/plugin-react": "latest",
+         "jspdf": "latest",
+diff --git a/package.json b/package.json
+index d260a31..aa66377 100644
+--- a/package.json
++++ b/package.json
+@@ -1,7 +1,7 @@
+ {
+   "name": "brookes-wi-garden",
+   "private": true,
+-  "version": "0.20.0",
++  "version": "0.20.1",
+   "type": "module",
+   "scripts": {
+     "dev": "vite",
+diff --git a/public/sw.js b/public/sw.js
+index e2c1486..a2d5c8f 100644
+--- a/public/sw.js
++++ b/public/sw.js
+@@ -1,4 +1,4 @@
+-const CACHE = 'brookes-garden-v46x';
++const CACHE = 'brookes-garden-v46x1';
+ const CORE = ['/', '/manifest.webmanifest', '/icon.svg'];
+ self.addEventListener('install', (event) => { event.waitUntil(caches.open(CACHE).then((cache) => cache.addAll(CORE))); self.skipWaiting(); });
+ self.addEventListener('activate', (event) => { event.waitUntil(caches.keys().then((keys) => Promise.all(keys.filter((key) => key !== CACHE).map((key) => caches.delete(key))))); self.clients.claim(); });
+diff --git a/src/SeedTools.jsx b/src/SeedTools.jsx
+index eb6e2c2..a0e7272 100644
+--- a/src/SeedTools.jsx
++++ b/src/SeedTools.jsx
+@@ -4,7 +4,7 @@ import{SecondaryHero}from'./SecondaryUI.jsx';
+ import{inferCropId}from'./seedToHarvest.js';
+ import{applyPacketExtraction,clearPacketDraft,compressPacketImage,emptyPacketDraft,extractionReview,findLikelyDuplicatePacket,loadPacketDraft,markManualField,PACKET_FIELD_LABELS,packetPayload,readPacketPhoto,rotatePacketImage,savePacketDraft,validatePacketImage}from'./seedPacketIntelligence.js';
+ import{fieldSourceLabel}from'./connectedIntelligence.js';
+-import{applySeedProductCandidate,lookupSeedProducts,resolveSeedConflict,seedLookupIdentity}from'./seedProductLookup.js';
++import{applySeedProductCandidate,clearSeedProductMatch,lookupSeedProducts,resolveSeedConflict,seedLookupIdentity}from'./seedProductLookup.js';
+ 
+ const readPrefill=()=>{try{const raw=sessionStorage.getItem('seed-inventory-prefill');sessionStorage.removeItem('seed-inventory-prefill');return raw?JSON.parse(raw):{}}catch{return{}}};
+ const hasDraftContent=snapshot=>Boolean(snapshot&&(snapshot.frontPhoto||snapshot.backPhoto||Object.entries(snapshot.draft||{}).some(([key,value])=>!['packetYear','reservedQuantity','fieldMeta','packetIntelligence','draftStatus'].includes(key)&&value!==''&&value!==null&&value!==undefined&&(!Array.isArray(value)||value.length))));
+@@ -21,30 +21,38 @@ function PhotoPanel({side,photo,status,progress,error,warnings=[],onSelect,onRot
+  return <article className={`packet-photo-panel ${photo?'has-photo':''}`}><div className="packet-photo-heading"><span><small>{side.toUpperCase()} PHOTO</small><strong>{title}</strong><em>{description}</em></span>{photo&&<span className={`packet-photo-state state-${status?.replace(/\s+/g,'-').toLowerCase()}`}>{status}</span>}</div><label htmlFor={inputId} className="packet-photo-drop">{photo?<img src={photo} alt={`${title} preview`}/>:<><Camera/><strong>Take or choose {side} photo</strong><small>JPEG, PNG, or WebP</small></>}<input id={inputId} type="file" accept="image/jpeg,image/png,image/webp" capture="environment" onChange={event=>{const file=event.target.files?.[0];if(file)onSelect(file);event.target.value=''}}/></label>{status==='Reading packet'&&<div className="packet-processing" role="status" aria-live="polite"><ScanText/><span><strong>Reading packet</strong><small>{Math.round((progress||0)*100)}% · this stops automatically if reading takes too long</small></span></div>}{error&&<p className="packet-photo-error" role="alert"><AlertTriangle/>{error}</p>}{warnings.length>0&&<ul className="packet-photo-warnings">{warnings.map(item=><li key={item}>{item}</li>)}</ul>}{photo&&<div className="packet-photo-actions"><label htmlFor={inputId} className="button-like"><RefreshCw/>Retake</label><button type="button" onClick={onRotate} aria-label={`Rotate ${title} clockwise`}><RotateCw/>Rotate</button><button type="button" onClick={onRead} disabled={status==='Reading packet'}><ScanText/>Read again</button><button type="button" onClick={onRemove} aria-label={`Remove ${title}`}><Trash2/>Remove</button></div>}</article>;
+ }
+ 
+-function ReviewSummary({draft}){
++function ReviewSummary({draft,onChange}){
+  const review=extractionReview(draft),show=review.ready.length||review.check.length||review.missing.length;if(!show)return null;
+- const item=row=><li key={row.key}><strong>{PACKET_FIELD_LABELS[row.key]||row.key}:</strong> {Array.isArray(row.value)?row.value.join(', '):String(row.value??'')}</li>;
+- return <section className="packet-review-summary" aria-live="polite">{review.ready.length>0&&<><div><CheckCircle2/><span><small>READY</small><strong>{review.ready.length} confirmed detail{review.ready.length===1?'':'s'}</strong></span></div><ul>{review.ready.slice(0,5).map(item)}</ul></>}{review.check.length>0&&<details open><summary><AlertTriangle/><span><small>PLEASE CHECK</small><strong>{review.check.length} uncertain detail{review.check.length===1?'':'s'}</strong></span><ChevronDown/></summary><ul>{review.check.map(item)}</ul></details>}{review.missing.length>0&&<details><summary><FileText/><span><small>NOT FOUND</small><strong>{review.missing.length} useful field{review.missing.length===1?'':'s'} left blank</strong></span><ChevronDown/></summary><ul>{review.missing.map(row=><li key={row.key}>{PACKET_FIELD_LABELS[row.key]||row.key}</li>)}</ul></details>}</section>;
++ const identity=[draft.brand,draft.name,draft.variety].filter(Boolean).join(' · '),highlights=[draft.designations?.[0],draft.sunlight,draft.daysToMaturity&&`${draft.daysToMaturity} days to harvest`,draft.depth&&`${draft.depth} planting depth`,draft.thinningSpacing&&`${draft.thinningSpacing} thinning`,draft.germinationEstimate,draft.containerSuitability].filter(Boolean);
++ const attention=[...review.check,...review.missing].filter((row,index,rows)=>rows.findIndex(item=>item.key===row.key)===index);
++ return <section className="packet-review-summary packet-exception-review" aria-live="polite"><div><CheckCircle2/><span><small>{attention.length?'MOSTLY READY':'READY TO SAVE'}</small><strong>{identity||`${review.completedCount} packet details completed`}</strong><em>{review.completedCount} completed · {attention.length} need attention</em></span></div>{highlights.length>0&&<ul className="packet-ready-highlights">{highlights.slice(0,8).map(item=><li key={String(item)}>{String(item)}</li>)}</ul>}{attention.length>0&&<details open><summary><AlertTriangle/><span><small>NEEDS ATTENTION</small><strong>Review {attention.length} item{attention.length===1?'':'s'}</strong></span><ChevronDown/></summary><div className="packet-exception-fields">{attention.slice(0,6).map(row=><PacketField key={row.key} label={PACKET_FIELD_LABELS[row.key]||row.key} name={row.key} draft={draft} onChange={onChange}/>)}</div></details>}</section>;
++}
++
++function OnlineLookupPanel({draft,lookup,onChoose,onRetry,onResolve,onChangeMatch}){
++ const conflicts=(draft.packetIntelligence?.conflicts||[]).filter(row=>row.status!=='resolved'),exact=draft.packetIntelligence?.onlineLookup,primary=lookup.primaryCandidate||lookup.candidates?.[0],others=lookup.otherCandidates||[];
++ if(lookup.status==='idle'&&!exact&&!conflicts.length)return null;
