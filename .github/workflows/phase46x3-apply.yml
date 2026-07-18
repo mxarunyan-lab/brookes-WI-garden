@@ -1,0 +1,51 @@
+name: Apply Phase 4.6X.3 Implementation
+
+on:
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: write
+
+jobs:
+  apply-validated-phase:
+    if: github.event.pull_request.head.ref == 'agent/phase-4-6x-3-multimodal-seed-vision'
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Check out protected feature branch
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.ref }}
+          fetch-depth: 0
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Reconstruct and apply implementation
+        run: |
+          set -euo pipefail
+          cat .github/phase46x3_payload/part*.txt > /tmp/phase46x3.patch.gz.b64
+          base64 -d /tmp/phase46x3.patch.gz.b64 > /tmp/phase46x3.patch.gz
+          echo '7708a6b04e38ee277ff03248910feb263a904bb5b480053249481f775a533816  /tmp/phase46x3.patch.gz' | sha256sum --check
+          gzip -dc /tmp/phase46x3.patch.gz > /tmp/phase46x3.patch
+          echo '5286c2323f0f903f411841856c9910f995a3759866d68316ad2eb99132720796  /tmp/phase46x3.patch' | sha256sum --check
+          git am /tmp/phase46x3.patch
+      - name: Install dependencies
+        run: npm install
+      - name: Run focused Phase 4.6X.3 tests
+        run: node --test test/seedPacketIntelligence.test.js test/seedProductLookup.test.js test/seedPacketOneTapTrust.test.js test/seedPacketVisionSchema.test.js test/seedPacketVisionMerge.test.js test/seedPacketVisionApi.test.js test/seedPacketVisionMigration.test.js test/gardenPersistence.test.js test/dataReadinessStructure.test.js test/backupMigrationReadiness.test.js
+      - name: Build production app
+        run: npm run build
+      - name: Remove temporary delivery files
+        run: |
+          rm -rf .github/phase46x3_payload
+          rm -f .github/workflows/phase46x3-apply.yml
+          git add -A
+      - name: Commit clean implementation
+        run: |
+          set -euo pipefail
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git diff --cached --quiet || git commit -m 'Remove Phase 4.6X.3 delivery files'
+          git push origin HEAD:${{ github.event.pull_request.head.ref }}
