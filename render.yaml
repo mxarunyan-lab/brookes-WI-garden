@@ -1,0 +1,24 @@
+services:
+  - type: web
+    name: brookes-wi-garden
+    runtime: node
+    plan: free
+    buildCommand: npm ci && npm run build
+    startCommand: npm start
+    healthCheckPath: /api/health
+    autoDeploy: true
+    envVars:
+      - key: NODE_VERSION
+        value: 22
+      - key: OPENAI_API_KEY
+        sync: false
+      - key: SEED_PACKET_VISION_MODEL
+        value: gpt-5
+      - key: SEED_PACKET_VISION_MAX_IMAGE_BYTES
+        value: 10485760
+      - key: SEED_PACKET_VISION_REQUEST_LIMIT
+        value: 32mb
+      - key: SEED_PACKET_VISION_UPSTREAM_TIMEOUT_MS
+        value: 90000
+      - key: SEED_PACKET_VISION_MAX_PASSES
+        value: 2

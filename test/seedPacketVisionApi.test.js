@@ -1,0 +1,14 @@
+import test,{after,before}from'node:test';
+import assert from'node:assert/strict';
+import sharp from'sharp';
+process.env.NODE_ENV='test';
+delete process.env.OPENAI_API_KEY;
+const{app}=await import('../server/index.js');
+let server,base,image;
+before(async()=>{server=app.listen(0);await new Promise(resolve=>server.once('listening',resolve));base=`http://127.0.0.1:${server.address().port}`;const buffer=await sharp({create:{width:20,height:20,channels:3,background:'#ffffff'}}).jpeg().toBuffer();image=`data:image/jpeg;base64,${buffer.toString('base64')}`});
+after(()=>server?.close());
+test('health endpoint reports service availability without exposing a secret',async()=>{const response=await fetch(`${base}/api/health`),json=await response.json(),text=JSON.stringify(json);assert.equal(response.status,200);assert.equal(json.apiService,true);assert.equal(json.packetVisionConfigured,false);assert.equal(json.version,'0.20.3');assert.doesNotMatch(text,/OPENAI_API_KEY|sk-/)});
+test('analysis requires both photos',async()=>{const response=await fetch(`${base}/api/seed-packets/analyze`,{method:'POST',headers:{'content-type':'application/json','x-device-id':'api-test-missing'},body:JSON.stringify({frontImage:image})}),json=await response.json();assert.equal(response.status,400);assert.equal(json.error.code,'invalid_image');assert.ok(json.error.requestId)});
+test('unsupported image payload is rejected safely',async()=>{const response=await fetch(`${base}/api/seed-packets/analyze`,{method:'POST',headers:{'content-type':'application/json','x-device-id':'api-test-type'},body:JSON.stringify({frontImage:'data:text/plain;base64,SGVsbG8=',backImage:image})}),json=await response.json();assert.equal(response.status,415);assert.equal(json.error.code,'unsupported_image')});
+test('configured server layer is required before a model call',async()=>{const response=await fetch(`${base}/api/seed-packets/analyze`,{method:'POST',headers:{'content-type':'application/json','x-device-id':'api-test-key'},body:JSON.stringify({frontImage:image,backImage:image,draftContext:{draftId:'api'}})}),json=await response.json();assert.equal(response.status,503);assert.equal(json.error.code,'vision_not_configured');assert.doesNotMatch(JSON.stringify(json),/sk-|OPENAI_API_KEY/)});
+test('oversized image is rejected before analysis',async()=>{const huge=`data:image/jpeg;base64,${Buffer.alloc(10*1024*1024+1).toString('base64')}`,response=await fetch(`${base}/api/seed-packets/analyze`,{method:'POST',headers:{'content-type':'application/json','x-device-id':'api-test-large'},body:JSON.stringify({frontImage:huge,backImage:image})}),json=await response.json();assert.equal(response.status,413);assert.equal(json.error.code,'image_too_large')});
