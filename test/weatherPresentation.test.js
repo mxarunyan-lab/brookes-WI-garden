@@ -36,3 +36,5 @@ test('more than ten raw recommendations collapse into few categories',()=>{const
 test('weather grouping preserves source and freshness',()=>{const groups=groupWeatherImpacts([row({source:'National Weather Service',dataFreshness:'Current'})]);assert.match(groups[0].source,/National Weather Service/);assert.match(groups[0].freshness,/Current/)});
 
 test('weather impacts wait for a usable reading or forecast summary',()=>{assert.equal(hasUsableWeather(null),false);assert.equal(hasUsableWeather({condition:'Current conditions unavailable'}),false);assert.equal(hasUsableWeather({high:82}),true);assert.equal(hasUsableWeather({temperature:71,condition:'Clear'}),true)});
+
+test('explicit null weather values remain unavailable instead of becoming zero',()=>{assert.equal(roundWeatherValue(null,{suffix:'°'}),'');assert.equal(hasUsableWeather({temperature:null,high:null,low:null,condition:'Current conditions unavailable'}),false);const day=normalizeForecastDays([{forecast_for:'2026-07-18T12:00:00Z',maximum_temperature:null,minimum_temperature:null,temperature:null}])[0];assert.equal(day.temperatureLabel,'Temperature details unavailable')});

@@ -1,4 +1,4 @@
-const numeric=value=>Number.isFinite(Number(value))?Number(value):null;
+const numeric=value=>value===null||value===undefined||value===''?null:Number.isFinite(Number(value))?Number(value):null;
 const asDate=value=>{const date=new Date(value);return Number.isNaN(date.getTime())?null:date};
 const unique=values=>[...new Set(values.filter(Boolean))];
 const overlap=(a=[],b=[])=>a.some(value=>b.includes(value));
