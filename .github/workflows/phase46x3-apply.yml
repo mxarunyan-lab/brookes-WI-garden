@@ -1,0 +1,51 @@
+name: Apply Phase 4.6X.3
+
+on:
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: write
+
+jobs:
+  apply:
+    if: github.event.pull_request.head.ref == 'agent/phase-4-6x-3-multimodal-vision'
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.ref }}
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Apply multimodal vision rebuild
+        run: |
+          set -euo pipefail
+          cat .github/phase46x3_patch/part*.txt > /tmp/phase46x3.patch
+          echo '6556eb4378cd1ead4b1eb9ea8684567be14ca7377e1b08ea3cdd7c68fff00799  /tmp/phase46x3.patch' | sha256sum --check
+          patch -p1 < /tmp/phase46x3.patch
+      - run: npm install
+      - name: Run focused backend and packet tests
+        run: node --test test/seedPacketVision.test.js test/seedPacketIntelligence.test.js test/seedProductLookup.test.js test/gardenPersistence.test.js
+      - name: Build production app
+        run: npm run build
+      - name: Verify backend health without secret
+        run: |
+          npm start > /tmp/server.log 2>&1 &
+          server_pid=$!
+          trap 'kill $server_pid || true' EXIT
+          for i in $(seq 1 20); do curl -fsS http://127.0.0.1:3000/api/health > /tmp/health.json && break; sleep 1; done
+          node -e "const x=require('/tmp/health.json'); if(!x.ok || x.packetVisionConfigured!==false || x.version!=='0.20.3') process.exit(1)"
+          code=$(curl -sS -o /tmp/missing.json -w '%{http_code}' -H 'Content-Type: application/json' -d '{}' http://127.0.0.1:3000/api/seed-packets/analyze)
+          test "$code" = '400'
+      - name: Commit clean implementation
+        run: |
+          rm -rf .github/phase46x3_patch
+          rm -f .github/workflows/phase46x3-export.yml .github/workflows/phase46x3-apply.yml .github/phase46x3-placeholder.txt
+          git add -A
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git commit -m 'Implement Phase 4.6X.3 secure multimodal packet vision architecture'
+          git push origin HEAD:${{ github.event.pull_request.head.ref }}
