@@ -4,6 +4,10 @@ on:
   pull_request:
     branches: [main]
 
+concurrency:
+  group: phase46x3-mobile
+  cancel-in-progress: true
+
 permissions:
   contents: read
 
@@ -35,9 +39,10 @@ jobs:
           let failed=false;
           for(const width of [320,375,390,430]){
             const page=await browser.newPage({viewport:{width,height:900}}),errors=[];
+            page.setDefaultTimeout(8000);
             page.on('pageerror',error=>errors.push(String(error)));
             try{
-              await page.goto('http://127.0.0.1:3000/',{waitUntil:'networkidle'});
+              await page.goto('http://127.0.0.1:3000/',{waitUntil:'domcontentloaded'});
               await page.locator('button[aria-label="Center"]').click();
               await page.locator('button[aria-label^="Seed Department."]').click();
               await page.waitForSelector('.seed-tools-screen');
@@ -70,7 +75,7 @@ jobs:
               if(assertionFailures.length)failed=true;
               reports.push({width,errors,result,assertionFailures});
             }catch(error){failed=true;reports.push({width,errors,error:String(error)});}
-            await page.screenshot({path:`/tmp/phase46x3-mobile/${width}.png`,fullPage:true});
+            await page.screenshot({path:`/tmp/phase46x3-mobile/${width}.png`,fullPage:false});
             await page.close();
           }
           await browser.close();
