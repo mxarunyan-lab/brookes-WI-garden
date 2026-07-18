@@ -3,10 +3,10 @@ name: Validate Garden App
 on:
   push:
     branches: [main]
+  pull_request:
 
 permissions:
   contents: read
-  statuses: write
 
 jobs:
   test-and-build:
@@ -56,62 +56,3 @@ jobs:
       - name: Fail when production build failed
         if: steps.production_build.outcome == 'failure'
         run: exit 1
-
-  verify-render:
-    runs-on: ubuntu-latest
-    timeout-minutes: 15
-    env:
-      GH_TOKEN: ${{ github.token }}
-      REPO: ${{ github.repository }}
-      SHA: ${{ github.sha }}
-    steps:
-      - name: Poll deployed Phase 4.5 build and publish status
-        run: |
-          set -euo pipefail
-          url='https://brookes-wi-garden.onrender.com/'
-          status_api="https://api.github.com/repos/${REPO}/statuses/${SHA}"
-          publish_status() {
-            local state="$1" description="$2"
-            curl -sS -X POST \
-              -H "Authorization: Bearer ${GH_TOKEN}" \
-              -H 'Accept: application/vnd.github+json' \
-              -H 'X-GitHub-Api-Version: 2022-11-28' \
-              "$status_api" \
-              -d "{\"state\":\"${state}\",\"context\":\"render/phase-4-5\",\"description\":\"${description}\"}" >/dev/null
-          }
-          publish_status pending 'Waiting for Render v0.18.0'
-          : > live-verification.log
-          for attempt in $(seq 1 48); do
-            echo "Attempt ${attempt}: $(date -u +'%Y-%m-%dT%H:%M:%SZ')" | tee -a live-verification.log
-            http_status=$(curl -L -sS -o live-index.html -w '%{http_code}' --max-time 45 "$url" || true)
-            echo "HTTP ${http_status}" | tee -a live-verification.log
-            if [ "$http_status" = '200' ]; then
-              asset=$(grep -oE 'src="[^"]+\.js"' live-index.html | head -n1 | cut -d'"' -f2 || true)
-              echo "Asset ${asset:-not-found}" | tee -a live-verification.log
-              if [ -n "$asset" ]; then
-                case "$asset" in
-                  http*) asset_url="$asset" ;;
-                  /*) asset_url="${url%/}${asset}" ;;
-                  *) asset_url="${url}${asset}" ;;
-                esac
-                curl -L -sS --max-time 90 "$asset_url" -o live-app.js || true
-                if grep -q 'phase-4-5-stabilization' live-app.js && grep -q '0.18.0' live-app.js; then
-                  echo 'VERIFIED build_id=phase-4-5-stabilization version=0.18.0' | tee -a live-verification.log
-                  publish_status success 'Render serves Phase 4.5 v0.18.0'
-                  exit 0
-                fi
-                echo 'Production bundle is reachable but does not yet contain v0.18.0.' | tee -a live-verification.log
-              fi
-            fi
-            sleep 15
-          done
-          echo 'FAILED: Render did not expose the Phase 4.5 production bundle within the polling window.' | tee -a live-verification.log
-          publish_status failure 'Render v0.18.0 not verified'
-          exit 1
-      - name: Upload live verification log
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: phase-4-5-live-verification
-          path: live-verification.log
-          retention-days: 2
