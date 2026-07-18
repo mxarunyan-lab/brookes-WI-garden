@@ -24,35 +24,64 @@ jobs:
       - run: npm run build
       - name: Check rebuilt Seed Department at mobile widths
         run: |
-          PORT=3000 npm start > /tmp/phase46x3-server.log 2>&1 &
+          mkdir -p /tmp/phase46x3-mobile
+          PORT=3000 npm start > /tmp/phase46x3-mobile/server.log 2>&1 &
           for attempt in $(seq 1 30); do curl -fsS http://127.0.0.1:3000/api/health >/dev/null && break; sleep 1; done
           cat > /tmp/phase46x3-mobile.mjs <<'EOF'
           import{chromium}from'playwright';
+          import{writeFile}from'node:fs/promises';
           const browser=await chromium.launch({headless:true});
+          const reports=[];
+          let failed=false;
           for(const width of [320,375,390,430]){
             const page=await browser.newPage({viewport:{width,height:900}}),errors=[];
             page.on('pageerror',error=>errors.push(String(error)));
-            await page.goto('http://127.0.0.1:3000/',{waitUntil:'networkidle'});
-            await page.getByRole('button',{name:'Center',exact:true}).click();
-            await page.getByText('Seed Department',{exact:true}).first().click();
-            await page.waitForSelector('.seed-tools-screen');
-            const result=await page.evaluate(()=>{
-              const analyze=[...document.querySelectorAll('button')].find(button=>/^Analyze packet$/i.test((button.textContent||'').trim()));
-              const save=[...document.querySelectorAll('button')].find(button=>/^Save packet$/i.test((button.textContent||'').trim()));
-              const forbidden=['Photos do the first pass','The front usually identifies','Reserved seeds','stops automatically','reading took too long'];
-              const body=document.body.innerText;
-              return{
-                overflow:document.documentElement.scrollWidth>document.documentElement.clientWidth,
-                photos:document.querySelectorAll('.vision-photo-panel').length,
-                analyzeHeight:analyze?.getBoundingClientRect().height||0,
-                saveHeight:save?.getBoundingClientRect().height||0,
-                detailsOpen:[...document.querySelectorAll('details.packet-all-details')].some(details=>details.open),
-                forbidden:forbidden.filter(text=>body.includes(text))
-              };
-            });
-            if(errors.length||result.overflow||result.photos!==2||result.analyzeHeight<42||result.saveHeight<42||result.detailsOpen||result.forbidden.length)throw new Error(JSON.stringify({width,errors,result}));
+            try{
+              await page.goto('http://127.0.0.1:3000/',{waitUntil:'networkidle'});
+              await page.locator('button[aria-label="Center"]').click();
+              await page.locator('button[aria-label^="Seed Department."]').click();
+              await page.waitForSelector('.seed-tools-screen');
+              const result=await page.evaluate(()=>{
+                const analyze=document.querySelector('.packet-analyze-button');
+                const save=[...document.querySelectorAll('button')].find(button=>/^Save packet$/i.test((button.textContent||'').trim()));
+                const forbidden=['Photos do the first pass','The front usually identifies','Reserved seeds','stops automatically','reading took too long'];
+                const body=document.body.innerText;
+                return{
+                  overflow:document.documentElement.scrollWidth>document.documentElement.clientWidth,
+                  scrollWidth:document.documentElement.scrollWidth,
+                  clientWidth:document.documentElement.clientWidth,
+                  photos:document.querySelectorAll('.vision-photo-panel').length,
+                  analyzeText:(analyze?.textContent||'').trim(),
+                  analyzeHeight:analyze?.getBoundingClientRect().height||0,
+                  saveText:(save?.textContent||'').trim(),
+                  saveHeight:save?.getBoundingClientRect().height||0,
+                  detailsOpen:[...document.querySelectorAll('details.packet-all-details')].some(details=>details.open),
+                  forbidden:forbidden.filter(text=>body.includes(text))
+                };
+              });
+              const assertionFailures=[];
+              if(errors.length)assertionFailures.push('page errors');
+              if(result.overflow)assertionFailures.push('horizontal overflow');
+              if(result.photos!==2)assertionFailures.push('photo panel count');
+              if(result.analyzeHeight<42)assertionFailures.push('analyze control height');
+              if(result.saveHeight<42)assertionFailures.push('save control height');
+              if(result.detailsOpen)assertionFailures.push('full details opened');
+              if(result.forbidden.length)assertionFailures.push('forbidden copy');
+              if(assertionFailures.length)failed=true;
+              reports.push({width,errors,result,assertionFailures});
+            }catch(error){failed=true;reports.push({width,errors,error:String(error)});}
+            await page.screenshot({path:`/tmp/phase46x3-mobile/${width}.png`,fullPage:true});
             await page.close();
           }
           await browser.close();
+          await writeFile('/tmp/phase46x3-mobile/results.json',JSON.stringify(reports,null,2));
+          if(failed)process.exit(1);
           EOF
           node /tmp/phase46x3-mobile.mjs
+      - name: Upload mobile diagnostics
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: phase-4-6x-3-mobile-diagnostics
+          path: /tmp/phase46x3-mobile
+          retention-days: 2
