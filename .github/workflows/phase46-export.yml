@@ -15,10 +15,10 @@ jobs:
       - name: Check out feature branch
         uses: actions/checkout@v4
       - name: Package repository source
-        run: tar --exclude=.git --exclude=repo-source.tar.gz -czf repo-source.tar.gz .
+        run: tar --exclude=.git -czf /tmp/repo-source.tar.gz .
       - name: Upload source snapshot
         uses: actions/upload-artifact@v4
         with:
           name: phase-4-6-source-snapshot
-          path: repo-source.tar.gz
+          path: /tmp/repo-source.tar.gz
           retention-days: 2
