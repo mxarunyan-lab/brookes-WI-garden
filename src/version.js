@@ -1,11 +1,14 @@
-export const APP_VERSION='0.20.2';
-export const BUILD_ID='phase-4-6x-2-one-tap-trust';
+export const APP_VERSION='0.20.3';
+export const BUILD_ID='phase-4-6x-3-multimodal-seed-vision';
 export const UPDATED_AT='July 18, 2026';
 export const WHATS_NEW=[
- 'Approving an exact seed packet now applies the trusted official details to the whole packet record in one step',
- 'Malformed and low-confidence scanner values are replaced automatically instead of becoming fake conflicts',
- 'Only genuine disagreements between clear packet text and approved official data require review',
- 'The front-photo status now updates when the exact packet is identified through the overall workflow',
- 'Optional packet details no longer block saving, and the full manual form remains collapsed unless needed',
- 'Seed packet entry is shorter and more trustworthy while recognition remains best-effort'
+ 'Seed packets are now analyzed using the front and back photographs together through a secure server-side vision service',
+ 'Packet identity and planting instructions use visual layout and context instead of basic local OCR alone',
+ 'Barcode, packet weight, lot information, and packet dates receive dedicated validation and remain honestly unverified when unreadable',
+ 'Weight-only packets can be saved without inventing an exact seed count',
+ 'Reserved seeds were removed from initial packet entry and remain available only in planning and inventory workflows',
+ 'Succession instructions can offer one connected Chore Board reminder after a planting is created',
+ 'Exact official sources can verify and supplement packet information through an extensible server-side research service',
+ 'Only genuine missing or trustworthy-source conflicts require review',
+ 'Recognition remains best-effort; not every barcode or exact product can be verified online'
 ];

@@ -32,7 +32,7 @@ test('low confidence fields appear in the review group',()=>{const draft=applyPa
 test('not-found essential fields remain visibly missing',()=>{const review=extractionReview(emptyPacketDraft({name:'Basil'}));assert.ok(review.missing.some(row=>row.key==='packetYear'))});
 test('saved payload preserves front and back images plus legacy preview',()=>{const payload=packetPayload(emptyPacketDraft({name:'Basil'}),{frontPhoto:'front-data',backPhoto:'back-data'});assert.equal(payload.photo,'front-data');assert.equal(payload.frontPhoto,'front-data');assert.equal(payload.backPhoto,'back-data')});
 test('saved payload does not invent seed count from weight',()=>{const payload=packetPayload(emptyPacketDraft({name:'Dill',packetWeight:'2 g',countType:'weight-only'}),{});assert.equal(payload.quantity,0);assert.equal(payload.packetWeight,'2 g');assert.equal(payload.countType,'weight-only')});
-test('reserved quantity remains packet-specific',()=>{const payload=packetPayload(emptyPacketDraft({name:'Pea',quantity:50,reservedQuantity:12}),{});assert.equal(payload.quantity,50);assert.equal(payload.reservedQuantity,12)});
+test('new packet capture starts with zero reserved seeds',()=>{const payload=packetPayload(emptyPacketDraft({name:'Pea',quantity:50,reservedQuantity:12}),{});assert.equal(payload.quantity,50);assert.equal(payload.reservedQuantity,0)});
 test('extraction provenance records source photo and date',()=>{const result=parsePacketText(front,{side:'front'});assert.equal(result.fields.name.sourcePhoto,'front');assert.ok(result.fields.name.extractedAt)});
 test('packet parser preserves original OCR wording',()=>{const result=parsePacketText(back,{side:'back'});assert.match(result.fields.seedStartingGuidance.originalText,/Start indoors/i)});
 
