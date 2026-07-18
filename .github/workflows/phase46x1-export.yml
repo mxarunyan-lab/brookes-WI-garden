@@ -1,14 +1,15 @@
 name: Phase 4.6X.1 Source Export
 
 on:
-  push:
-    branches: [agent/phase-4-6x-1-seed-trust-speed]
+  pull_request:
+    branches: [main]
 
 permissions:
   contents: read
 
 jobs:
   export-source:
+    if: github.event.pull_request.head.ref == 'agent/phase-4-6x-1-seed-trust-speed'
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
