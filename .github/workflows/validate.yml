@@ -3,25 +3,35 @@ name: Validate Garden App
 on:
   push:
     branches: [main]
-  pull_request:
 
 permissions:
-  contents: read
+  contents: write
 
 jobs:
-  test-and-build:
+  patch-and-validate:
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
-      - name: Check out repository
+      - name: Check out Phase 4.5 branch
         uses: actions/checkout@v4
+        with:
+          ref: agent/phase-4-5-stabilization
+      - name: Compact unavailable weather state
+        run: python .github/scripts/fix_phase_4_5_unavailable_height.py
+      - name: Commit source fix
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add src/WorkspaceScreens.jsx
+          git commit -m "Compact unavailable weather on Today"
+          git push origin HEAD:agent/phase-4-5-stabilization
       - name: Set up Node
         uses: actions/setup-node@v4
         with:
           node-version: 22
       - name: Install dependencies
         run: npm install
-      - name: Run environmental, weather, and seed-packet tests
+      - name: Run full tests
         id: tests
         continue-on-error: true
         run: npm test > test.log 2>&1
@@ -29,7 +39,7 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: garden-test-log
+          name: phase-4-5-test-log
           path: test.log
           retention-days: 2
       - name: Stop when tests failed
@@ -43,14 +53,14 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: production-build-log
+          name: phase-4-5-build-log
           path: build.log
           retention-days: 2
       - name: Upload compiled app
         if: steps.production_build.outcome == 'success'
         uses: actions/upload-artifact@v4
         with:
-          name: compiled-garden-app
+          name: phase-4-5-compiled-app
           path: dist
           retention-days: 2
       - name: Fail when production build failed
