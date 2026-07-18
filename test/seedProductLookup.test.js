@@ -21,15 +21,16 @@ test('loose Burpee lettuce identity does not silently choose an exact variety',(
  assert.equal(ranked.some(({match})=>match.exact),false);
 });
 
-test('multiple lettuce candidates remain visible when identity is incomplete',async()=>{
+test('low-confidence generic lettuce lookup does not present weak varieties as likely matches',async()=>{
  const result=await lookupSeedProducts({brand:'Burpee',crop:'Lettuce'},{verifyOnline:false,ignoreCache:true});
- assert.ok(result.candidates.length>=2);
+ assert.equal(result.candidates.length,0);
+ assert.equal(result.primaryCandidate,null);
  assert.equal(result.exactCandidate,null);
 });
 
 test('official exact match fills packet and growing fields with source labels',()=>{
  const next=applySeedProductCandidate({name:'Lettuce',variety:'Iceberg A',fieldMeta:{}},{...iceberg,match:{exact:true,score:120}});
- assert.equal(next.daysToMaturity,85);
+ assert.equal(next.daysToMaturity,65);
  assert.equal(next.depth,'1/4 inch');
  assert.equal(next.germinationEstimate,'7–10 days');
  assert.equal(next.fieldMeta.depth.sourceDetail,'official-guide');

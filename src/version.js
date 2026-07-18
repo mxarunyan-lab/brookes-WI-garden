@@ -1,15 +1,13 @@
-export const APP_VERSION='0.20.0';
-export const BUILD_ID='phase-4-6x-pre-sync-readiness';
+export const APP_VERSION='0.20.1';
+export const BUILD_ID='phase-4-6x-1-seed-trust-speed';
 export const UPDATED_AT='July 18, 2026';
 export const WHATS_NEW=[
- 'Garden backups are now validated before download and again before restore, including record counts, linked records, integrity checks, and embedded photo references',
- 'A Data Health summary under Backup and Restore now checks stable IDs, relationships, timestamps, duplicate risks, and safe recovery readiness without exposing technical logs by default',
- 'Legacy seed records now consolidate into one Seed Inventory while preserving packet history, quantities, source details, photos, and existing links',
- 'Watering and soil checks now retain attributable event records so Today, Smart Watering, the Chore Board, and garden history can share one source of truth',
- 'Plants, Growing Spaces, seed packets, Vacation plans, tasks, shopping items, photos, QR labels, calculator results, and lifecycle events receive stronger stable IDs and relationship metadata',
- 'Repeated task completions, watering saves, packet quantity changes, seed use, reservations, harvests, issues, Vacation actions, and calculator handoffs are better protected from duplicate processing',
- 'Plant and Growing Space renames continue using stable IDs, so linked Plant Journeys, photos, tasks, harvests, issues, seed use, and QR destinations stay connected',
- 'Vacation plans, task completion, watering history, seed quantities, shopping items, photos, and Plant Journeys now have record-specific future conflict rules instead of one generic overwrite rule',
- 'A safe local restore and migration rehearsal can verify retry and rollback behavior using a copy of the garden without connecting to cloud sync or replacing active records',
- 'Phase 5 cloud syncing, authentication, invitations, and production data migration have not started'
+ 'Clear seed packets are now read more reliably through adaptive packet-area reading and a dedicated barcode path',
+ 'Malformed scanner fragments are filtered out before they can enter packet identity or growing fields',
+ 'One exact official product selection now fills all available packet and growing details while preserving clear packet wording and manual corrections',
+ 'A clearly stronger product match is shown first while weaker possibilities stay tucked under Other possible matches',
+ 'Seed packet review now focuses on real missing values and source conflicts; the full manual form is optional',
+ 'Verified exact-product details are cached locally for faster repeat scans and can be refreshed when needed',
+ 'The Burpee Iceberg A packet now has a permanent regression fixture covering identity, growing details, source merging, photos, save, and reopen behavior',
+ 'Recognition remains best-effort and exact online matches are not available for every packet'
 ];

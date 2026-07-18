@@ -8,8 +8,13 @@ const uniq=values=>[...new Set(values.filter(Boolean))];
 const PREFILL_MANUAL_FIELDS=new Set(['name','variety','brand','notes','sourceShoppingItemId']);
 const lineList=text=>asText(text).split(/\r?\n/).map(line=>line.replace(/\s+/g,' ').trim()).filter(Boolean);
 const confidence=(score)=>score>=.86?'High':score>=.58?'Medium':'Low';
-const IDENTITY_STOPWORDS=new Set(['vegetable','vegetables','herb','herbs','flower','flowers','fruit','fruits','heirloom','hybrid','organic','annual','biennial','perennial','full sun','part sun','shade','seeds','seed','non gmo','untreated','easy to grow']);
-const plausibleIdentity=value=>{const text=normalized(value);return Boolean(text&&text.length>=2&&text.length<=60&&!IDENTITY_STOPWORDS.has(text)&&!/^\d+$/.test(text)&&!/(net wt|packed for|lot no|days to|planting depth|spacing|germination|www\.)/.test(text))};
+const IDENTITY_STOPWORDS=new Set(['vegetable','vegetables','herb','herbs','flower','flowers','fruit','fruits','heirloom','hybrid','organic','annual','biennial','perennial','full sun','part sun','shade','seeds','seed','non gmo','untreated','easy to grow','to harvest','outdoor sown','depth','spacing']);
+const MALFORMED_FRAGMENTS=new Set(['om','rr','rn','m','a8e','s s','to harvest','outdoor sown']);
+const hasOcrArtifacts=value=>/[©®�]|(?:^|\s)[a-z]?\d[a-z](?:\s|$)|[^a-z0-9.,:/()'’"%+°·–—-]{2,}/i.test(asText(value));
+const plausibleIdentity=value=>{const text=normalized(value),words=text.split(' ').filter(Boolean);return Boolean(text&&text.length>=3&&text.length<=60&&words.some(word=>word.length>=3)&&!IDENTITY_STOPWORDS.has(text)&&!MALFORMED_FRAGMENTS.has(text)&&!MALFORMED_FRAGMENTS.has(words[0])&&!/^[0-9]+$/.test(text)&&!hasOcrArtifacts(value)&&!/(net wt|packed for|lot no|days to|planting depth|spacing|germination|www\.|sow in|keep evenly)/.test(text))};
+const sentenceLooksComplete=value=>{const text=asText(value),norm=normalized(text);if(!text||text.length<12||text.length>280||hasOcrArtifacts(text)||MALFORMED_FRAGMENTS.has(norm))return false;const words=norm.split(' ').filter(Boolean);return words.length>=3&&words.filter(word=>word.length>=3).length>=2};
+const guidanceValidators={directSowGuidance:value=>sentenceLooksComplete(value)&&/(sow|plant)/i.test(value),seedStartingGuidance:value=>sentenceLooksComplete(value)&&/(start|sow)/i.test(value),transplantGuidance:value=>sentenceLooksComplete(value)&&/transplant/i.test(value),seasonalWindow:value=>sentenceLooksComplete(value)&&/(spring|summer|fall|autumn|frost|soil)/i.test(value),waterGuidance:value=>sentenceLooksComplete(value)&&/(water|moist)/i.test(value),soilGuidance:value=>sentenceLooksComplete(value)&&/(soil|drain|organic|fertile)/i.test(value),successionGuidance:value=>sentenceLooksComplete(value)&&/(succession|every|repeat)/i.test(value),harvestGuidance:value=>sentenceLooksComplete(value)&&/(harvest|pick|head|fruit|leaf)/i.test(value),containerSuitability:value=>sentenceLooksComplete(value)&&/(container|pot|patio)/i.test(value),regionalGuidance:value=>(sentenceLooksComplete(value)||/zone\s*\d/i.test(value))&&/(zone|north|south|climate|region|map)/i.test(value)};
+export function isTrustedPacketValue(key,value,meta={}){if(value===undefined||value===null||value==='')return false;if(['name','variety','productName'].includes(key))return plausibleIdentity(value)&&!/^(?:om|rr|rn)\b/i.test(asText(value));if(key==='brand')return BRAND_PATTERNS.some(([label])=>normalized(label)===normalized(value))||plausibleIdentity(value);if(guidanceValidators[key])return guidanceValidators[key](value);if(['depth','spacing','thinningSpacing','rowSpacing','plantHeight','plantSpread'].includes(key))return /^((?:\d+\s+)?\d+\/\d+|\d+(?:\.\d+)?)\s+(?:inch(?:es)?|in\.?|cm|feet|foot|ft\.?)$/i.test(asText(value));if(key==='daysToMaturity')return Number(value)>=20&&Number(value)<=365;if(key==='packetYear')return Number(value)>=2000&&Number(value)<=currentYear()+3;if(key==='germinationEstimate')return /^\d{1,3}\s*[–-]\s*\d{1,3}\s+days$/i.test(asText(value));if(meta.confidence==='Low'&&typeof value==='string'&&value.length<5)return false;return !hasOcrArtifacts(value)};
 const validBarcode=value=>{const digits=String(value||'').replace(/\D/g,'');if(![8,12,13,14].includes(digits.length))return false;let sum=0,parity=digits.length%2;for(let i=0;i<digits.length-1;i++)sum+=Number(digits[i])*(i%2===parity?3:1);return(10-sum%10)%10===Number(digits.at(-1))};
 const field=(value,{score=.75,sourcePhoto='front',originalText='',inferred=false}={})=>({value,confidence:confidence(score),sourcePhoto,originalText:originalText||asText(value),inferred:Boolean(inferred),extractedAt:new Date().toISOString(),correctedAt:null,manuallyCorrected:false,source:inferred?'inferred':'packet'});
 const found=(text,regex,index=1)=>asText(text.match(regex)?.[index]);
@@ -48,7 +53,7 @@ function detectIdentity(text,side){
  const designations=uniq([/\borganic\b/i.test(text)&&'Organic',/\bheirloom\b/i.test(text)&&'Heirloom',/\bhybrid\b|\bf1\b/i.test(text)&&'Hybrid',/\bannual\b/i.test(text)&&'Annual',/\bbiennial\b/i.test(text)&&'Biennial',/\bperennial\b/i.test(text)&&'Perennial',/\bnon[- ]?gmo\b/i.test(text)&&'Non-GMO',/\buntreated\b/i.test(text)&&'Untreated']);if(designations.length)fields.designations=field(designations,{score:.9,sourcePhoto:side,originalText:designations.join(', ')});
  const claims=uniq([/pollinator/i.test(text)&&'Pollinator friendly',/container|patio/i.test(text)&&'Container suitable',/disease resistant/i.test(text)&&'Disease resistant',/open pollinated/i.test(text)&&'Open pollinated',/easy to grow/i.test(text)&&'Easy to grow']);if(claims.length)fields.notableClaims=field(claims.join(' · '),{score:.78,sourcePhoto:side,originalText:claims.join(', ')});
  if(/\bmix\b/i.test(text)){const mixLine=lineContaining(lines,/\bmix\b/i);fields.colorDescription=field(mixLine,{score:.68,sourcePhoto:side,originalText:mixLine})}
- if(crop){const cropLineIndex=lines.findIndex(line=>crop[1].test(line)),nearby=lines.slice(Math.max(0,cropLineIndex-3),cropLineIndex+4),sameLine=lines[cropLineIndex]?.replace(crop[1],'').replace(/\bseeds?\b/ig,'').trim(),candidate=[sameLine,...nearby].find(line=>plausibleIdentity(line)&&!brand?.[1]?.test(line)&&!crop[1].test(line));if(candidate)fields.variety=field(candidate.replace(/^[^a-z0-9]+|[^a-z0-9]+$/gi,''),{score:.72,sourcePhoto:side,originalText:candidate})}
+ if(crop){const cropLineIndex=lines.findIndex(line=>crop[1].test(line)),nearby=lines.slice(Math.max(0,cropLineIndex-3),cropLineIndex+4),sameLine=lines[cropLineIndex]?.replace(crop[1],'').replace(/\bseeds?\b/ig,'').trim(),candidate=[sameLine,...nearby].map(line=>line.replace(/^[^a-z0-9]+|[^a-z0-9]+$/gi,'')).find(line=>plausibleIdentity(line)&&!brand?.[1]?.test(line)&&!crop[1].test(line)&&!IDENTITY_STOPWORDS.has(normalized(line)));if(candidate)fields.variety=field(candidate,{score:.8,sourcePhoto:side,originalText:candidate})}
  if(crop){const product=[fields.variety?.value,crop[0],'Seeds'].filter(Boolean).join(' ');fields.productName=field(product,{score:fields.variety?.value?.7:.58,sourcePhoto:side,originalText:[fields.variety?.originalText,lineContaining(lines,crop[1])].filter(Boolean).join(' · '),inferred:true})}
  return fields;
 }
@@ -78,7 +83,7 @@ function detectGrowingDetails(text,side){
  const harvest=sentenceContaining(text,/harvest|pick when|ready when/i);if(harvest)fields.harvestGuidance=field(harvest,{score:.74,sourcePhoto:side,originalText:harvest});
  const support=sentenceContaining(text,/trellis|stake|support|cage/i);if(support)fields.supportNeeds=field(support,{score:.78,sourcePhoto:side,originalText:support});
  const container=sentenceContaining(text,/container|pot|patio/i);if(container)fields.containerSuitability=field(container,{score:.72,sourcePhoto:side,originalText:container});
- const regional=sentenceContaining(text,/zone\s*\d|regional|map|north|south|climate/i);if(regional)fields.regionalGuidance=field(regional,{score:.55,sourcePhoto:side,originalText:regional});
+ const regional=lineContaining(lines,/zone\s*\d|regional|map|north|south|climate/i);if(regional)fields.regionalGuidance=field(regional,{score:.55,sourcePhoto:side,originalText:regional});
  const warning=sentenceContaining(text,/warning|caution|do not eat|poison|toxic/i);if(warning)fields.packetWarnings=field(warning,{score:.82,sourcePhoto:side,originalText:warning});
  const treatment=sentenceContaining(text,/treated|fungicide|inoculated|coated/i);if(treatment)fields.treatmentInformation=field(treatment,{score:.76,sourcePhoto:side,originalText:treatment});
  const saving=sentenceContaining(text,/do not save seed|seed saving|hybrid seed|patent|propagation prohibited/i);if(saving)fields.seedSavingRestrictions=field(saving,{score:.74,sourcePhoto:side,originalText:saving});
@@ -87,28 +92,30 @@ function detectGrowingDetails(text,side){
 }
 
 export function parsePacketText(text,{side='front'}={}){
- const rawText=asText(text),identity=detectIdentity(rawText,side),growing=detectGrowingDetails(rawText,side),fields=side==='front'?{...growing,...identity}:{...identity,...growing};
- return{side,rawText,fields,fieldCount:Object.keys(fields).length,extractedAt:new Date().toISOString(),status:Object.keys(fields).length?'read':'unreadable'};
+ const rawText=asText(text),identity=detectIdentity(rawText,side),growing=detectGrowingDetails(rawText,side),detected=side==='front'?{...growing,...identity}:{...identity,...growing},fields={},rejected=[];
+ for(const [key,meta] of Object.entries(detected)){if(isTrustedPacketValue(key,meta.value,meta))fields[key]=meta;else rejected.push({key,value:meta.value,reason:'failed field quality gate'})}
+ const identityCount=['brand','name','variety'].filter(key=>fields[key]).length,hasExactIdentity=Boolean(fields.name&&(fields.variety||fields.barcode)&&fields.brand);
+ return{side,rawText,fields,rejected,fieldCount:Object.keys(fields).length,identityCount,quality:hasExactIdentity?'identity':identityCount?'partial':'none',extractedAt:new Date().toISOString(),status:Object.keys(fields).length?'read':'unreadable'};
 }
 
 export function applyPacketExtraction(draft,extraction){
  const next={...draft,fieldMeta:{...(draft.fieldMeta||{})},packetIntelligence:{front:null,back:null,...(draft.packetIntelligence||{}),[extraction.side]:extraction}};
  for(const [key,meta] of Object.entries(extraction.fields||{})){
-  if(['name','variety','productName'].includes(key)&&!plausibleIdentity(meta.value))continue;
+  if(!isTrustedPacketValue(key,meta.value,meta))continue;
   const existingMeta=next.fieldMeta[key],existing=next[key];
   if(existingMeta?.source==='manual'||existingMeta?.manuallyCorrected)continue;
   if(existing!==''&&existing!==null&&existing!==undefined&&!(Array.isArray(existing)&&!existing.length)&&!existingMeta)continue;
   next[key]=meta.value;next.fieldMeta[key]=meta;
  }
- next.draftStatus=Object.values(extraction.fields||{}).some(meta=>meta.confidence==='Low')?'Some details need review':'Ready to review';
+ next.draftStatus=extraction.quality==='identity'?'Packet identity found':extraction.quality==='partial'?'Partial packet identity found':Object.values(extraction.fields||{}).some(meta=>meta.confidence==='Low')?'Some details need review':'Ready to review';
  return next;
 }
 
 export function extractionReview(draft){
  const entries=Object.entries(draft.fieldMeta||{}).filter(([key])=>Boolean(PACKET_FIELD_LABELS[key])),ready=[],check=[];
- for(const [key,meta] of entries){const row={key,value:draft[key],...meta};if(meta.confidence==='High'||meta.source==='manual')ready.push(row);else check.push(row)}
- const essential=['name','variety','brand','packetYear','daysToMaturity','spacing'];const missing=essential.filter(key=>draft[key]===''||draft[key]===null||draft[key]===undefined).map(key=>({key}));
- return{ready,check,missing};
+ for(const [key,meta] of entries){const row={key,value:draft[key],...meta};if(!isTrustedPacketValue(key,draft[key],meta)){check.push({...row,reason:'Value did not pass the packet quality check'});continue}if(meta.confidence==='High'||meta.source==='manual'||meta.source==='online')ready.push(row);else check.push(row)}
+ const essential=['name','variety','brand','packetYear','quantity','daysToMaturity','depth','thinningSpacing','germinationEstimate','sunlight'];const missing=essential.filter(key=>draft[key]===''||draft[key]===null||draft[key]===undefined||(Array.isArray(draft[key])&&!draft[key].length)).map(key=>({key}));
+ return{ready,check,missing,completedCount:ready.length,attentionCount:check.length+missing.length};
 }
 
 export function findLikelyDuplicatePacket(candidate,packets=[]){
@@ -156,8 +163,16 @@ export async function rotatePacketImage(dataUrl,degrees=90){
  const image=await imageFromDataUrl(dataUrl),quarter=Math.abs(degrees)%180===90,canvas=document.createElement('canvas');canvas.width=quarter?image.naturalHeight:image.naturalWidth;canvas.height=quarter?image.naturalWidth:image.naturalHeight;const context=canvas.getContext('2d',{alpha:false});context.fillStyle='#fff';context.fillRect(0,0,canvas.width,canvas.height);context.translate(canvas.width/2,canvas.height/2);context.rotate(degrees*Math.PI/180);context.drawImage(image,-image.naturalWidth/2,-image.naturalHeight/2);return canvas.toDataURL('image/jpeg',.8);
 }
 
+async function barcodeFromImage(dataUrl){
+ if(typeof BarcodeDetector==='undefined')return'';
+ try{const formats=await BarcodeDetector.getSupportedFormats?.()||[],wanted=['upc_a','upc_e','ean_8','ean_13','code_128'].filter(format=>formats.includes(format));if(!wanted.length)return'';const image=await imageFromDataUrl(dataUrl),detector=new BarcodeDetector({formats:wanted}),rows=await detector.detect(image);return rows.map(row=>String(row.rawValue||'').replace(/\D/g,'')).find(validBarcode)||''}catch{return''}
+}
+async function cropPacketRegion(dataUrl,{x=0,y=0,width=1,height=1}={}){
+ const image=await imageFromDataUrl(dataUrl),canvas=document.createElement('canvas'),sx=Math.round(image.naturalWidth*x),sy=Math.round(image.naturalHeight*y),sw=Math.max(1,Math.round(image.naturalWidth*width)),sh=Math.max(1,Math.round(image.naturalHeight*height));
+ canvas.width=Math.max(900,sw*2);canvas.height=Math.max(500,sh*2);const context=canvas.getContext('2d',{alpha:false});context.fillStyle='#fff';context.fillRect(0,0,canvas.width,canvas.height);context.filter='grayscale(1) contrast(1.45)';context.drawImage(image,sx,sy,sw,sh,0,0,canvas.width,canvas.height);return canvas.toDataURL('image/jpeg',.86)
+}
 export async function readPacketPhoto(dataUrl,{side='front',timeoutMs=45000,onProgress}={}){
- const task=async()=>{onProgress?.({status:'loading',progress:0});const module=await import('tesseract.js'),worker=await module.createWorker('eng',1,{logger:message=>{if(message?.status)onProgress?.({status:message.status,progress:Number(message.progress)||0})}});try{const result=await worker.recognize(dataUrl),text=result?.data?.text||'',parsed=parsePacketText(text,{side});if(!parsed.fieldCount)throw Object.assign(new Error('The packet text could not be read clearly.'),{kind:'unreadable',rawText:text});return parsed}finally{await worker.terminate()}};
+ const task=async()=>{onProgress?.({status:'loading',progress:0});const barcode=await barcodeFromImage(dataUrl),module=await import('tesseract.js'),worker=await module.createWorker('eng',1,{logger:message=>{if(message?.status)onProgress?.({status:message.status,progress:Math.min(.72,Number(message.progress)||0)})}});try{let result=await worker.recognize(dataUrl),text=result?.data?.text||'',parsed=parsePacketText(text,{side});const needsTargeted=side==='front'?parsed.identityCount<2:parsed.fieldCount<4;if(needsTargeted){const regions=side==='front'?[{x:0,y:0,width:1,height:.58},{x:0,y:.55,width:1,height:.45}]:[{x:0,y:0,width:1,height:.42},{x:0,y:.32,width:1,height:.48},{x:0,y:.72,width:1,height:.28}],extra=[];for(let index=0;index<regions.length;index++){onProgress?.({status:'reading targeted packet areas',progress:.72+(index/regions.length)*.25});const crop=await cropPacketRegion(dataUrl,regions[index]),read=await worker.recognize(crop);extra.push(read?.data?.text||'')}text=[text,...extra].filter(Boolean).join('\n');parsed=parsePacketText(text,{side})}if(barcode&&!parsed.fields.barcode){parsed.fields.barcode=field(barcode,{score:.99,sourcePhoto:side,originalText:barcode});parsed.fieldCount++;parsed.barcodeMethod='native-detector'}if(!parsed.fieldCount)throw Object.assign(new Error('The packet text could not be read clearly.'),{kind:'unreadable',rawText:text});return parsed}finally{await worker.terminate()}};
  let timeout;try{return await Promise.race([task(),new Promise((_,reject)=>{timeout=setTimeout(()=>reject(Object.assign(new Error('Packet reading timed out.'),{kind:'timeout'})),timeoutMs)})])}finally{clearTimeout(timeout)}
 }
 
