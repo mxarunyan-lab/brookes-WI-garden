@@ -4,6 +4,10 @@ on:
   pull_request:
     branches: [main]
 
+concurrency:
+  group: phase46x3-apply
+  cancel-in-progress: true
+
 permissions:
   contents: write
 
@@ -22,6 +26,7 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 22
+          cache: npm
       - name: Reconstruct implementation artifact
         run: |
           set -euo pipefail
@@ -57,7 +62,7 @@ jobs:
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
           git am /tmp/phase46x3.patch
       - name: Install dependencies
-        run: npm install
+        run: npm ci --no-audit --no-fund
       - name: Run focused Phase 4.6X.3 tests
         run: node --test test/seedPacketIntelligence.test.js test/seedProductLookup.test.js test/seedPacketOneTapTrust.test.js test/seedPacketVisionSchema.test.js test/seedPacketVisionMerge.test.js test/seedPacketVisionApi.test.js test/seedPacketVisionMigration.test.js test/gardenPersistence.test.js test/dataReadinessStructure.test.js test/backupMigrationReadiness.test.js
       - name: Build production app
