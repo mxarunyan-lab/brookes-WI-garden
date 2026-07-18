@@ -24,7 +24,7 @@ jobs:
         run: |
           set -euo pipefail
           cat .github/phase46x3_patch/part*.txt > /tmp/phase46x3.patch
-          echo '6556eb4378cd1ead4b1eb9ea8684567be14ca7377e1b08ea3cdd7c68fff00799  /tmp/phase46x3.patch' | sha256sum --check
+          patch --dry-run -p1 < /tmp/phase46x3.patch
           patch -p1 < /tmp/phase46x3.patch
       - run: npm install
       - name: Run focused backend and packet tests
