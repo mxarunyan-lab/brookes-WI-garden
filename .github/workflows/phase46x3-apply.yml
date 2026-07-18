@@ -53,6 +53,8 @@ jobs:
           echo '7708a6b04e38ee277ff03248910feb263a904bb5b480053249481f775a533816  /tmp/phase46x3.patch.gz' | sha256sum --check
           gzip -dc /tmp/phase46x3.patch.gz > /tmp/phase46x3.patch
           echo '5286c2323f0f903f411841856c9910f995a3759866d68316ad2eb99132720796  /tmp/phase46x3.patch' | sha256sum --check
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
           git am /tmp/phase46x3.patch
       - name: Install dependencies
         run: npm install
@@ -68,7 +70,5 @@ jobs:
       - name: Commit clean implementation
         run: |
           set -euo pipefail
-          git config user.name 'github-actions[bot]'
-          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
           git diff --cached --quiet || git commit -m 'Remove Phase 4.6X.3 delivery files'
           git push origin HEAD:${{ github.event.pull_request.head.ref }}
