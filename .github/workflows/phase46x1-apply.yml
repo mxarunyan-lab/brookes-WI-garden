@@ -34,19 +34,7 @@ jobs:
       - name: Run targeted Seed Packet tests
         run: node --test test/seedPacketIntelligence.test.js test/seedProductLookup.test.js test/seedPacketTrustSpeed.test.js test/gardenPersistence.test.js
       - name: Build production app
-        id: build
-        continue-on-error: true
-        run: npm run build > phase46x1-build.log 2>&1
-      - name: Upload build log
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: phase-4-6x-1-build-log
-          path: phase46x1-build.log
-          retention-days: 2
-      - name: Stop when build failed
-        if: steps.build.outcome == 'failure'
-        run: exit 1
+        run: npm run build
       - name: Remove temporary delivery files
         run: |
           rm -rf .github/phase46x1_patch
