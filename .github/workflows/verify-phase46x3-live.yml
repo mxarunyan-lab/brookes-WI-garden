@@ -8,6 +8,10 @@ permissions:
   contents: read
   statuses: write
 
+concurrency:
+  group: phase46x3-live-verification
+  cancel-in-progress: true
+
 jobs:
   verify-render:
     runs-on: ubuntu-latest
@@ -16,6 +20,7 @@ jobs:
       GH_TOKEN: ${{ github.token }}
       REPO: ${{ github.repository }}
       SHA: ${{ github.sha }}
+      RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
       APP_URL: https://brookes-wi-garden.onrender.com
       VERIFY_ATTEMPTS: 36
       VERIFY_DELAY_MS: 10000
@@ -26,7 +31,7 @@ jobs:
           node-version: 22
       - name: Publish deployment verification pending status
         run: |
-          payload=$(python -c 'import json;print(json.dumps({"state":"pending","context":"render/phase-4-6x-3","description":"Waiting for Render v0.20.3 and live packet analysis"}))')
+          payload=$(python -c 'import json,os;print(json.dumps({"state":"pending","context":"render/phase-4-6x-3","description":"Waiting for Render v0.20.3 and live packet analysis","target_url":os.environ["RUN_URL"]}))')
           curl -sS -X POST -H "Authorization: Bearer ${GH_TOKEN}" -H 'Accept: application/vnd.github+json' -H 'X-GitHub-Api-Version: 2022-11-28' "https://api.github.com/repos/${REPO}/statuses/${SHA}" -d "$payload" >/dev/null
       - run: npm install
       - name: Verify deployed backend, live multimodal packet request, and frontend build
@@ -53,6 +58,6 @@ jobs:
             description=$(tail -n 1 live-verification-error.txt 2>/dev/null | tr -d '\r' | cut -c1-140)
             if [ -z "$description" ]; then description='Live Phase 4.6X.3 verification failed'; fi
           fi
-          payload=$(STATE="$state" DESC="$description" python -c 'import json,os;print(json.dumps({"state":os.environ["STATE"],"context":"render/phase-4-6x-3","description":os.environ["DESC"][:140]}))')
+          payload=$(STATE="$state" DESC="$description" python -c 'import json,os;print(json.dumps({"state":os.environ["STATE"],"context":"render/phase-4-6x-3","description":os.environ["DESC"][:140],"target_url":os.environ["RUN_URL"]}))')
           curl -sS -X POST -H "Authorization: Bearer ${GH_TOKEN}" -H 'Accept: application/vnd.github+json' -H 'X-GitHub-Api-Version: 2022-11-28' "https://api.github.com/repos/${REPO}/statuses/${SHA}" -d "$payload" >/dev/null
           test "$state" = success
