@@ -44,7 +44,7 @@ jobs:
               await page.goto('http://127.0.0.1:3000/',{waitUntil:'domcontentloaded'});
               const chooser=page.getByRole('heading',{name:/who’s in the garden/i});
               if(await chooser.isVisible().catch(()=>false)){
-                await page.getByRole('button',{name:/^Archie\b/}).click();
+                await page.locator('.profile-choice-list button').filter({hasText:'Archie'}).click();
                 await page.waitForSelector('.bottom-nav');
               }
               await page.getByRole('button',{name:'Center',exact:true}).click();
