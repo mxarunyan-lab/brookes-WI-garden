@@ -1,0 +1,138 @@
+cingUnit: z.enum(['inch', 'cm']).nullable(),
++  finalSpacingValue: z.number().finite().nonnegative().max(1000).nullable(),
++  finalSpacingUnit: z.enum(['inch', 'cm']).nullable(),
++  rowSpacingValue: z.number().finite().nonnegative().max(1000).nullable(),
++  rowSpacingUnit: z.enum(['inch', 'cm']).nullable(),
++  containerMinimumDiameterValue: z.number().finite().nonnegative().max(1000).nullable(),
++  containerMinimumDiameterUnit: z.enum(['inch', 'cm']).nullable(),
++  plantsPerContainer: z.number().finite().int().min(1).max(10000).nullable(),
++  plantHeight: nullableText,
++  plantSpread: nullableText,
++  growthHabit: nullableText,
++  containerFriendly: z.boolean().nullable(),
++}).strict();
++
++const instructions = z.object({
++  sowingMethod: nullableText,
++  directSowGuidance: nullableText,
++  indoorStartGuidance: nullableText,
++  transplantGuidance: nullableText,
++  seasonalWindow: nullableText,
++  frostTiming: nullableText,
++  moistureGuidance: nullableText,
++  soilGuidance: nullableText,
++  fertilizingGuidance: nullableText,
++  successionGuidance: nullableText,
++  harvestGuidance: nullableText,
++  regionalGuidance: nullableText,
++  warnings: z.array(z.string().trim().max(240)).max(20),
++  treatmentInformation: nullableText,
++  seedSavingRestrictions: nullableText,
++  specialCare: nullableText,
++}).strict();
++
++const automation = z.object({
++  successionRecommended: z.boolean(),
++  successionIntervalDays: z.number().finite().int().min(1).max(365).nullable(),
++  successionReminderText: nullableText,
++  successionReason: nullableText,
++  otherSuggestedReminders: z.array(z.object({
++    text: z.string().trim().max(240),
++    reason: z.string().trim().max(240),
++    daysAfterPlanting: z.number().finite().int().min(0).max(3650).nullable(),
++  }).strict()).max(10),
++}).strict();
++
++const quality = z.object({
++  frontUsable: z.boolean(),
++  backUsable: z.boolean(),
++  packetIdentityConfidence: confidence,
++  overallConfidence: confidence,
++  exactIdentitySupportedByImages: z.boolean(),
++  manualReviewFields: z.array(z.string().max(100)).max(50),
++  unreadableFields: z.array(z.string().max(100)).max(100),
++  contradictoryFields: z.array(z.string().max(100)).max(50),
++  analysisNotes: z.array(z.string().trim().max(300)).max(30),
++}).strict();
++
++export const seedPacketVisionSchema = z.object({
++  analysisVersion: z.literal('seed-packet-vision-v1'),
++  packetIdentity,
++  inventory,
++  growing,
++  instructions,
++  automation,
++  machineIdentifiers,
++  quality,
++  fieldEvidence: z.object(fieldEvidenceShape).strict(),
++  rawVisibleText: z.object({front: z.string().max(10000), back: z.string().max(10000)}).strict(),
++  warnings: z.array(z.string().trim().max(300)).max(40),
++}).strict();
++
++const bannedIdentity = /\b(full sun|part sun|vegetable|heirloom|organic|container|days? to|harvest|depth|spacing|germination)\b/i;
++const fragment = /^(?:\d+\s*)?(?:outdoor sown|to harvest|full sun|part sun)$/i;
++const priceFragment = /(?:^|\s)\$\s*\d|\b(?:usd|price)\b/i;
++const suspiciousJoinedLabel = /\b(?:full\s+sun|vegetable|heirloom)\b.*\b(?:lettuce|seeds?)\b/i;
++const evidenceRequired = [
++  ['packetIdentity', 'brand'], ['packetIdentity', 'crop'], ['packetIdentity', 'variety'], ['packetIdentity', 'productName'],
++  ['inventory', 'packetWeightValue'], ['inventory', 'printedSeedCount'], ['inventory', 'packetYear'],
++  ['growing', 'sunlight'], ['growing', 'daysToHarvest'], ['growing', 'daysToMaturity'], ['growing', 'plantingDepthValue'],
++  ['growing', 'emergenceMinimumDays'], ['growing', 'emergenceMaximumDays'], ['growing', 'thinningSpacingValue'],
++  ['growing', 'containerMinimumDiameterValue'], ['growing', 'plantsPerContainer'],
++  ['instructions', 'directSowGuidance'], ['instructions', 'moistureGuidance'], ['instructions', 'soilGuidance'],
++  ['instructions', 'successionGuidance'], ['instructions', 'harvestGuidance'],
++  ['automation', 'successionRecommended'], ['automation', 'successionIntervalDays'],
++  ['machineIdentifiers', 'barcode'], ['machineIdentifiers', 'lotNumber'],
++];
++
++const valueAt = (object, group, key) => object[group]?.[key];
++const isPresent = (value) => value !== null && value !== '' && value !== undefined && (!Array.isArray(value) || value.length > 0);
++
++export function emptyFieldEvidence() {
++  return Object.fromEntries(evidenceKeys.map((key) => [key, null]));
++}
++
++export function validateSeedPacketAnalysis(input) {
++  const parsed = seedPacketVisionSchema.parse(input);
++  const errors = [];
++  const {packetIdentity: identity, instructions: guide, inventory: quantity, growing: metrics, machineIdentifiers: machine, fieldEvidence: fieldEvidenceMap, quality: imageQuality, automation: automationInfo} = parsed;
++
++  if (identity.variety && bannedIdentity.test(identity.variety)) errors.push('variety contains a non-variety label');
++  if (identity.productName && (bannedIdentity.test(identity.productName) || suspiciousJoinedLabel.test(identity.productName))) errors.push('productName contains an unrelated label');
++  if (identity.crop && identity.variety && identity.crop.toLowerCase() === identity.variety.toLowerCase()) errors.push('crop and variety were merged incorrectly');
++
++  for (const [key, value] of Object.entries({
++    directSowGuidance: guide.directSowGuidance,
++    moistureGuidance: guide.moistureGuidance,
++    soilGuidance: guide.soilGuidance,
++    harvestGuidance: guide.harvestGuidance,
++  })) {
++    if (value && (value.length < 12 || fragment.test(value) || /^\$/.test(value))) errors.push(`${key} is incomplete or malformed`);
++  }
++  if (guide.moistureGuidance && priceFragment.test(guide.moistureGuidance)) errors.push('moistureGuidance contains a price fragment');
++  if (guide.directSowGuidance && /\bgo\s+fe\b|\boutdoor\s+sown\s*$/i.test(guide.directSowGuidance)) errors.push('directSowGuidance contains malformed scanner text');
++
++  if (quantity.inventoryBasis === 'weight' && quantity.printedSeedCount !== null) errors.push('weight-only inventory cannot claim a printed seed count');
++  if (quantity.inventoryBasis === 'exact-count' && quantity.printedSeedCount === null) errors.push('exact-count inventory requires a printed seed count');
++  if (quantity.estimatedSeedCount !== null && !quantity.estimatedSeedCountSource) errors.push('estimated seed count requires a source');
++  if (metrics.emergenceMinimumDays !== null && metrics.emergenceMaximumDays !== null && metrics.emergenceMinimumDays > metrics.emergenceMaximumDays) errors.push('emergence range is reversed');
++  if (metrics.germinationTemperatureMinimum !== null && metrics.germinationTemperatureMaximum !== null && metrics.germinationTemperatureMinimum > metrics.germinationTemperatureMaximum) errors.push('germination temperature range is reversed');
++  if (automationInfo.successionRecommended && !automationInfo.successionIntervalDays && !guide.successionGuidance) errors.push('succession recommendation lacks an interval or printed guidance');
++
++  if (machine.barcode) {
++    const digits = machine.barcode.replace(/\D/g, '');
++    if (![8, 12, 13, 14].includes(digits.length) && machine.barcodeFormat !== 'CODE-128') errors.push('barcode length is unsupported');
++  }
++  if (machine.checkDigitValid === false && machine.barcodeMethod === 'machine-decoder') errors.push('machine-decoded barcode failed check digit');
++
++  for (const [group, key] of evidenceRequired) {
++    const value = valueAt(parsed, group, key);
++    if (isPresent(value) && !fieldEvidenceMap[key]) errors.push(`${key} is missing field evidence`);
++  }
++  for (const key of evidenceKeys) {
++    const item = fieldEvidenceMap[key];
++    if (item && !String(item.visibleEvidence || '').trim()) errors.push(`${key} evidence is empty`);
++  }
++
++  if (imageQuality.exactIdentitySupportedByImages && (!identity.brand || !identity.crop || !identity.variety)) errors.push('exact identity was claimed without brand, crop, and variety');
++  if (imageQuality.frontUsable === false && imageQuality.exactIdentitySupportedByImages) errors.push('front image 

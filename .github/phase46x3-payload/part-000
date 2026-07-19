@@ -1,0 +1,201 @@
+diff --git a/.github/phase46x2-mobile-trigger.txt b/.github/phase46x2-mobile-trigger.txt
+deleted file mode 100644
+index 95edab0..0000000
+--- a/.github/phase46x2-mobile-trigger.txt
++++ /dev/null
+@@ -1 +0,0 @@
+-mobile verify
+diff --git a/.github/workflows/phase46x3-resume-export.yml b/.github/workflows/phase46x3-resume-export.yml
+deleted file mode 100644
+index 48c854a..0000000
+--- a/.github/workflows/phase46x3-resume-export.yml
++++ /dev/null
+@@ -1,19 +0,0 @@
+-name: Phase 4.6X.3 Resume Export
+-on:
+-  pull_request:
+-    branches: [main]
+-permissions:
+-  contents: read
+-jobs:
+-  export-source:
+-    if: github.event.pull_request.head.ref == 'agent/phase-4-6x-3-multimodal-vision'
+-    runs-on: ubuntu-latest
+-    timeout-minutes: 10
+-    steps:
+-      - uses: actions/checkout@v4
+-      - run: tar --exclude=.git -czf /tmp/phase46x3-current.tar.gz .
+-      - uses: actions/upload-artifact@v4
+-        with:
+-          name: phase-4-6x-3-current
+-          path: /tmp/phase46x3-current.tar.gz
+-          retention-days: 1
+diff --git a/.github/workflows/verify-phase46x2-mobile.yml b/.github/workflows/verify-phase46x2-mobile.yml
+deleted file mode 100644
+index 467a368..0000000
+--- a/.github/workflows/verify-phase46x2-mobile.yml
++++ /dev/null
+@@ -1,58 +0,0 @@
+-name: Verify Phase 4.6X.2 Mobile
+-
+-on:
+-  push:
+-    branches: [main]
+-
+-permissions:
+-  contents: read
+-  statuses: write
+-
+-jobs:
+-  verify-mobile:
+-    runs-on: ubuntu-latest
+-    timeout-minutes: 20
+-    env:
+-      GH_TOKEN: ${{ github.token }}
+-      REPO: ${{ github.repository }}
+-      SHA: ${{ github.sha }}
+-    steps:
+-      - uses: actions/checkout@v4
+-      - uses: actions/setup-node@v4
+-        with:
+-          node-version: 22
+-      - run: npm install
+-      - run: npm install --no-save playwright
+-      - run: npx playwright install chromium
+-      - run: npm run build
+-      - name: Check Seed Department at mobile widths
+-        continue-on-error: true
+-        run: |
+-          npm run preview -- --host 127.0.0.1 > /tmp/preview.log 2>&1 &
+-          sleep 3
+-          cat > /tmp/mobile.mjs <<'EOF'
+-          import{chromium}from'playwright';import{writeFileSync}from'node:fs';
+-          let browser;
+-          try{
+-            browser=await chromium.launch({headless:true});
+-            for(const width of [320,375,390,430]){
+-              const page=await browser.newPage({viewport:{width,height:900}}),errors=[];page.on('pageerror',e=>errors.push(String(e)));
+-              await page.goto('http://127.0.0.1:4173/',{waitUntil:'networkidle'});
+-              await page.getByRole('button',{name:'Center',exact:true}).click();
+-              await page.getByRole('button',{name:/^Seed Department\./}).click();
+-              await page.waitForSelector('.seed-tools-screen');
+-              const result=await page.evaluate(()=>({overflow:document.documentElement.scrollWidth>document.documentElement.clientWidth,save:[...document.querySelectorAll('button')].some(b=>/save packet/i.test(b.textContent||'')&&b.getBoundingClientRect().height>=42),details:[...document.querySelectorAll('details.packet-all-details')].some(d=>d.open)}));
+-              if(errors.length||result.overflow||!result.save||result.details)throw new Error(`w${width} ${JSON.stringify(result)} ${errors[0]||''}`);
+-              await page.close();
+-            }
+-            writeFileSync('/tmp/mobile-result','PASS');
+-          }catch(error){writeFileSync('/tmp/mobile-result',String(error?.message||error).slice(0,100));process.exitCode=1}finally{await browser?.close()}
+-          EOF
+-          node /tmp/mobile.mjs
+-      - name: Publish mobile status
+-        if: always()
+-        run: |
+-          result=$(cat /tmp/mobile-result 2>/dev/null || echo 'setup failure')
+-          if [ "$result" = 'PASS' ]; then state=success; description='Seed Packet mobile checks passed'; else state=failure; description="${result}"; fi
+-          payload=$(python -c 'import json,os;print(json.dumps({"state":os.environ["STATE"],"context":"mobile/phase-4-6x-2","description":os.environ["DESC"][:140]}))' STATE="$state" DESC="$description")
+-          curl -sS -X POST -H "Authorization: Bearer ${GH_TOKEN}" -H 'Accept: application/vnd.github+json' -H 'X-GitHub-Api-Version: 2022-11-28' "https://api.github.com/repos/${REPO}/statuses/${SHA}" -d "$payload" >/dev/null
+diff --git a/package-lock.json b/package-lock.json
+index b089320..add0b2b 100644
+--- a/package-lock.json
++++ b/package-lock.json
+@@ -9,6 +9,8 @@
+       "version": "0.20.3",
+       "dependencies": {
+         "@vitejs/plugin-react": "latest",
++        "@zxing/library": "^0.21.3",
++        "bwip-js": "^4.11.2",
+         "compression": "latest",
+         "express": "latest",
+         "helmet": "latest",
+@@ -23,8 +25,7 @@
+         "tesseract.js": "latest",
+         "vite": "latest",
+         "zod": "latest"
+-      },
+-      "devDependencies": {}
++      }
+     },
+     "node_modules/@babel/runtime": {
+       "version": "7.29.7",
+@@ -896,6 +897,28 @@
+         }
+       }
+     },
++    "node_modules/@zxing/library": {
++      "version": "0.21.3",
++      "resolved": "https://registry.npmjs.org/@zxing/library/-/library-0.21.3.tgz",
++      "integrity": "sha512-hZHqFe2JyH/ZxviJZosZjV+2s6EDSY0O24R+FQmlWZBZXP9IqMo7S3nb3+2LBWxodJQkSurdQGnqE7KXqrYgow==",
++      "license": "MIT",
++      "dependencies": {
++        "ts-custom-error": "^3.2.1"
++      },
++      "engines": {
++        "node": ">= 10.4.0"
++      },
++      "optionalDependencies": {
++        "@zxing/text-encoding": "~0.9.0"
++      }
++    },
++    "node_modules/@zxing/text-encoding": {
++      "version": "0.9.0",
++      "resolved": "https://registry.npmjs.org/@zxing/text-encoding/-/text-encoding-0.9.0.tgz",
++      "integrity": "sha512-U/4aVJ2mxI0aDNI8Uq0wEhMgY+u4CNtEb0om3+y3+niDAsoTCOB33UF0sxpzqzdqXLqmvc+vZyAt4O8pPdfkwA==",
++      "license": "(Unlicense OR Apache-2.0)",
++      "optional": true
++    },
+     "node_modules/accepts": {
+       "version": "2.0.0",
+       "resolved": "https://registry.npmjs.org/accepts/-/accepts-2.0.0.tgz",
+@@ -1018,6 +1041,14 @@
+       "integrity": "sha512-6FlzubTLZG3J2a/NVCAleEhjzq5oxgHyaCU9yYXvcLsvoVaHJq/s5xXI6/XXP6tz7R9xAOtHnSO/tXtF3WRTlA==",
+       "license": "MIT"
+     },
++    "node_modules/bwip-js": {
++      "version": "4.11.2",
++      "resolved": "https://registry.npmjs.org/bwip-js/-/bwip-js-4.11.2.tgz",
++      "integrity": "sha512-gAjZvO0a8n6NmzbtqRY5gLrYO4vNWtbmUXfyWG/NMG8/qJE66ahbzA8J0MvBkWnYY69zx3qfJQq4q9qu3Bm3FQ==",
++      "bin": {
++        "bwip-js": "bin/bwip-js.js"
++      }
++    },
+     "node_modules/bytes": {
+       "version": "3.1.2",
+       "resolved": "https://registry.npmjs.org/bytes/-/bytes-3.1.2.tgz",
+@@ -2937,6 +2968,15 @@
+       "integrity": "sha512-N3WMsuqV66lT30CrXNbEjx4GEwlow3v6rr4mCcv6prnfwhS01rkgyFdjPNBYd9br7LpXV1+Emh01fHnq2Gdgrw==",
+       "license": "MIT"
+     },
++    "node_modules/ts-custom-error": {
++      "version": "3.3.1",
++      "resolved": "https://registry.npmjs.org/ts-custom-error/-/ts-custom-error-3.3.1.tgz",
++      "integrity": "sha512-5OX1tzOjxWEgsr/YEUWSuPrQ00deKLh6D7OTWcvNHm12/7QPyRh8SYpyWvA4IZv8H/+GQWQEh/kwo95Q9OVW1A==",
++      "license": "MIT",
++      "engines": {
++        "node": ">=14.0.0"
++      }
++    },
+     "node_modules/tslib": {
+       "version": "2.8.1",
+       "resolved": "https://registry.npmjs.org/tslib/-/tslib-2.8.1.tgz",
+diff --git a/package.json b/package.json
+index ab585f9..79cb6d8 100644
+--- a/package.json
++++ b/package.json
+@@ -8,24 +8,27 @@
+     "build": "vite build",
+     "preview": "vite preview",
+     "test": "node --test",
+-    "start": "node server/index.js"
++    "start": "node server/index.js",
++    "analyze:packet:images": "node scripts/analyzePacketImages.mjs",
++    "verify:phase46x3:live": "node scripts/verifyLivePhase46x3.mjs"
+   },
+   "dependencies": {
+     "@vitejs/plugin-react": "latest",
++    "@zxing/library": "^0.21.3",
++    "bwip-js": "^4.11.2",
++    "compression": "latest",
++    "express": "latest",
++    "helmet": "latest",
+     "jspdf": "latest",
+     "luc

@@ -1,0 +1,80 @@
+te=options.dueDate||addDays(plant.plantedAt||now.slice(0,10),days),sourcePacketId=options.sourcePacketId||plant.sourcePacketId||plant.seedId||'',operationId=options.operationId||`succession:${plant.id}:${dueDate}:${days}`;return{id:options.id||newId('succession'),schemaVersion:1,operationId,plantId:plant.id,cropId:plant.cropId||'',spaceId:plant.spaceId||'',sourcePacketId,title:options.title||`Start the next ${plant.name} batch`,detail:options.detail||`${quantity} plants or seeds`,reason:options.reason||'',dueDate,date:dueDate,interval:days,quantity:Number(quantity)||1,status:'scheduled',createdAt:options.createdAt||now,updatedAt:now,revision:Number(options.revision)||1,deletedAt:null}}
+diff --git a/src/seedPacketVisionClient.js b/src/seedPacketVisionClient.js
+index 1b0ccdc..e75e37e 100644
+--- a/src/seedPacketVisionClient.js
++++ b/src/seedPacketVisionClient.js
+@@ -1,5 +1,58 @@
+-const DEVICE_KEY='runyan-seed-vision-device-v1';
+-const deviceId=()=>{let id=localStorage.getItem(DEVICE_KEY);if(!id){id=crypto.randomUUID();localStorage.setItem(DEVICE_KEY,id)}return id};
+-export async function hashPacketPhotos(front,back){const bytes=new TextEncoder().encode(`${front.slice(0,200)}:${front.length}:${back.slice(0,200)}:${back.length}`),hash=await crypto.subtle.digest('SHA-256',bytes);return[...new Uint8Array(hash)].map(v=>v.toString(16).padStart(2,'0')).join('')}
+-export async function getSeedVisionHealth(){const response=await fetch('/api/health',{headers:{Accept:'application/json'}});if(!response.ok)throw new Error('health unavailable');return response.json()}
+-export async function analyzePacketPhotos({frontImage,backImage,draftContext,signal}){const photoFingerprint=await hashPacketPhotos(frontImage,backImage),response=await fetch('/api/seed-packets/analyze',{method:'POST',headers:{'Content-Type':'application/json','X-Device-Id':deviceId()},body:JSON.stringify({frontImage,backImage,draftContext,photoFingerprint}),signal});const body=await response.json().catch(()=>({}));if(!response.ok){const error=new Error(body.message||'Packet analysis could not finish.');error.code=body.code;error.requestId=body.requestId;throw error}return body}
++const DEVICE_KEY = 'runyan-seed-vision-device-v1';
++const FRONTEND_TIMEOUT_MS = 110_000;
++
++const deviceId = () => {
++  let id = localStorage.getItem(DEVICE_KEY);
++  if (!id) {
++    id = crypto.randomUUID();
++    localStorage.setItem(DEVICE_KEY, id);
++  }
++  return id;
++};
++
++export async function hashPacketPhotos(front, back) {
++  const bytes = new TextEncoder().encode(`${front}\u0000${back}`);
++  const hash = await crypto.subtle.digest('SHA-256', bytes);
++  return [...new Uint8Array(hash)].map((value) => value.toString(16).padStart(2, '0')).join('');
++}
++
++export async function getSeedVisionHealth() {
++  const response = await fetch('/api/health', {headers: {Accept: 'application/json'}, cache: 'no-store'});
++  if (!response.ok) throw new Error('health unavailable');
++  return response.json();
++}
++
++export async function analyzePacketPhotos({frontImage, backImage, draftContext, signal}) {
++  const photoFingerprint = await hashPacketPhotos(frontImage, backImage);
++  const controller = new AbortController();
++  const abortFromCaller = () => controller.abort(signal?.reason);
++  signal?.addEventListener?.('abort', abortFromCaller, {once: true});
++  const timer = setTimeout(() => controller.abort(new DOMException('Packet analysis timed out', 'TimeoutError')), FRONTEND_TIMEOUT_MS);
++  try {
++    const response = await fetch('/api/seed-packets/analyze', {
++      method: 'POST',
++      headers: {'Content-Type': 'application/json', 'X-Device-Id': deviceId()},
++      body: JSON.stringify({frontImage, backImage, draftContext, photoFingerprint}),
++      signal: controller.signal,
++    });
++    const body = await response.json().catch(() => ({}));
++    if (!response.ok) {
++      const error = new Error(body.message || 'Packet analysis could not finish. Your photos and draft remain saved.');
++      error.code = body.code;
++      error.requestId = body.requestId;
++      error.status = response.status;
++      throw error;
++    }
++    return body;
++  } catch (error) {
++    if (controller.signal.aborted && !error.code) {
++      const timeoutError = new Error('Packet analysis did not finish. Your photos and draft remain saved.');
++      timeoutError.code = 'CLIENT_TIMEOUT';
++      throw timeoutError;
++    }
++    throw error;
++  } finally {
++    clearTimeout(timer);
++    signal?.removeEventListener?.('abort', abortFromCaller);
++  }
++}
+diff --git a/src/seedProductLookup.js b/src/seedProductLookup.js
+index 4dd076a..fbfee63 100644
+--- a/src/seedProductLookup.js
++++ b/src/seedProductLookup.js
+@@ -7,7 +7,7 @@ const CACHE_PREFIX='runyan-seed-product-cache:v2:';
+ const CACHE_TTL=7*24*60*60*1000;
+ 
+ export const OFFICIAL_SEED_PRODUCTS=[
+- {id:'burpee-prod000747',officialProductId:'prod000747',brand:'Burpee',crop:'Lettuce',cropId:'lettuce',variety:'Iceberg A',productName:'Iceberg A Lettuce Seeds',category:'vegetable',sourceName:'Burpee official product page',sourceUrl:'https://www.burpee.com/lettuce-iceberg-a-prod000747.html',guideSourceName:'Burpee official lettuce growing guide',guideUrl:'https://support.burpee.com/support/solutions/articles/60000961783-learn-about-lettuce',identityAliases:['lettuce iceberg a','iceberg a lettuce','burpee iceberg a'],productFields:{designations:['Heirloom'],daysToMaturity:65,plantHeight:'9–15 inches',plantSpread:'6 inches',sunlight:'Full sun',notableClaims:'Crisphead lettuce · thrives in cooler weather'},guideFields:{depth:'1/4 inch',spacing:'12 inches',rowSpacing:'12 inches',thinningSpacing:'6 inches',germinationEstimate:'7–10 days',sowingMethod:'Direct sow',directSowGuidance:'Sow in average soil in full sun in early spring and again in late summer for a fall crop.',seasonalWindow:'Early spring and late summer for a fall crop',waterGuidance:'Keep evenly moist throughout growth.',soilGuidance:'Average, well-drained soil enriched with organic matter.',successionGuidance:'Sow every two weeks to extend the harvest.',harvestGuidance:'Harvest when the head is firm and full-sized.',containerSuitability:'Container friendly when plants have about 12 inches of space.'}},
++ {id:'burpee-prod000747',officialProductId:'prod000747',brand:'Burpee',crop:'Lettuce',cropId:'lettuce',variety:'Iceberg A',productName:'Iceberg A Lettuce Seeds',category:'vegetable',sourceName:'Burpee official product page',sourceUrl:'https://www.burpee.com/vegetables/lettuce/lettuce-iceberg-a-prod000747.html',guideSourceName:'Burpee official lettuce growing guide',guideUrl:'https://support.burpee.com/support/solutions/articles/60000961783-learn-about-lettuce',identityAliases:['lettuce iceberg a','iceberg a lettuce','burpee iceberg a'],productFields:{designations:['Heirloom'],daysToMaturity:85,plantHeight:'9–15 inches',plantSpread:'6 inches',sunlight:'Full sun',notableClaims:'Crisphead lettuce · thrives in cooler weather'},guideFields:{depth:'1/4 inch',spacing:'12 inches',rowSpacing:'12 inches',thinningSpacing:'8 inches',germinationEstimate:'7–10 days',sowingMethod:'Direct sow',directSowGuidance:'Sow in average soil in full sun in early spring and again in late summer for a fall crop.',seasonalWindow:'Early spring and late summer for a fall crop',waterGuidance:'Keep evenly moist throughout growth.',soilGuidance:'Average, well-drained soil enriched with organic matter.',successionGuidance:'Sow every two weeks to extend the harvest.',harvestGuidance:'Harvest when the head is firm and full-sized.',containerSuitability:'Container friendly when plants have about 12 inches of space.'}},
+  {id:'burpee-green-ice',officialProductId:'prod000738',brand:'Burpee',crop:'Lettuce',cropId:'lettuce',variety:'Green Ice',productName:'Green Ice Lettuce Seeds',category:'vegetable',sourceName:'Burpee official product catalog',sourceUrl:'https://www.burpee.com/vegetables/lettuce/',identityAliases:['lettuce green ice','green ice lettuce'],productFields:{sunlight:'Full sun'}

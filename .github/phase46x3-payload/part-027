@@ -1,0 +1,32 @@
+})));
++test('weight-only packet cannot claim a printed exact seed count',()=>assert.throws(()=>validateSeedPacketAnalysis({...fixture,inventory:{...fixture.inventory,printedSeedCount:500}})));
+diff --git a/test/seedProductLookup.test.js b/test/seedProductLookup.test.js
+index 4dd740f..e4bb334 100644
+--- a/test/seedProductLookup.test.js
++++ b/test/seedProductLookup.test.js
+@@ -30,7 +30,7 @@ test('low-confidence generic lettuce lookup does not present weak varieties as l
+ 
+ test('official exact match fills packet and growing fields with source labels',()=>{
+  const next=applySeedProductCandidate({name:'Lettuce',variety:'Iceberg A',fieldMeta:{}},{...iceberg,match:{exact:true,score:120}});
+- assert.equal(next.daysToMaturity,65);
++ assert.equal(next.daysToMaturity,85);
+  assert.equal(next.depth,'1/4 inch');
+  assert.equal(next.germinationEstimate,'7–10 days');
+  assert.equal(next.fieldMeta.depth.sourceDetail,'official-guide');
+@@ -42,8 +42,8 @@ test('clear packet value wins over conflicting online value until confirmation',
+  const draft={name:'Lettuce',variety:'Iceberg A',depth:'1/8 inch',fieldMeta:{depth:{source:'packet',confidence:'High'}},packetIntelligence:{conflicts:[]}};
+  const next=applySeedProductCandidate(draft,iceberg);
+  assert.equal(next.depth,'1/8 inch');
+- assert.equal(next.packetIntelligence.conflicts[0].onlineValue,'1/4 inch');
+- assert.equal(next.packetIntelligence.conflicts[0].status,'needs-review');
++ assert.equal(next.packetIntelligence.conflicts.length,0);
++ assert.equal(next.packetIntelligence.onlineLookup.supplemental.depth.value,'1/4 inch');
+ });
+ 
+ test('manual correction always wins over online lookup',()=>{
+@@ -66,3 +66,5 @@ test('lookup identity preserves exact packet identifiers and OCR text',()=>{
+  assert.equal(identity.barcode,'123');
+  assert.match(identity.rawText,/front\nback/);
+ });
++
++test('packet-specific harvest timing stays active while current official maturity is retained separately',()=>{const draft={name:'Lettuce',variety:'Iceberg A',daysToMaturity:65,fieldMeta:{daysToMaturity:{source:'packet-vision',confidence:'High',evidence:{visibleEvidence:'65 days to harvest'}}},packetIntelligence:{conflicts:[]}};const next=applySeedProductCandidate(draft,iceberg);assert.equal(next.daysToMaturity,65);assert.equal(next.packetIntelligence.conflicts.length,0);assert.equal(next.packetIntelligence.onlineLookup.supplemental.daysToMaturity.value,85)});
