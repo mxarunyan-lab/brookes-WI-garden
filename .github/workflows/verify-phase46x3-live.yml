@@ -1,0 +1,47 @@
+name: Verify Render Phase 4.6X.3
+
+on:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+  statuses: write
+
+jobs:
+  verify-render:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    env:
+      GH_TOKEN: ${{ github.token }}
+      REPO: ${{ github.repository }}
+      SHA: ${{ github.sha }}
+      APP_URL: https://brookes-wi-garden.onrender.com
+      VERIFY_ATTEMPTS: 60
+      VERIFY_DELAY_MS: 15000
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: npm install
+      - name: Verify deployed backend, live multimodal packet request, and frontend build
+        id: verify
+        continue-on-error: true
+        run: npm run verify:phase46x3:live > live-verification.json 2> live-verification-error.txt
+      - name: Upload verification result
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: phase46x3-live-verification
+          path: |
+            live-verification.json
+            live-verification-error.txt
+          retention-days: 2
+      - name: Publish Render status
+        if: always()
+        run: |
+          if [ "${{ steps.verify.outcome }}" = success ]; then state=success; description='Render serves v0.20.3 and live packet vision passed'; else state=failure; description=$(tail -n 1 live-verification-error.txt | tr -d '\r' | cut -c1-140); fi
+          payload=$(STATE="$state" DESC="$description" python -c 'import json,os;print(json.dumps({"state":os.environ["STATE"],"context":"render/phase-4-6x-3","description":os.environ["DESC"][:140]}))')
+          curl -sS -X POST -H "Authorization: Bearer ${GH_TOKEN}" -H 'Accept: application/vnd.github+json' -H 'X-GitHub-Api-Version: 2022-11-28' "https://api.github.com/repos/${REPO}/statuses/${SHA}" -d "$payload" >/dev/null
+          test "$state" = success

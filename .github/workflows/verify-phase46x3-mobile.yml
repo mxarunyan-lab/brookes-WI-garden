@@ -1,0 +1,79 @@
+name: Verify Phase 4.6X.3 Mobile and Node Service
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+  statuses: write
+
+jobs:
+  verify-mobile:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      GH_TOKEN: ${{ github.token }}
+      REPO: ${{ github.repository }}
+      SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: npm install
+      - run: npm install --no-save playwright
+      - run: npx playwright install --with-deps chromium
+      - run: npm run build
+      - name: Check Node health and Seed Department at mobile widths
+        id: mobile
+        continue-on-error: true
+        run: |
+          npm start > /tmp/server.log 2>&1 &
+          for attempt in $(seq 1 30); do curl -fsS http://127.0.0.1:3000/api/health > /tmp/health.json && break; sleep 1; done
+          node -e "const h=require('/tmp/health.json');if(!h.ok||h.version!=='0.20.3')process.exit(1)"
+          cat > /tmp/mobile.mjs <<'JS'
+          import{chromium}from'playwright';import{writeFileSync}from'node:fs';
+          let browser;
+          try{
+            browser=await chromium.launch({headless:true});
+            for(const width of [320,375,390,430]){
+              const page=await browser.newPage({viewport:{width,height:900}}),errors=[];
+              page.on('pageerror',error=>errors.push(String(error)));
+              await page.goto('http://127.0.0.1:3000/',{waitUntil:'networkidle'});
+              await page.getByRole('button',{name:'Center',exact:true}).click();
+              await page.getByRole('button',{name:/^Seed Department\./}).click();
+              await page.waitForSelector('.seed-tools-screen');
+              const result=await page.evaluate(()=>({
+                overflow:document.documentElement.scrollWidth>document.documentElement.clientWidth,
+                analyze:[...document.querySelectorAll('button')].some(button=>/analyze packet/i.test(button.textContent||'')&&button.getBoundingClientRect().height>=42),
+                details:[...document.querySelectorAll('details.packet-all-details')].some(details=>details.open),
+                misleading:/photos do the first pass|front usually identifies|reading stops if it takes too long/i.test(document.body.innerText),
+                bottomCovered:[...document.querySelectorAll('button,input,select,textarea')].filter(element=>{const rect=element.getBoundingClientRect();return rect.height>0&&rect.bottom>window.innerHeight-70&&rect.top<window.innerHeight}).length>8
+              }));
+              if(errors.length||result.overflow||!result.analyze||result.details||result.misleading)throw new Error(`w${width} ${JSON.stringify(result)} ${errors[0]||''}`);
+              await page.close();
+            }
+            writeFileSync('/tmp/mobile-result','PASS');
+          }catch(error){writeFileSync('/tmp/mobile-result',String(error?.message||error).slice(0,130));process.exitCode=1}finally{await browser?.close()}
+          JS
+          node /tmp/mobile.mjs
+      - name: Upload service diagnostics
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: phase46x3-mobile-service-diagnostics
+          path: |
+            /tmp/server.log
+            /tmp/health.json
+            /tmp/mobile-result
+          retention-days: 2
+      - name: Publish mobile status
+        if: always()
+        run: |
+          result=$(cat /tmp/mobile-result 2>/dev/null || echo 'Node/mobile verification failed')
+          if [ "$result" = 'PASS' ]; then state=success; description='Phase 4.6X.3 Node and mobile checks passed'; else state=failure; description="$result"; fi
+          payload=$(STATE="$state" DESC="$description" python -c 'import json,os;print(json.dumps({"state":os.environ["STATE"],"context":"mobile/phase-4-6x-3","description":os.environ["DESC"][:140]}))')
+          curl -sS -X POST -H "Authorization: Bearer ${GH_TOKEN}" -H 'Accept: application/vnd.github+json' -H 'X-GitHub-Api-Version: 2022-11-28' "https://api.github.com/repos/${REPO}/statuses/${SHA}" -d "$payload" >/dev/null
+          test "$state" = success
