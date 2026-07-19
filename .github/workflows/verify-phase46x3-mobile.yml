@@ -1,0 +1,87 @@
+name: Verify Phase 4.6X.3 Mobile and Node Service
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  verify-mobile:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: npm install
+      - run: npm install --no-save playwright
+      - run: npx playwright install --with-deps chromium
+      - run: npm run build
+      - name: Check Node health and Seed Department at mobile widths
+        run: |
+          set -euo pipefail
+          mkdir -p diagnostics
+          npm start > diagnostics/server.log 2>&1 &
+          for attempt in $(seq 1 30); do
+            if curl -fsS http://127.0.0.1:3000/api/health > diagnostics/health.json; then break; fi
+            sleep 1
+          done
+          node -e "const h=require('./diagnostics/health.json');if(!h.ok||h.version!=='0.20.3')throw new Error(JSON.stringify(h))"
+          cat > diagnostics/mobile.mjs <<'JS'
+          import{chromium}from'playwright';
+          import{writeFileSync}from'node:fs';
+          let browser,page;
+          try{
+            browser=await chromium.launch({headless:true});
+            for(const width of [320,375,390,430]){
+              page=await browser.newPage({viewport:{width,height:900}});
+              const errors=[];
+              page.on('pageerror',error=>errors.push(String(error)));
+              await page.goto('http://127.0.0.1:3000/',{waitUntil:'domcontentloaded'});
+              const chooser=page.getByRole('heading',{name:/who’s in the garden/i});
+              if(await chooser.isVisible().catch(()=>false)){
+                await page.locator('.profile-choice-list button').filter({hasText:'Archie'}).click();
+                await page.waitForSelector('.bottom-nav');
+              }
+              await page.getByRole('button',{name:'Center',exact:true}).click();
+              await page.waitForSelector('.garden-center-screen');
+              await page.getByRole('button',{name:/^Seed Department\./}).click();
+              await page.waitForSelector('.seed-tools-screen');
+              const result=await page.evaluate(()=>({
+                overflow:document.documentElement.scrollWidth>document.documentElement.clientWidth,
+                analyze:[...document.querySelectorAll('button')].some(button=>/analyze packet/i.test(button.textContent||'')&&button.getBoundingClientRect().height>=42),
+                details:[...document.querySelectorAll('details.packet-all-details')].some(details=>details.open),
+                misleading:/photos do the first pass|front usually identifies|reading stops if it takes too long/i.test(document.body.innerText),
+                seedScreen:Boolean(document.querySelector('.seed-tools-screen'))
+              }));
+              await page.screenshot({path:`diagnostics/seed-department-${width}.png`,fullPage:true});
+              if(errors.length||result.overflow||!result.analyze||result.details||result.misleading||!result.seedScreen)throw new Error(`w${width} ${JSON.stringify(result)} ${errors[0]||''}`);
+              await page.close();
+              page=null;
+            }
+            writeFileSync('diagnostics/mobile-result.txt','PASS');
+          }catch(error){
+            writeFileSync('diagnostics/mobile-result.txt',String(error?.stack||error?.message||error));
+            if(page)await page.screenshot({path:'diagnostics/mobile-failure.png',fullPage:true}).catch(()=>{});
+            process.exitCode=1;
+          }finally{await browser?.close()}
+          JS
+          set +e
+          node diagnostics/mobile.mjs > diagnostics/mobile-stdout.txt 2> diagnostics/mobile-stderr.txt
+          code=$?
+          set -e
+          cat diagnostics/mobile-result.txt
+          cat diagnostics/mobile-stderr.txt
+          test "$code" -eq 0
+          test "$(cat diagnostics/mobile-result.txt)" = PASS
+      - name: Upload service diagnostics
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: phase46x3-mobile-service-diagnostics
+          path: diagnostics/
+          retention-days: 2

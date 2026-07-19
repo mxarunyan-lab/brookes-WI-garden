@@ -48,3 +48,6 @@
 @import './styles/phase-4-6x-pre-sync.css';
 
 @import './styles/phase-4-6x-1-seed-trust.css';
+.packet-vision-actions{display:grid;gap:.65rem;padding:.9rem;border:1px solid var(--line,#d8d1c2);border-radius:1rem;background:rgba(255,255,255,.72)}
+.packet-vision-actions .primary-button{min-height:48px;width:100%}.packet-vision-actions p{margin:0;font-size:.9rem}.packet-photo-state.state-analyzing-packet{font-weight:800}
+@media(max-width:430px){.packet-vision-actions{padding:.75rem}.packet-review-summary{margin-top:.75rem}.packet-photo-actions{display:grid;grid-template-columns:1fr 1fr}.packet-photo-actions>*{min-height:44px}}

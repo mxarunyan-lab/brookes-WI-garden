@@ -1,11 +1,13 @@
-export const APP_VERSION='0.20.2';
-export const BUILD_ID='phase-4-6x-2-one-tap-trust';
+export const APP_VERSION='0.20.3';
+export const BUILD_ID='phase-4-6x-3-multimodal-vision';
 export const UPDATED_AT='July 18, 2026';
 export const WHATS_NEW=[
- 'Approving an exact seed packet now applies the trusted official details to the whole packet record in one step',
- 'Malformed and low-confidence scanner values are replaced automatically instead of becoming fake conflicts',
- 'Only genuine disagreements between clear packet text and approved official data require review',
- 'The front-photo status now updates when the exact packet is identified through the overall workflow',
- 'Optional packet details no longer block saving, and the full manual form remains collapsed unless needed',
- 'Seed packet entry is shorter and more trustworthy while recognition remains best-effort'
+ 'Seed packets are now analyzed using the front and back photographs together',
+ 'Packet identity and planting instructions use visual layout and context instead of basic local OCR alone',
+ 'Barcode, weight, lot, and packet dates receive dedicated analysis and evidence',
+ 'Weight-only packets no longer require a fake exact seed count',
+ 'Reserved seeds were removed from initial packet entry',
+ 'Succession instructions can offer a connected reminder after planting',
+ 'Exact official sources can verify and supplement packet information',
+ 'Only genuine missing or conflicting details require review'
 ];

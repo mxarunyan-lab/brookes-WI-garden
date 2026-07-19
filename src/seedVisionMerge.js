@@ -1,0 +1,171 @@
+const now = () => new Date().toISOString();
+const get = (object, path) => path.reduce((value, key) => value?.[key], object);
+const titleConfidence = (value) => value ? `${value[0].toUpperCase()}${value.slice(1)}` : 'Low';
+
+const mapping = {
+  brand: ['packetIdentity', 'brand'],
+  name: ['packetIdentity', 'crop'],
+  variety: ['packetIdentity', 'variety'],
+  productName: ['packetIdentity', 'productName'],
+  category: ['packetIdentity', 'category'],
+  designations: ['packetIdentity', 'designations'],
+  notableClaims: ['packetIdentity', 'notableClaims'],
+  colorDescription: ['packetIdentity', 'colorDescription'],
+  packetYear: ['inventory', 'packetYear'],
+  packedForYear: ['inventory', 'packedForYear'],
+  sellByDate: ['inventory', 'sellByDate'],
+  packetWeight: ['inventory', 'packetWeightValue'],
+  barcode: ['machineIdentifiers', 'barcode'],
+  lotNumber: ['machineIdentifiers', 'lotNumber'],
+  sunlight: ['growing', 'sunlight'],
+  maturityBasis: ['growing', 'maturityBasis'],
+  germinationEstimate: ['growing', 'emergenceMinimumDays'],
+  depth: ['growing', 'plantingDepthValue'],
+  thinningSpacing: ['growing', 'thinningSpacingValue'],
+  spacing: ['growing', 'finalSpacingValue'],
+  rowSpacing: ['growing', 'rowSpacingValue'],
+  containerSuitability: ['growing', 'containerFriendly'],
+  sowingMethod: ['instructions', 'sowingMethod'],
+  directSowGuidance: ['instructions', 'directSowGuidance'],
+  seedStartingGuidance: ['instructions', 'indoorStartGuidance'],
+  transplantGuidance: ['instructions', 'transplantGuidance'],
+  seasonalWindow: ['instructions', 'seasonalWindow'],
+  frostTiming: ['instructions', 'frostTiming'],
+  waterGuidance: ['instructions', 'moistureGuidance'],
+  soilGuidance: ['instructions', 'soilGuidance'],
+  fertilizingGuidance: ['instructions', 'fertilizingGuidance'],
+  successionGuidance: ['instructions', 'successionGuidance'],
+  harvestGuidance: ['instructions', 'harvestGuidance'],
+  regionalGuidance: ['instructions', 'regionalGuidance'],
+  treatmentInformation: ['instructions', 'treatmentInformation'],
+  seedSavingRestrictions: ['instructions', 'seedSavingRestrictions'],
+  specialCare: ['instructions', 'specialCare'],
+};
+
+function measurementUnit(analysis, key) {
+  return get(analysis, ['growing', key === 'depth' ? 'plantingDepthUnit' : key === 'thinningSpacing' ? 'thinningSpacingUnit' : key === 'spacing' ? 'finalSpacingUnit' : 'rowSpacingUnit']) || 'inch';
+}
+
+function formatValue(key, value, analysis) {
+  if (value === null || value === undefined) return '';
+  if (key === 'packetWeight') return `${value} ${analysis.inventory.packetWeightUnit || ''}`.trim();
+  if (key === 'germinationEstimate') {
+    const maximum = analysis.growing.emergenceMaximumDays;
+    return maximum !== null && maximum !== undefined ? `${value}–${maximum} days` : `${value} days`;
+  }
+  if (['depth', 'thinningSpacing', 'spacing', 'rowSpacing'].includes(key)) {
+    const unit = measurementUnit(analysis, key);
+    const suffix = unit === 'inch' ? (Number(value) === 1 ? 'inch' : 'inches') : unit;
+    return `${value} ${suffix}`;
+  }
+  if (key === 'containerSuitability') {
+    if (!value) return '';
+    const size = analysis.growing.containerMinimumDiameterValue;
+    const unit = analysis.growing.containerMinimumDiameterUnit || 'inch';
+    const plants = analysis.growing.plantsPerContainer;
+    if (size && plants) return `Container friendly · ${plants} plant${plants === 1 ? '' : 's'} per ${size}-${unit} container`;
+    if (size) return `Container friendly · ${size}-${unit} minimum container`;
+    return 'Container friendly';
+  }
+  if (key === 'notableClaims') return Array.isArray(value) ? value.join(' · ') : value;
+  return value;
+}
+
+function visionMeta(analysis, evidenceKey, result) {
+  const evidence = analysis.fieldEvidence?.[evidenceKey] || null;
+  return {
+    source: 'packet-vision',
+    sourceLabel: 'Read from packet photos',
+    confidence: titleConfidence(evidence?.confidence || analysis.quality.overallConfidence),
+    sourcePhoto: evidence?.sourceImage || 'both',
+    evidence,
+    analyzedAt: result.analyzedAt,
+    manuallyCorrected: false,
+  };
+}
+
+export function mergeVisionPacketResult(draft, result) {
+  const analysis = result.analysis;
+  const next = {...draft, fieldMeta: {...(draft.fieldMeta || {})}};
+  const preserved = [];
+  const applied = [];
+
+  for (const [key, path] of Object.entries(mapping)) {
+    const raw = get(analysis, path);
+    const value = formatValue(key, raw, analysis);
+    if (value === '' || value === null || value === undefined || (Array.isArray(value) && !value.length)) continue;
+    const meta = next.fieldMeta[key];
+    if (meta?.source === 'manual' || meta?.manuallyCorrected) {
+      preserved.push(key);
+      continue;
+    }
+    next[key] = value;
+    next.fieldMeta[key] = visionMeta(analysis, path.at(-1), result);
+    applied.push(key);
+  }
+
+  const maturity = analysis.growing.daysToHarvest ?? analysis.growing.daysToMaturity;
+  if (maturity !== null && maturity !== undefined && !(next.fieldMeta.daysToMaturity?.source === 'manual' || next.fieldMeta.daysToMaturity?.manuallyCorrected)) {
+    next.daysToMaturity = maturity;
+    next.fieldMeta.daysToMaturity = visionMeta(analysis, analysis.growing.daysToHarvest !== null ? 'daysToHarvest' : 'daysToMaturity', result);
+    applied.push('daysToMaturity');
+  }
+
+  const printed = analysis.inventory.printedSeedCount;
+  const estimated = analysis.inventory.estimatedSeedCount;
+  if (!(next.fieldMeta.quantity?.source === 'manual' || next.fieldMeta.quantity?.manuallyCorrected)) {
+    if (printed !== null) {
+      next.quantity = printed;
+      next.fieldMeta.quantity = visionMeta(analysis, 'printedSeedCount', result);
+    } else if (estimated !== null) {
+      next.quantity = estimated;
+      next.fieldMeta.quantity = {...visionMeta(analysis, 'estimatedSeedCount', result), sourceLabel: 'Estimated from a documented source'};
+    } else {
+      next.quantity = '';
+      delete next.fieldMeta.quantity;
+    }
+  }
+  next.countType = analysis.inventory.inventoryBasis === 'exact-count' ? 'exact' : analysis.inventory.inventoryBasis === 'weight' ? 'weight-only' : 'estimated';
+  next.reservedQuantity = 0;
+
+  next.packetIntelligence = {
+    ...(next.packetIntelligence || {}),
+    vision: {
+      version: analysis.analysisVersion,
+      model: result.model,
+      analyzedAt: result.analyzedAt,
+      requestId: result.requestId,
+      imageHashes: result.imageHashes,
+      imageMetadata: result.imageMetadata,
+      analysisPassCount: result.analysisPassCount,
+      analysisPasses: result.analysisPasses,
+      packetIdentityConfidence: analysis.quality.packetIdentityConfidence,
+      overallAnalysisConfidence: analysis.quality.overallConfidence,
+      fieldEvidence: analysis.fieldEvidence,
+      unreadableFields: analysis.quality.unreadableFields,
+      contradictoryFields: analysis.quality.contradictoryFields,
+      exactIdentitySupportedByImages: analysis.quality.exactIdentitySupportedByImages,
+      barcodeStatus: analysis.machineIdentifiers.checkDigitValid === true ? 'verified' : analysis.machineIdentifiers.barcode ? 'unverified' : 'not-found',
+      barcodeMethod: analysis.machineIdentifiers.barcodeMethod,
+      analysisSourceSummary: 'Front and back packet photos analyzed together.',
+      rawVisibleText: analysis.rawVisibleText,
+      usage: result.usage || [],
+    },
+    automation: {
+      ...analysis.automation,
+      source: 'seed-packet',
+      sourceEvidence: analysis.fieldEvidence?.successionGuidance || null,
+      taskCreated: false,
+    },
+    conflicts: analysis.quality.contradictoryFields.map((field) => ({field, status: 'needs-review', detectedAt: now()})),
+  };
+  next.draftStatus = 'Ready to save';
+
+  return {
+    draft: next,
+    applied,
+    preserved,
+    optionalMissing: analysis.quality.unreadableFields,
+    conflicts: analysis.quality.contradictoryFields,
+  };
+}

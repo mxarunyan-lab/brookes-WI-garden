@@ -1,0 +1,10 @@
+import test from 'node:test';import assert from 'node:assert/strict';
+import{seedPacketJsonSchema,validateSeedPacketAnalysis}from'../server/seedPacketSchema.js';
+import{mergeVisionPacketResult}from'../src/seedVisionMerge.js';
+import{icebergAnalysisFixture as fixture}from'../fixtures/icebergAnalysisFixture.js';
+test('Iceberg A structured vision fixture validates',()=>assert.equal(validateSeedPacketAnalysis(fixture).packetIdentity.variety,'Iceberg A'));
+test('vision merge preserves manual correction and weight-only inventory',()=>{const result=mergeVisionPacketResult({brand:'My correction',fieldMeta:{brand:{source:'manual',manuallyCorrected:true}},reservedQuantity:9},{analysis:fixture,model:'gpt-5-mini',analyzedAt:new Date().toISOString(),requestId:'req',imageHashes:{front:'a',back:'b'},analysisPassCount:1});assert.equal(result.draft.brand,'My correction');assert.equal(result.draft.variety,'Iceberg A');assert.equal(result.draft.countType,'weight-only');assert.equal(result.draft.reservedQuantity,0);assert.equal(result.draft.packetIntelligence.automation.successionIntervalDays,14)});
+test('malformed identity is rejected',()=>assert.throws(()=>validateSeedPacketAnalysis({...fixture,packetIdentity:{...fixture.packetIdentity,variety:'Iceberg A FULL SUN'}})));
+test('strict model schema is concrete and rejects extra properties',()=>{const schema=seedPacketJsonSchema.schema;assert.equal(schema.additionalProperties,false);assert.equal(schema.properties.packetIdentity.additionalProperties,false);assert.ok(schema.properties.fieldEvidence.required.includes('variety'));assert.equal(schema.properties.fieldEvidence.additionalProperties,false)});
+test('price fragments cannot leak into moisture guidance',()=>assert.throws(()=>validateSeedPacketAnalysis({...fixture,instructions:{...fixture.instructions,moistureGuidance:'Keep evenly moist $2.49'}})));
+test('weight-only packet cannot claim a printed exact seed count',()=>assert.throws(()=>validateSeedPacketAnalysis({...fixture,inventory:{...fixture.inventory,printedSeedCount:500}})));

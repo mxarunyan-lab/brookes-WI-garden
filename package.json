@@ -1,24 +1,34 @@
 {
   "name": "brookes-wi-garden",
   "private": true,
-  "version": "0.20.2",
+  "version": "0.20.3",
   "type": "module",
   "scripts": {
     "dev": "vite",
     "build": "vite build",
     "preview": "vite preview",
-    "test": "node --test"
+    "test": "node --test",
+    "start": "node server/index.js",
+    "analyze:packet:images": "node scripts/analyzePacketImages.mjs",
+    "verify:phase46x3:live": "node scripts/verifyLivePhase46x3.mjs"
   },
   "dependencies": {
     "@vitejs/plugin-react": "latest",
+    "@zxing/library": "^0.21.3",
+    "bwip-js": "^4.11.2",
+    "compression": "latest",
+    "express": "latest",
+    "helmet": "latest",
     "jspdf": "latest",
     "lucide-react": "latest",
+    "openai": "latest",
     "qrcode": "latest",
     "qrcode.react": "latest",
     "react": "latest",
     "react-dom": "latest",
+    "sharp": "latest",
     "tesseract.js": "latest",
-    "vite": "latest"
-  },
-  "devDependencies": {}
+    "vite": "latest",
+    "zod": "latest"
+  }
 }
