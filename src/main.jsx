@@ -9,29 +9,53 @@ const ACTIVE_PROFILE_KEY = 'runyan-garden-active-profile';
 const GARDEN_KEY = 'brookes-garden-state-v2';
 const PAGE_KEY = 'brookes-garden-page-v2';
 
+const readStorage = (key) => {
+  try {
+    return localStorage.getItem(key);
+  } catch {
+    return null;
+  }
+};
+
+const writeStorage = (key, value) => {
+  try {
+    localStorage.setItem(key, value);
+    return true;
+  } catch (error) {
+    console.error(`[Runyan Garden] Could not save ${key}`, error);
+    return false;
+  }
+};
+
 function RootApp() {
-  const [activeProfileId, setActiveProfileId] = useState(() => localStorage.getItem(ACTIVE_PROFILE_KEY));
+  const [activeProfileId, setActiveProfileId] = useState(() => readStorage(ACTIVE_PROFILE_KEY));
 
   const chooseProfile = (profileId) => {
     const selected = DEFAULT_PROFILES.find((profile) => profile.id === profileId) || DEFAULT_PROFILES[0];
-    localStorage.setItem(ACTIVE_PROFILE_KEY, selected.id);
-    localStorage.setItem(PAGE_KEY, 'today');
+
+    writeStorage(ACTIVE_PROFILE_KEY, selected.id);
+    writeStorage(PAGE_KEY, 'today');
+
     try {
-      const garden = JSON.parse(localStorage.getItem(GARDEN_KEY) || '{}');
-      localStorage.setItem(GARDEN_KEY, JSON.stringify({
+      const garden = JSON.parse(readStorage(GARDEN_KEY) || '{}');
+      writeStorage(GARDEN_KEY, JSON.stringify({
         ...garden,
         profile: { ...(garden.profile || {}), gardenerName: selected.name, activeProfileId: selected.id },
       }));
-    } catch {}
+    } catch (error) {
+      console.error('[Runyan Garden] Could not update the active gardener profile', error);
+    }
+
+    // Render the app immediately. A forced reload can strand installed iPhone PWAs
+    // on the chooser when an older service worker or cached document is active.
     setActiveProfileId(selected.id);
-    window.location.reload();
   };
 
   if (!activeProfileId) return <ProfileChooser profiles={DEFAULT_PROFILES} onChoose={chooseProfile} />;
   return <App />;
 }
 
-localStorage.setItem(PAGE_KEY, 'today');
+writeStorage(PAGE_KEY, 'today');
 
 ReactDOM.createRoot(document.getElementById('root')).render(
   <React.StrictMode>
