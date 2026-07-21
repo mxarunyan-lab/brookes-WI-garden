@@ -12,7 +12,8 @@
   right:82px;
   z-index:9;
   display:block!important;
-  min-width:0;
+  width:auto!important;
+  min-width:0!important;
   max-width:310px;
   padding:11px 13px 12px!important;
   border:1px solid rgba(23,61,43,.2);
@@ -59,7 +60,7 @@
 
 @media(max-width:360px){
   .compact-home-hero{height:226px!important;min-height:226px!important}
-  .compact-home-hero .compact-hero-title{left:14px;right:88px;top:15px;padding:10px 11px 11px!important;border-radius:14px}
+  .compact-home-hero .compact-hero-title{left:14px;right:88px;top:15px;width:auto!important;max-width:none!important;padding:10px 11px 11px!important;border-radius:14px}
   .compact-home-hero .compact-hero-title h1{font-size:1.3rem!important;line-height:1.08!important}
   .compact-home-hero .compact-hero-title p{max-width:178px;font-size:.75rem!important;line-height:1.32!important}
   .compact-home-hero .hero-bell{top:15px!important;right:14px!important}
@@ -69,7 +70,7 @@
 
 @media(min-width:600px){
   .compact-home-hero{height:236px!important;min-height:236px!important}
-  .compact-home-hero .compact-hero-title{top:22px;left:22px;right:auto;width:min(330px,calc(100% - 104px));padding:13px 15px 14px!important}
+  .compact-home-hero .compact-hero-title{top:22px;left:22px;right:auto;width:min(330px,calc(100% - 104px))!important;padding:13px 15px 14px!important}
   .compact-home-hero .compact-hero-title h1{font-size:1.95rem!important}
   .compact-home-hero .compact-hero-title p{font-size:.82rem!important}
   .compact-home-hero .hero-bell{top:22px!important;right:22px!important}
