@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import {loadPacketImages} from './seedPacketFixture.mjs';
 
-const base=(process.env.APP_URL||'https://brookes-wi-garden.onrender.com').replace(/\/$/,'');
+const base=(process.env.APP_URL||'https://brookes-garden-compass.onrender.com').replace(/\/$/,'');
 const attempts=Number(process.env.VERIFY_ATTEMPTS||48),delay=Number(process.env.VERIFY_DELAY_MS||15000);
 const sleep=ms=>new Promise(resolve=>setTimeout(resolve,ms));
 let health=null;
