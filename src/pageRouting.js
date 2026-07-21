@@ -22,6 +22,12 @@ export function pageUrl(page,location=window.location){
  return`${location.pathname||'/'}${query?`?${query}`:''}${location.hash||''}`;
 }
 export function syncPageUrl(page,{replace=false,location=window.location,history=window.history}={}){
- try{const url=pageUrl(page,location);if(`${location.pathname}${location.search}${location.hash||''}`===url)return;history[replace?'replaceState':'pushState']({gardenPage:normalizePage(page)},'',url)}catch{}
+ try{
+  const currentParams=new URLSearchParams(location.search||'');
+  if(currentParams.has('bed')||currentParams.has('gardenLabel'))return;
+  const url=pageUrl(page,location);
+  if(`${location.pathname}${location.search}${location.hash||''}`===url)return;
+  history[replace?'replaceState':'pushState']({gardenPage:normalizePage(page)},'',url);
+ }catch{}
 }
 export function pageFromPopState(event,location=window.location){return normalizePage(event?.state?.gardenPage||new URLSearchParams(location.search||'').get('page')||'today')}
