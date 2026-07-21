@@ -38,7 +38,11 @@ jobs:
           cat phase472-server.log
           exit 1
       - name: Verify photographed workflows at mobile widths
-        run: node scripts/verifyPhase472Mobile.mjs
+        shell: bash
+        run: |
+          mkdir -p phase472-mobile
+          set -o pipefail
+          node scripts/verifyPhase472Mobile.mjs 2>&1 | tee phase472-mobile/run.log
         env:
           APP_URL: http://127.0.0.1:4173
       - name: Upload mobile screenshots and diagnostics
