@@ -73,5 +73,9 @@ jobs:
           path: |
             phase474-audit
             phase474-*.log
+            src/App.jsx
+            src/BedWorkspace.jsx
+            src/ClearDetailModal.jsx
+            src/WorkspaceScreens.jsx
           if-no-files-found: warn
           retention-days: 7
