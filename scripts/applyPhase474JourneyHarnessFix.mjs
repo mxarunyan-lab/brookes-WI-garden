@@ -1,6 +1,7 @@
 import{readFile,writeFile}from'node:fs/promises';
-const path='scripts/verifyPhase474CriticalJourneys.mjs';
-let source=await readFile(path,'utf8'),changed=false;
+
+const journeyPath='scripts/verifyPhase474CriticalJourneys.mjs';
+let source=await readFile(journeyPath,'utf8'),changed=false;
 if(source.includes('page.waitForFunction(source=>')){
  source=source.replace(/const waitGarden=async\(page,predicate,label\)=>\{try\{await page\.waitForFunction[\s\S]*?\}\};/,"const waitGarden=async(page,predicate,label)=>{const deadline=Date.now()+10000;let snapshot={};while(Date.now()<deadline){snapshot=await garden(page).catch(()=>({}));if(predicate(snapshot))return snapshot;await page.waitForTimeout(75)}throw new Error(`${label}. Current stored state: ${JSON.stringify(snapshot).slice(0,2000)}`)};");
  changed=true;
@@ -14,4 +15,15 @@ const replacements=[
  ["dialog.getByLabel('Grow bag size').fill('10 gallon')","dialog.getByLabel('Grow bag size',{exact:true}).fill('10 gallon')"]
 ];
 for(const[old,next]of replacements){if(source.includes(next))continue;if(!source.includes(old))throw new Error(`Expected lifecycle locator not found: ${old}`);source=source.replaceAll(old,next);changed=true}
-if(changed)await writeFile(path,source);console.log(JSON.stringify({ok:true,changed}));
+if(changed)await writeFile(journeyPath,source);
+
+const modalPath='src/ClearDetailModal.jsx';
+let modalSource=await readFile(modalPath,'utf8'),modalChanged=false;
+if(modalSource.includes('<label>Bag size<input')){
+ modalSource=modalSource.replace('<label>Bag size<input','<label>Grow bag size<input');
+ modalChanged=true;
+ await writeFile(modalPath,modalSource);
+}
+if(!modalSource.includes('<label>Grow bag size<input'))throw new Error('Expected potato grow-bag size label was not found.');
+
+console.log(JSON.stringify({ok:true,journeyChanged:changed,modalChanged}));
