@@ -77,6 +77,7 @@ jobs:
             src/App.jsx
             src/BedWorkspace.jsx
             src/ClearDetailModal.jsx
+            src/SeedTools.jsx
             src/WorkspaceScreens.jsx
           if-no-files-found: warn
           retention-days: 7
