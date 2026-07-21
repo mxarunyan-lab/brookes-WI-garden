@@ -16,7 +16,7 @@ export function parseDisplayDate(value){
 export function formatGardenDate(value,{fallback='Date unavailable',timeZone=DEFAULT_TIME_ZONE}={}){
  const date=parseDisplayDate(value);
  if(!date)return fallback;
- try{const parts=new Intl.DateTimeFormat('en-US',{timeZone,month:'2-digit',day:'2-digit',year:'numeric'}).formatToParts(date).reduce((out,part)=>(out[part.type]=part.value,out),{});return`${parts.month}-${parts.day}-${parts.year}`}catch{return fallback}
+ try{const parts=new Intl.DateTimeFormat('en-US',{timeZone,month:'numeric',day:'numeric',year:'2-digit'}).formatToParts(date).reduce((out,part)=>(out[part.type]=part.value,out),{});return`${parts.month}/${parts.day}/${parts.year}`}catch{return fallback}
 }
 
 export function formatGardenTime(value,{fallback='Time unavailable',timeZone=DEFAULT_TIME_ZONE}={}){
@@ -34,7 +34,7 @@ export function formatGardenDateTime(value,{fallback='Not recorded',timeZone=DEF
 export function formatGardenDateRange(start,end,options={}){
  const first=formatGardenDate(start,options),last=formatGardenDate(end,options);
  if(first===options.fallback||last===options.fallback)return first;
- return first===last?first:`${first}–${last}`;
+ return first===last?first:`${first} - ${last}`;
 }
 
 export function localDateInputValue(value=new Date()){

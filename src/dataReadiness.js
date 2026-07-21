@@ -80,8 +80,10 @@ export const COLLECTION_DEFINITIONS={
 function statusFor(key,record){
  if(record.deletedAt)return'deleted';if(record.archivedAt||record.archived)return'archived';
  if(key==='taskHistory')return record.status==='done'?'completed':record.status||'completed';
- const explicit=text(record.status),aliases={vacationActions:{open:'active',closed:'archived',done:'completed'},reminders:{open:'active',done:'completed',hidden:'archived'},shoppingItems:{removed:'deleted',done:'purchased'},problems:{closed:'resolved'}};if(aliases[key]?.[explicit])return aliases[key][explicit];if(explicit&&STATUS_MODELS[key]?.includes(explicit))return explicit;
- if(key==='seedPackets')return number(record.quantity)<=0?'empty':'active';
+ const explicit=text(record.status),aliases={vacationActions:{open:'active',closed:'archived',done:'completed'},reminders:{open:'active',done:'completed',hidden:'archived'},shoppingItems:{removed:'deleted',done:'purchased'},problems:{closed:'resolved'}};
+ if(key==='seedPackets'&&explicit==='empty'&&(record.countType==='weight-only'||text(record.packetWeight)))return'active';
+ if(aliases[key]?.[explicit])return aliases[key][explicit];if(explicit&&STATUS_MODELS[key]?.includes(explicit))return explicit;
+ if(key==='seedPackets')return number(record.quantity)<=0&&(record.countType!=='weight-only'&&!text(record.packetWeight))?'empty':'active';
  if(key==='reminders')return record.enabled===false?'completed':'active';
  if(key==='shoppingItems')return record.purchased?'purchased':record.alreadyOwned?'owned':'active';
  if(key==='problems')return'open';

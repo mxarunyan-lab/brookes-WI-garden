@@ -1,7 +1,13 @@
 export const APP_VERSION='0.20.3';
-export const BUILD_ID='phase-4-6x-3-stabilized-packet-planning';
+export const BUILD_ID='phase-4-6x-4-garden-intelligence';
 export const UPDATED_AT='July 21, 2026';
 export const WHATS_NEW=[
+ 'Planting Desk now organizes saved packets into Today / Grow Now, This Week, Plan Ahead, and Wait queues',
+ 'Review All Grow Now now opens the Garden Intelligence Engine instead of landing on an empty or unchanged screen',
+ 'Create connected planting keeps the exact saved packet ID from queue to Plant Journey',
+ 'Weight-only packets stay visible and plantable without inventing fake seed counts',
+ 'Garden dates now use short M/D/YY ranges across planting, weather, chores, reminders, and plant details',
+ 'Watering guidance now treats indoor seedlings, containers, and potato grow bags separately from outdoor bed rainfall',
  'Saved seed packets now open a packet-specific Planting Desk readiness card',
  'Connected plantings keep the exact saved packet ID from Seed Department through Plant Journey',
  'Grow Now uses saved packet timing, Green Bay frost dates, maturity days, and weather risk before recommending action',
