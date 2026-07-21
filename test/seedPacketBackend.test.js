@@ -60,6 +60,25 @@ test('one targeted second pass fills missing high-value fields without replacing
  assert.ok(result.analysisPasses[1].fieldsAdded.includes('packetIdentity.variety'));
 });
 
+test('unsupported vision barcode does not discard otherwise valid packet analysis',async()=>{
+ const invalidBarcode=clone(icebergAnalysisFixture);
+ invalidBarcode.machineIdentifiers.barcode='6285';
+ invalidBarcode.machineIdentifiers.barcodeFormat='unknown';
+ invalidBarcode.machineIdentifiers.barcodeConfidence='low';
+ invalidBarcode.machineIdentifiers.barcodeMethod='vision-read';
+ invalidBarcode.machineIdentifiers.visibleDigits='6285';
+ invalidBarcode.fieldEvidence.barcode={value:'6285',sourceImage:'back',visibleEvidence:'6285',confidence:'low',printed:true,normalized:false};
+ invalidBarcode.fieldEvidence.barcodeFormat={value:'unknown',sourceImage:'back',visibleEvidence:'6285',confidence:'low',printed:false,normalized:true};
+ invalidBarcode.fieldEvidence.barcodeConfidence={value:'low',sourceImage:'back',visibleEvidence:'6285',confidence:'low',printed:false,normalized:true};
+ invalidBarcode.fieldEvidence.barcodeMethod={value:'vision-read',sourceImage:'back',visibleEvidence:'6285',confidence:'low',printed:false,normalized:true};
+ invalidBarcode.fieldEvidence.visibleDigits={value:'6285',sourceImage:'back',visibleEvidence:'6285',confidence:'low',printed:true,normalized:false};
+ const {frontImage,backImage}=await createIcebergPacketFixture(),openaiClient={responses:{create:async()=>response(invalidBarcode,'resp_bad_barcode')}};
+ const result=await analyzeSeedPacket({frontImage,backImage},{openaiClient,requestId:'req_bad_barcode',barcodeDecoder:async()=>({value:null,format:null,checkDigitValid:null,confidence:null,method:'unavailable',visibleDigits:null}),productResearch:async()=>({exact:false,candidate:null,sources:[]})});
+ assert.equal(result.analysis.packetIdentity.variety,'Iceberg A');
+ assert.equal(result.analysis.machineIdentifiers.barcode,null);
+ assert.ok(result.analysis.quality.unreadableFields.includes('barcode'));
+});
+
 test('health and analysis routes are served by the Node web service',async()=>{
  const fixture=await createIcebergPacketFixture();
  const app=createApp({analyze:async(_payload,{requestId})=>({requestId,model:'fixture',analyzedAt:new Date().toISOString(),analysisPassCount:1,analysisPasses:[],imageHashes:{front:'a',back:'b'},imageMetadata:{},fingerprint:'fixture',analysis:icebergAnalysisFixture,barcode:{value:null},officialProduct:{exact:false},usage:[]})});

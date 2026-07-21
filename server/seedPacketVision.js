@@ -154,6 +154,42 @@ function mergeTargetedRepair(base, repair, fieldsRequested) {
   return {analysis: validateSeedPacketAnalysis(merged), addedFields};
 }
 
+function clearUnsupportedBarcode(input, validationErrors = []) {
+  if (!validationErrors.some((message) => /barcode length is unsupported/i.test(String(message)))) return null;
+  const next = structuredClone(input);
+  next.machineIdentifiers = {
+    ...next.machineIdentifiers,
+    barcode: null,
+    barcodeFormat: null,
+    barcodeConfidence: null,
+    barcodeMethod: null,
+    checkDigitValid: null,
+    visibleDigits: null,
+  };
+  ['barcode', 'barcodeFormat', 'barcodeConfidence', 'barcodeMethod', 'checkDigitValid', 'visibleDigits'].forEach((key) => {
+    if (next.fieldEvidence) next.fieldEvidence[key] = null;
+  });
+  next.quality = {
+    ...next.quality,
+    manualReviewFields: [...new Set([...(next.quality?.manualReviewFields || []), 'barcode'])],
+    unreadableFields: [...new Set([...(next.quality?.unreadableFields || []), 'barcode'])],
+    analysisNotes: [...(next.quality?.analysisNotes || []), 'Barcode digits were not safely validated and were left blank for review.'].slice(0, 30),
+  };
+  next.warnings = [...new Set([...(next.warnings || []), 'Barcode digits were not safely validated and were left blank for review.'])];
+  return next;
+}
+
+function validateWithRecoverableCleanup(input) {
+  try {
+    return validateSeedPacketAnalysis(input);
+  } catch (error) {
+    const validationErrors = error.validationErrors || error.issues?.map((issue) => issue.message) || [error.message];
+    const cleaned = clearUnsupportedBarcode(input, validationErrors);
+    if (cleaned) return validateSeedPacketAnalysis(cleaned);
+    throw error;
+  }
+}
+
 function applyMachineBarcode(analysis, barcode) {
   if (!barcode?.value) return analysis;
   const checked = validateBarcode(barcode.value, barcode.format);
@@ -211,7 +247,7 @@ export async function analyzeSeedPacket({frontImage, backImage, draftContext}, {
   passes.push(first.pass);
   let analysis;
   try {
-    analysis = validateSeedPacketAnalysis(first.parsed);
+    analysis = validateWithRecoverableCleanup(first.parsed);
   } catch (error) {
     const errors = error.validationErrors || error.issues?.map((issue) => issue.message) || [error.message];
     const repairInput = [...baseInput, {
@@ -224,7 +260,7 @@ export async function analyzeSeedPacket({frontImage, backImage, draftContext}, {
     const repaired = await requestStructuredAnalysis(client, repairInput, 'validation-repair', requestId, errors);
     passes.push(repaired.pass);
     try {
-      analysis = validateSeedPacketAnalysis(repaired.parsed);
+      analysis = validateWithRecoverableCleanup(repaired.parsed);
       first = repaired;
     } catch (repairError) {
       throw modelError('MODEL_RESPONSE_INVALID', 'Packet analysis could not produce a safe structured result.', 502, {validationErrors: repairError.validationErrors || repairError.issues || []});
@@ -243,7 +279,7 @@ export async function analyzeSeedPacket({frontImage, backImage, draftContext}, {
     const targeted = await requestStructuredAnalysis(client, targetedInput, 'targeted-missing-fields', requestId, incompleteFields);
     let targetedAnalysis;
     try {
-      targetedAnalysis = validateSeedPacketAnalysis(targeted.parsed);
+      targetedAnalysis = validateWithRecoverableCleanup(targeted.parsed);
       const merged = mergeTargetedRepair(analysis, targetedAnalysis, incompleteFields);
       analysis = merged.analysis;
       targeted.pass.fieldsAdded = merged.addedFields;
