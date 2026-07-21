@@ -14,22 +14,26 @@ test('Garden Center is a department hub, not a duplicate daily dashboard',()=>{
  assert.match(source,/Growing Spaces/);
 });
 
-test('Today owns the compact daily action summary without duplicate brief cards',()=>{
+test('Today owns one compact status summary and useful next destinations',()=>{
  const source=src('WorkspaceScreens.jsx');
- assert.match(source,/WHAT MATTERS TODAY/);
+ assert.match(source,/GARDEN STATUS/);
+ assert.match(source,/today-quick-links/);
  assert.equal(source.includes("TODAY'S GARDEN BRIEF"),false);
  assert.equal(source.includes('GARDEN TASKS</small><strong>'),false);
  assert.equal(source.includes('seed-readiness-announcement'),false);
 });
 
-test('Tool Shed is tool-focused and More owns settings and data management',()=>{
+test('Tool Shed is tool-focused and More owns consolidated settings and data management',()=>{
  const toolShed=src('ToolShed.jsx'),more=src('MoreHub.jsx');
  assert.match(toolShed,/WEATHER TOOLS/);
  assert.match(toolShed,/NOTES & PRINTABLES/);
  assert.match(toolShed,/UTILITIES/);
  assert.equal(toolShed.includes('title="Settings"'),false);
  assert.equal(toolShed.includes('title="Data Management"'),false);
- assert.match(more,/title="Settings"/);
+ assert.match(more,/more-settings-hub/);
+ assert.match(more,/Garden and gardeners/);
+ assert.match(more,/Location and frost dates/);
+ assert.match(more,/Notifications/);
  assert.match(more,/title="Data Management"/);
  assert.match(more,/title="Quick Help"/);
  assert.match(more,/title="What's New"/);
