@@ -21,7 +21,7 @@ jobs:
       REPO: ${{ github.repository }}
       SHA: ${{ github.sha }}
       RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
-      APP_URL: https://brookes-wi-garden.onrender.com
+      APP_URL: https://brookes-garden-compass.onrender.com
       VERIFY_ATTEMPTS: 36
       VERIFY_DELAY_MS: 10000
     steps:
