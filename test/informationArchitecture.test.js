@@ -14,10 +14,11 @@ test('Garden Center is a department hub, not a duplicate daily dashboard',()=>{
  assert.match(source,/Growing Spaces/);
 });
 
-test('Today owns one compact status summary and useful next destinations',()=>{
+test('Today owns one compact status summary without redundant navigation tiles',()=>{
  const source=src('WorkspaceScreens.jsx');
  assert.match(source,/GARDEN STATUS/);
- assert.match(source,/today-quick-links/);
+ assert.equal(source.includes('today-quick-links'),false);
+ assert.match(source,/No garden work needs your attention right now/);
  assert.equal(source.includes("TODAY'S GARDEN BRIEF"),false);
  assert.equal(source.includes('GARDEN TASKS</small><strong>'),false);
  assert.equal(source.includes('seed-readiness-announcement'),false);
@@ -28,9 +29,12 @@ test('Tool Shed is tool-focused and More owns consolidated settings and data man
  assert.match(toolShed,/WEATHER TOOLS/);
  assert.match(toolShed,/NOTES & PRINTABLES/);
  assert.match(toolShed,/UTILITIES/);
+ assert.match(toolShed,/openWeather\('garden'\)/);
+ assert.match(toolShed,/openWeather\('rain'\)/);
+ assert.match(toolShed,/openWeather\('frost'\)/);
  assert.equal(toolShed.includes('title="Settings"'),false);
  assert.equal(toolShed.includes('title="Data Management"'),false);
- assert.match(more,/more-settings-hub/);
+ assert.match(more,/<details className="more-settings-hub">/);
  assert.match(more,/Garden and gardeners/);
  assert.match(more,/Location and frost dates/);
  assert.match(more,/Notifications/);
@@ -39,9 +43,12 @@ test('Tool Shed is tool-focused and More owns consolidated settings and data man
  assert.match(more,/title="What's New"/);
 });
 
-test('Weather Tools uses contextual back navigation and collapsed details by default',()=>{
+test('Weather Tools uses contextual back navigation and focused modes',()=>{
  const source=src('WorkspaceScreens.jsx');
  assert.match(source,/navigate\('back'\)/);
+ assert.match(source,/mode==='garden'/);
+ assert.match(source,/mode==='rain'/);
+ assert.match(source,/mode==='frost'/);
  assert.equal(source.includes('defaultOpen/>'),false);
  assert.equal(source.includes('Back to Today'),false);
 });
