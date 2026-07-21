@@ -1,8 +1,17 @@
 import{readFile,writeFile}from'node:fs/promises';
 const path='scripts/verifyPhase474CriticalJourneys.mjs';
-let source=await readFile(path,'utf8');
-const old="const waitGarden=async(page,predicate,label)=>{try{await page.waitForFunction(source=>{const row=JSON.parse(localStorage.getItem('brookes-garden-state-v2')||'{}');const fn=new Function('garden',`return (${source})(garden)`);return Boolean(fn(row))},predicate.toString(),{timeout:10000})}catch(error){const snapshot=await garden(page).catch(()=>({}));throw new Error(`${label}. Current stored state: ${JSON.stringify(snapshot).slice(0,2000)}`,{cause:error})}};";
-const next="const waitGarden=async(page,predicate,label)=>{let snapshot={};for(let attempt=0;attempt<100;attempt+=1){snapshot=await garden(page).catch(()=>({}));if(predicate(snapshot))return snapshot;await page.waitForTimeout(100)}throw new Error(`${label}. Current stored state: ${JSON.stringify(snapshot).slice(0,2000)}`)};";
-if(source.includes(next)){console.log(JSON.stringify({ok:true,changed:false}));process.exit(0)}
-if(!source.includes(old))throw new Error('Expected lifecycle polling helper not found.');
-source=source.replace(old,next);await writeFile(path,source);console.log(JSON.stringify({ok:true,changed:true}));
+let source=await readFile(path,'utf8'),changed=false;
+if(source.includes('page.waitForFunction(source=>')){
+ source=source.replace(/const waitGarden=async\(page,predicate,label\)=>\{try\{await page\.waitForFunction[\s\S]*?\}\};/,"const waitGarden=async(page,predicate,label)=>{const deadline=Date.now()+10000;let snapshot={};while(Date.now()<deadline){snapshot=await garden(page).catch(()=>({}));if(predicate(snapshot))return snapshot;await page.waitForTimeout(75)}throw new Error(`${label}. Current stored state: ${JSON.stringify(snapshot).slice(0,2000)}`)};");
+ changed=true;
+}
+const replacements=[
+ ["dialog.getByLabel('Container size').isVisible()","dialog.getByLabel('Container size',{exact:true}).isVisible()"],
+ ["dialog.getByLabel('Grow bag size').count()","dialog.getByLabel('Grow bag size',{exact:true}).count()"],
+ ["dialog.getByLabel('Container size').fill('5 gallon')","dialog.getByLabel('Container size',{exact:true}).fill('5 gallon')"],
+ ["dialog.getByLabel('Grow bag size').isVisible()","dialog.getByLabel('Grow bag size',{exact:true}).isVisible()"],
+ ["dialog.getByLabel('Container size').count()","dialog.getByLabel('Container size',{exact:true}).count()"],
+ ["dialog.getByLabel('Grow bag size').fill('10 gallon')","dialog.getByLabel('Grow bag size',{exact:true}).fill('10 gallon')"]
+];
+for(const[old,next]of replacements){if(source.includes(next))continue;if(!source.includes(old))throw new Error(`Expected lifecycle locator not found: ${old}`);source=source.replaceAll(old,next);changed=true}
+if(changed)await writeFile(path,source);console.log(JSON.stringify({ok:true,changed}));
