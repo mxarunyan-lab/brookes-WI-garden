@@ -139,7 +139,14 @@ export function packetPayload(draft,{frontPhoto='',backPhoto='',imageMeta={}}={}
 }
 
 export function savePacketDraft(snapshot){
- try{sessionStorage.setItem(SEED_PACKET_DRAFT_KEY,JSON.stringify({...snapshot,savedAt:new Date().toISOString()}));return{ok:true}}catch(error){console.error('[Runyan Garden] seed packet draft save failed',error);return{ok:false,error}}
+ const savedAt=new Date().toISOString();
+ try{sessionStorage.setItem(SEED_PACKET_DRAFT_KEY,JSON.stringify({...snapshot,savedAt}));return{ok:true}}catch(error){
+  try{
+   const compact={...snapshot,frontPhoto:'',backPhoto:'',imageMeta:{...(snapshot.imageMeta||{}),draftPhotosOmittedForStorage:true},savedAt};
+   sessionStorage.setItem(SEED_PACKET_DRAFT_KEY,JSON.stringify(compact));
+   return{ok:true,warning:'draft-photos-omitted'};
+  }catch(secondError){console.error('[Runyan Garden] seed packet draft save failed',secondError);return{ok:false,error:secondError}}
+ }
 }
 export function loadPacketDraft(){try{const raw=sessionStorage.getItem(SEED_PACKET_DRAFT_KEY);return raw?JSON.parse(raw):null}catch(error){console.error('[Runyan Garden] seed packet draft read failed',error);return null}}
 export function clearPacketDraft(){try{sessionStorage.removeItem(SEED_PACKET_DRAFT_KEY)}catch{}}
@@ -161,6 +168,12 @@ export async function compressPacketImage(file,{maxDimension=1600,quality=.78}={
 
 export async function rotatePacketImage(dataUrl,degrees=90){
  const image=await imageFromDataUrl(dataUrl),quarter=Math.abs(degrees)%180===90,canvas=document.createElement('canvas');canvas.width=quarter?image.naturalHeight:image.naturalWidth;canvas.height=quarter?image.naturalWidth:image.naturalHeight;const context=canvas.getContext('2d',{alpha:false});context.fillStyle='#fff';context.fillRect(0,0,canvas.width,canvas.height);context.translate(canvas.width/2,canvas.height/2);context.rotate(degrees*Math.PI/180);context.drawImage(image,-image.naturalWidth/2,-image.naturalHeight/2);return canvas.toDataURL('image/jpeg',.8);
+}
+
+export async function createPacketStoragePhoto(dataUrl,{maxDimension=480,quality=.5}={}){
+ if(!dataUrl)return'';
+ const image=await imageFromDataUrl(dataUrl),scale=Math.min(1,maxDimension/Math.max(image.naturalWidth,image.naturalHeight)),width=Math.max(1,Math.round(image.naturalWidth*scale)),height=Math.max(1,Math.round(image.naturalHeight*scale)),canvas=document.createElement('canvas');
+ canvas.width=width;canvas.height=height;const context=canvas.getContext('2d',{alpha:false});context.fillStyle='#fff';context.fillRect(0,0,width,height);context.drawImage(image,0,0,width,height);return canvas.toDataURL('image/jpeg',quality);
 }
 
 async function barcodeFromImage(dataUrl){
