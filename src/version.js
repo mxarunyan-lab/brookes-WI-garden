@@ -1,7 +1,14 @@
 export const APP_VERSION='0.20.3';
-export const BUILD_ID='phase-4-6x-4-garden-intelligence';
+export const BUILD_ID='phase-4-6x-5-garden-intelligence-trust-layer';
 export const UPDATED_AT='July 21, 2026';
 export const WHATS_NEW=[
+ 'Garden Compass now explains why each seed recommendation exists',
+ 'Planting recommendations show confidence, missing information, and information used',
+ 'Planting Desk now includes a garden calendar timeline for saved packet windows',
+ 'Garden tasks can be created from recommendations only after you choose Add to Garden Chore Board',
+ 'Home now shows a proactive daily garden briefing from packets, weather, lifecycle stage, and chores',
+ 'Plant lifecycle intelligence now changes guidance for seedlings, transplants, established plants, and harvests',
+ 'Weather decisions are visible again as garden actions, not just weather readings',
  'Planting Desk now organizes saved packets into Today / Grow Now, This Week, Plan Ahead, and Wait queues',
  'Review All Grow Now now opens the Garden Intelligence Engine instead of landing on an empty or unchanged screen',
  'Create connected planting keeps the exact saved packet ID from queue to Plant Journey',

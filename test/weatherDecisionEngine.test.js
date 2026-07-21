@@ -26,6 +26,8 @@ test('low rain probability does not cancel watering',()=>{const w=weather({forec
 // 5
 test('heavy rain forecast creates one preparation recommendation',()=>{const result=buildWeatherDecisionEngine({weather:weather({forecasts:[forecast(8,{precipitation_probability:90,precipitation_amount:.8})]}),garden:garden(),now:NOW});assert.equal(result.recommendations.filter(row=>row.actionKey==='prepare-heavy-rain').length,1)});
 
+test('rain forecast becomes actionable garden guidance with evidence',()=>{const result=buildWeatherDecisionEngine({weather:weather({forecasts:[forecast(4,{precipitation_probability:85,precipitation_amount:.35})],recentRain24h:0}),garden:garden([plant('tomato','tomato','bed','Established',{moisture:'dry'})]),now:NOW});const row=result.recommendations.find(item=>item.actionKey==='delay-watering');assert.ok(row);assert.match(row.recommendedAction,/Wait|reassess/i);assert.ok(row.weatherEvidence.some(item=>item.label==='Forecast rain'&&/0\.35 in/.test(item.value)))});
+
 // 6
 test('exposed container during heat and wind is prioritized separately',()=>{const p=plant('pepper','bell-pepper','container');const result=buildWeatherDecisionEngine({weather:weather({high:94,wind:22,windGust:34,forecasts:[forecast(4,{maximum_temperature:94,wind_speed:22,wind_gust:34})]}),garden:garden([p],[spaces.container]),now:NOW});assert.ok(result.recommendations.some(row=>row.category==='heat'&&row.affectedPlants.includes(p.id)));assert.ok(result.recommendations.some(row=>row.category==='wind'&&row.affectedPlants.includes(p.id)));assert.ok(result.recommendations.some(row=>row.category==='watering'&&row.actionKey==='check-soil'))});
 
@@ -70,6 +72,8 @@ test('recommendations remain deduplicated across one calculation',()=>{const res
 
 // 20
 test('material forecast change creates a new fingerprint and allows guidance to return',()=>{const g=garden([plant('pepper','bell-pepper','container')],[spaces.container]),firstWeather=weather({high:90,forecasts:[forecast(3,{maximum_temperature:90})]}),first=buildWeatherDecisionEngine({weather:firstWeather,garden:g,now:NOW}),target=first.recommendations.find(row=>row.category==='heat'),decision=createWeatherRecommendationDecision(target,'dismissed','Brooke',new Date(NOW)),changed=buildWeatherDecisionEngine({weather:weather({high:99,forecasts:[forecast(3,{maximum_temperature:99})]}),garden:{...g,weatherRecommendationHistory:[decision]},now:NOW+60000}),returned=changed.recommendations.find(row=>row.category==='heat');assert.ok(returned);assert.notEqual(returned.conditionFingerprint,target.conditionFingerprint)});
+
+test('upcoming weather event titles use garden-friendly dates',()=>{const result=buildWeatherDecisionEngine({weather:weather({forecasts:[forecast(30,{minimum_temperature:34})]}),garden:garden([plant('pepper','bell-pepper','bed','Transplanted')],[spaces.bed]),now:NOW});const event=result.upcomingEvents.find(row=>row.category==='frost');assert.ok(event);assert.match(event.title,/\d+\/\d+\/\d{2}/);assert.doesNotMatch(event.title,/\d{4}-\d{2}-\d{2}/)});
 
 test('thresholds remain explicit and testable',()=>{assert.equal(WEATHER_DECISION_THRESHOLDS.freezeF,32);assert.equal(WEATHER_DECISION_THRESHOLDS.forecastRainProbability,70);assert.equal(WEATHER_DECISION_THRESHOLDS.strongWindGustMph,35)});
 
