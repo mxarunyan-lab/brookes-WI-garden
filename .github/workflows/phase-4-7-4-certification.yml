@@ -11,7 +11,7 @@ permissions:
 jobs:
   certify-local-release-candidate:
     runs-on: ubuntu-latest
-    timeout-minutes: 45
+    timeout-minutes: 60
     steps:
       - name: Check out repository
         uses: actions/checkout@v4
@@ -66,6 +66,13 @@ jobs:
         env:
           APP_URL: http://127.0.0.1:4173
           PHASE474_STRICT: '0'
+      - name: Run critical record lifecycle journeys
+        shell: bash
+        run: |
+          set -o pipefail
+          node scripts/verifyPhase474CriticalJourneys.mjs 2>&1 | tee phase474-journeys.log
+        env:
+          APP_URL: http://127.0.0.1:4173
       - name: Upload Phase 4.7.4 evidence
         if: always()
         uses: actions/upload-artifact@v4
@@ -76,7 +83,9 @@ jobs:
             phase474-*.log
             src/App.jsx
             src/BedWorkspace.jsx
+            src/ChoreBoard.jsx
             src/ClearDetailModal.jsx
+            src/GardenControls.jsx
             src/SeedTools.jsx
             src/WorkspaceScreens.jsx
           if-no-files-found: warn
