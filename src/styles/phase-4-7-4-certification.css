@@ -72,6 +72,120 @@
 .planting-desk-page .recommendation-summary-copy em{line-height:1.35}
 .planting-desk-page .recommendation-facts>span{min-width:0}
 
+/* VIS-004 — intelligence headings are text, not inherited 25px count badges. */
+.planting-desk-page .planting-section-heading.intelligence-heading{
+  display:grid!important;
+  grid-template-columns:minmax(0,1fr) auto!important;
+  align-items:start!important;
+  gap:8px 12px!important;
+  margin:6px 2px 10px!important;
+  min-width:0;
+}
+.planting-desk-page .planting-section-heading.intelligence-heading>span{
+  display:grid!important;
+  gap:4px!important;
+  min-width:0!important;
+  font-size:inherit!important;
+  font-weight:inherit!important;
+  letter-spacing:normal!important;
+}
+.planting-desk-page .planting-section-heading.intelligence-heading>span>small{
+  display:block!important;
+  margin:0!important;
+  color:#7a5a13!important;
+  font-size:.62rem!important;
+  font-weight:950!important;
+  line-height:1.25!important;
+  letter-spacing:.1em!important;
+  overflow-wrap:anywhere;
+}
+.planting-desk-page .planting-section-heading.intelligence-heading>span>strong{
+  display:block!important;
+  width:auto!important;
+  min-width:0!important;
+  height:auto!important;
+  min-height:0!important;
+  margin:0!important;
+  padding:0!important;
+  border-radius:0!important;
+  background:transparent!important;
+  color:#173d2a!important;
+  font-family:var(--font-display,Georgia,serif)!important;
+  font-size:1.12rem!important;
+  font-weight:850!important;
+  line-height:1.16!important;
+  letter-spacing:0!important;
+  place-items:initial!important;
+  overflow-wrap:anywhere;
+  word-break:normal;
+}
+.planting-desk-page .planting-section-heading.intelligence-heading>span>p{
+  display:block!important;
+  position:static!important;
+  margin:0!important;
+  padding:0!important;
+  color:#4f6156!important;
+  font-size:.76rem!important;
+  font-weight:700!important;
+  line-height:1.42!important;
+  letter-spacing:0!important;
+  overflow-wrap:anywhere;
+}
+.planting-desk-page .planting-section-heading.intelligence-heading>em{
+  align-self:start!important;
+  justify-self:end;
+  margin:0!important;
+  white-space:nowrap;
+}
+
+/* VIS-005 — compact Packet Calendar and Lifecycle drawers keep label/title on separate lines. */
+.planting-desk-page .garden-calendar-drawer>summary{
+  display:grid!important;
+  grid-template-columns:minmax(0,1fr) 22px!important;
+  align-items:start!important;
+  gap:8px!important;
+  min-width:0;
+  padding:12px!important;
+}
+.planting-desk-page .garden-calendar-drawer>summary>span{
+  display:grid!important;
+  grid-template-columns:1fr!important;
+  gap:4px!important;
+  min-width:0!important;
+  font-size:inherit!important;
+  letter-spacing:normal!important;
+}
+.planting-desk-page .garden-calendar-drawer>summary>span>small{
+  display:block!important;
+  margin:0!important;
+  font-size:.62rem!important;
+  font-weight:950!important;
+  line-height:1.25!important;
+  letter-spacing:.09em!important;
+}
+.planting-desk-page .garden-calendar-drawer>summary>span>strong{
+  display:block!important;
+  width:auto!important;
+  min-width:0!important;
+  height:auto!important;
+  min-height:0!important;
+  margin:0!important;
+  padding:0!important;
+  border-radius:0!important;
+  background:transparent!important;
+  font-size:1rem!important;
+  line-height:1.25!important;
+  letter-spacing:0!important;
+  place-items:initial!important;
+  overflow-wrap:anywhere;
+}
+.planting-desk-page .garden-calendar-drawer>summary>svg{
+  grid-column:2;
+  align-self:start;
+  justify-self:end;
+  margin-top:2px;
+}
+
 /* A11Y-001 / VIS-002 — audited controls retain comfortable phone touch targets. */
 .space-management-row button{min-width:40px!important;min-height:40px!important}
 .bed-detail-tabs button{min-height:40px!important}
@@ -79,6 +193,13 @@
 .public-bed-back,.bed-detail-modal .modal-close{min-width:44px!important;min-height:44px!important}
 
 @media(max-width:600px){
+  .planting-desk-page .planting-section-heading.intelligence-heading{
+    grid-template-columns:1fr!important;
+    gap:7px!important;
+  }
+  .planting-desk-page .planting-section-heading.intelligence-heading>em{
+    justify-self:start!important;
+  }
   .planting-desk-page .collapsed-recommendation>summary{
     grid-template-columns:minmax(0,1fr) 22px!important;
     align-items:start!important;
@@ -137,6 +258,7 @@
   .planting-desk-page .collapsed-recommendation>summary{padding:11px!important}
   .planting-desk-page .recommendation-summary-copy strong{font-size:.96rem}
   .planting-desk-page .recommendation-summary-copy em{font-size:.78rem}
+  .planting-desk-page .planting-section-heading.intelligence-heading>span>strong{font-size:1.02rem!important}
 }
 
 @media(min-width:600px){
