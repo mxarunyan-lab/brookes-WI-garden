@@ -37,8 +37,12 @@ jobs:
           done
           cat phase474-planting-desk-server.log
           exit 1
-      - name: Verify Iceberg recommendation readability
+      - name: Verify Iceberg recommendation card readability
         run: node scripts/verifyPhase474PlantingDeskReadability.mjs
+        env:
+          APP_URL: http://127.0.0.1:4173
+      - name: Verify Planting Desk heading and drawer readability
+        run: node scripts/verifyPhase474PlantingDeskTypography.mjs
         env:
           APP_URL: http://127.0.0.1:4173
       - name: Upload Planting Desk evidence
@@ -48,6 +52,7 @@ jobs:
           name: phase-4-7-4-planting-desk-evidence
           path: |
             phase474-audit/planting-desk
+            phase474-audit/planting-desk-typography
             phase474-planting-desk-server.log
           if-no-files-found: warn
           retention-days: 7
