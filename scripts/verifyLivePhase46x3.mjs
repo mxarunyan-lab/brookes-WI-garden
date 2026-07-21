@@ -55,7 +55,7 @@ assert.ok(assetPath,'Live frontend JavaScript asset was not found.');
 const assetUrl=new URL(assetPath,`${base}/`).toString();
 const js=await fetch(assetUrl,{cache:'no-store'}).then(response=>{assert.equal(response.status,200);return response.text()});
 assert.match(js,/0\.20\.3/);
-assert.match(js,/phase-4-6x-3-multimodal-vision/);
+assert.match(js,/phase-4-6x-3-stabilized-packet-planning/);
 assert.doesNotMatch(js,/OPENAI_API_KEY\s*=/);
 assert.doesNotMatch(js,/sk-[A-Za-z0-9_-]{20,}/);
 assert.doesNotMatch(js,/Photos do the first pass/i);
