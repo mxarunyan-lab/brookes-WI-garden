@@ -23,6 +23,7 @@ jobs:
         run: |
           node scripts/applyPhase474JourneyHarnessFix.mjs
           node scripts/applyPhase474LabelConsistency.mjs
+          node scripts/applyPhase474TodayPriority.mjs
       - run: npm run build
       - name: Install Playwright Chromium
         run: |
