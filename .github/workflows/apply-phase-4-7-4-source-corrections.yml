@@ -22,14 +22,15 @@ jobs:
         run: |
           node scripts/applyPhase474SourceCorrections.mjs
           node scripts/applyPhase474AuditCorrections.mjs
+          node scripts/applyPhase474ChoreLifecycle.mjs
       - name: Commit corrected release-candidate sources
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add src/App.jsx src/BedWorkspace.jsx src/ClearDetailModal.jsx src/SeedTools.jsx src/WorkspaceScreens.jsx scripts/verifyPhase474WholeApp.mjs
+          git add src/App.jsx src/BedWorkspace.jsx src/ChoreBoard.jsx src/ClearDetailModal.jsx src/SeedTools.jsx src/WorkspaceScreens.jsx scripts/verifyPhase474WholeApp.mjs
           if git diff --cached --quiet; then
             echo "Guarded source corrections already applied."
             exit 0
           fi
-          git commit -m "Apply Phase 4.7.4 audit corrections"
+          git commit -m "Apply Phase 4.7.4 lifecycle corrections"
           git push origin HEAD:agent/phase-4-7-4-certification
