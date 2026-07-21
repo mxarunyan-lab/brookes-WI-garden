@@ -1,0 +1,66 @@
+/* Phase 4.7.3: final pre-sync smoothing. */
+
+/* Tool Shed drawer labels must remain readable on the light surfaces. */
+.tool-shed-drawer>summary{background:#fffaf0!important}
+.tool-shed-drawer>summary .secondary-section-header small,
+.tool-shed-drawer>summary .secondary-section-header strong,
+.tool-shed-drawer>summary>span:last-child{color:#173d2b!important}
+.tool-shed-drawer>summary .secondary-section-header small{font-weight:900!important;letter-spacing:.11em}
+.tool-shed-drawer>summary>span:last-child{background:#e4eadf!important;border:1px solid #c5d1c0!important}
+
+/* Garden and Account settings starts closed and behaves like one compact drawer. */
+.more-settings-hub>summary{display:grid;grid-template-columns:44px minmax(0,1fr) 21px;gap:10px;align-items:center;padding:13px;background:#eaf1e5;cursor:pointer;list-style:none}
+.more-settings-hub>summary::-webkit-details-marker{display:none}
+.more-settings-hub>summary>span:nth-child(2){display:grid;gap:2px;min-width:0}
+.more-settings-hub>summary small{font-size:9px;font-weight:900;letter-spacing:.11em;color:#173d2b!important}
+.more-settings-hub>summary strong{font-family:'Fraunces',Georgia,serif;font-size:17px;line-height:1.15;color:#173d2b}
+.more-settings-hub>summary em{font-style:normal;color:#5b685f;font-size:9.5px;line-height:1.3}
+.more-settings-chevron{width:19px;height:19px;color:#1f6546;transition:transform .16s ease}
+.more-settings-hub[open] .more-settings-chevron{transform:rotate(180deg)}
+.more-settings-hub[open]>summary{border-bottom:1px solid #d9d2c4}
+
+/* Each Tool Shed weather entry opens a distinct focused workspace. */
+.weather-tool-tabs{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px;margin:0 0 13px;padding:5px;border:1px solid #d8cdb9;border-radius:15px;background:#e9e1d3}
+.weather-tool-tabs button{min-width:0;min-height:54px;padding:7px 5px;border:0;border-radius:11px;display:grid;justify-items:center;align-content:center;gap:4px;background:transparent;color:#31533f;font-size:9px;font-weight:850;line-height:1.15;text-align:center}
+.weather-tool-tabs button svg{width:18px;height:18px}
+.weather-tool-tabs button.active{background:#0b4d33;color:#fff;box-shadow:0 3px 9px rgba(6,60,39,.22)}
+.weather-tool-tabs button.active svg{color:#f3c75a}
+.weather-focus-stack{display:grid;gap:10px}
+.weather-focus-card{display:grid;grid-template-columns:38px minmax(0,1fr);gap:10px;align-items:start;padding:13px;border:1px solid #d8cdb9;border-radius:16px;background:#fffaf0;box-shadow:0 5px 14px rgba(21,61,43,.07);color:#173d2b}
+.weather-focus-card>svg{width:34px;height:34px;padding:7px;border-radius:11px;box-sizing:border-box;background:#e3ecde;color:#1f6546}
+.weather-focus-card.is-action{background:#eef4e9;border-color:#c7d7c2}
+.weather-focus-card>span{display:grid;gap:3px;min-width:0}
+.weather-focus-card small{font-size:9px;font-weight:900;letter-spacing:.11em;color:#765919}
+.weather-focus-card strong{font-family:'Fraunces',Georgia,serif;font-size:17px;line-height:1.15;overflow-wrap:normal;word-break:normal}
+.weather-focus-card p{margin:0;color:#58665e;font-size:10.5px;line-height:1.42}
+.weather-focus-link{min-height:45px;padding:9px 12px;border:0;border-radius:12px;display:flex;align-items:center;justify-content:center;gap:7px;background:#0b4d33;color:#fff;font-size:10.5px;font-weight:850}
+.weather-focus-link svg{width:17px;height:17px}
+.frost-forecast-list{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:7px}
+.frost-forecast-list article{min-width:0;padding:10px;border:1px solid #d9cfbd;border-radius:13px;display:grid;gap:3px;background:#fffaf0;color:#173d2b}
+.frost-forecast-list small{color:#6e735f;font-size:8.5px;font-weight:800}
+.frost-forecast-list strong{font-size:12px;line-height:1.2}
+.frost-forecast-list em{color:#6a765e;font-size:8.5px;font-style:normal}
+
+/* Indoor Growing section icons get their own visual column and breathing room. */
+.indoor-center-content .control-center-title{grid-template-columns:38px minmax(0,1fr) auto!important;gap:12px!important}
+.indoor-center-content .control-center-title>svg{width:34px!important;height:34px!important;padding:7px;box-sizing:border-box;border-radius:10px;background:#e7efe0;color:#1f6546!important;justify-self:center}
+.indoor-center-content .control-center-title>div{min-width:0;padding-left:1px}
+.indoor-center-content .light-row{display:grid!important;grid-template-columns:36px minmax(0,1fr) auto!important;gap:11px!important;align-items:center!important}
+.indoor-center-content .light-row>svg{width:32px!important;height:32px!important;padding:7px;box-sizing:border-box;border-radius:10px;background:#eee3bd;color:#795a16!important}
+.indoor-center-content .light-row>span{min-width:0;padding-left:1px}
+
+@media(max-width:430px){
+ .weather-tool-tabs button{min-height:51px;font-size:8.5px}
+ .weather-page-summary h1{overflow-wrap:normal!important;word-break:normal!important}
+ .more-settings-hub>summary{grid-template-columns:40px minmax(0,1fr) 19px}
+ .indoor-center-content .control-center-title{grid-template-columns:36px minmax(0,1fr) auto!important;gap:10px!important}
+ .indoor-center-content .control-center-title>svg{width:32px!important;height:32px!important}
+}
+@media(max-width:350px){
+ .weather-tool-tabs{grid-template-columns:1fr}
+ .weather-tool-tabs button{min-height:42px;grid-template-columns:19px minmax(0,1fr);justify-items:start;text-align:left;padding:8px 10px}
+ .frost-forecast-list{grid-template-columns:1fr}
+ .indoor-center-content .control-center-title{grid-template-columns:34px minmax(0,1fr)!important}
+ .indoor-center-content .control-center-title>button{grid-column:1/-1;justify-self:start;margin-left:46px}
+}
+@media(prefers-reduced-motion:reduce){.more-settings-chevron{transition:none}}
