@@ -1,6 +1,7 @@
 /* Phase 4.7.3: final pre-sync smoothing. */
 
 /* Tool Shed drawer labels must remain readable on the light surfaces. */
+.tool-shed-drawer>summary{background:#fffaf0!important}
 .tool-shed-drawer>summary .secondary-section-header small,
 .tool-shed-drawer>summary .secondary-section-header strong,
 .tool-shed-drawer>summary>span:last-child{color:#173d2b!important}
