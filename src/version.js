@@ -1,5 +1,5 @@
 export const APP_VERSION='0.20.3';
-export const BUILD_ID='phase-4-7-1-ia-restoration';
+export const BUILD_ID='phase-4-7-1-ia-restoration-mobile-final';
 export const UPDATED_AT='July 21, 2026';
 export const WHATS_NEW=[
  'Today now shows one clear What Matters Today summary',
