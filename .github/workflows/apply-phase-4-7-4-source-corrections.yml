@@ -24,6 +24,7 @@ jobs:
           node scripts/applyPhase474AuditCorrections.mjs
           node scripts/applyPhase474ChoreLifecycle.mjs
           node scripts/applyPhase474DestructiveSafety.mjs
+          node scripts/applyPhase474SubmissionLocks.mjs
       - name: Commit corrected release-candidate sources
         run: |
           git config user.name "github-actions[bot]"
@@ -33,5 +34,5 @@ jobs:
             echo "Guarded source corrections already applied."
             exit 0
           fi
-          git commit -m "Apply Phase 4.7.4 data-safety corrections"
+          git commit -m "Apply Phase 4.7.4 submission locks"
           git push origin HEAD:agent/phase-4-7-4-certification
