@@ -1,0 +1,25 @@
+name: Phase 4.7.1 Live Probe
+
+on:
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  probe-live:
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+      - name: Use Node.js 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Probe live Render deployment
+        run: node scripts/probePhase471Live.mjs
+        env:
+          APP_URL: https://brookes-garden-compass.onrender.com
