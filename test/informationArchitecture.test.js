@@ -59,3 +59,11 @@ test('bell and Today visible actions share the same task board source',()=>{
  assert.match(source,/notification-count/);
  assert.match(source,/WhatMattersToday board=\{board\} activeTasks=\{active\}/);
 });
+
+test('320px mobile layout contains the Wisconsin hero artwork',()=>{
+ const source=src('styles.css');
+ assert.match(source,/@media\(max-width:360px\)/);
+ assert.match(source,/\.compact-home-hero \.wisconsin-landscape/);
+ assert.match(source,/width:100%!important/);
+ assert.match(source,/max-width:100%!important/);
+});
