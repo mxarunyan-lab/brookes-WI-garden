@@ -1,4 +1,4 @@
-name: Verify Render Phase 4.6X.3
+name: Verify Render Phase 4.7.1
 
 on:
   push:
@@ -9,7 +9,7 @@ permissions:
   statuses: write
 
 concurrency:
-  group: phase46x3-live-verification
+  group: phase471-live-verification
   cancel-in-progress: true
 
 jobs:
@@ -24,6 +24,8 @@ jobs:
       APP_URL: https://brookes-garden-compass.onrender.com
       VERIFY_ATTEMPTS: 36
       VERIFY_DELAY_MS: 10000
+      VERIFY_PACKET_ATTEMPTS: 3
+      VERIFY_PACKET_DELAY_MS: 10000
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -31,10 +33,10 @@ jobs:
           node-version: 22
       - name: Publish deployment verification pending status
         run: |
-          payload=$(python -c 'import json,os;print(json.dumps({"state":"pending","context":"render/phase-4-6x-3","description":"Waiting for Render v0.20.3 and live packet analysis","target_url":os.environ["RUN_URL"]}))')
+          payload=$(python -c 'import json,os;print(json.dumps({"state":"pending","context":"render/phase-4-7-1","description":"Waiting for the Garden Compass Phase 4.7.1 build","target_url":os.environ["RUN_URL"]}))')
           curl -sS -X POST -H "Authorization: Bearer ${GH_TOKEN}" -H 'Accept: application/vnd.github+json' -H 'X-GitHub-Api-Version: 2022-11-28' "https://api.github.com/repos/${REPO}/statuses/${SHA}" -d "$payload" >/dev/null
       - run: npm install
-      - name: Verify deployed backend, live multimodal packet request, and frontend build
+      - name: Verify deployed health, frontend build, and packet probe
         id: verify
         continue-on-error: true
         run: npm run verify:phase46x3:live > live-verification.json 2> live-verification-error.txt
@@ -42,7 +44,7 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: phase46x3-live-verification
+          name: phase471-live-verification
           path: |
             live-verification.json
             live-verification-error.txt
@@ -52,12 +54,12 @@ jobs:
         run: |
           if [ "${{ steps.verify.outcome }}" = success ]; then
             state=success
-            description='Render serves v0.20.3 and live packet vision passed'
+            description='Garden Compass serves the Phase 4.7.1 health and frontend build'
           else
             state=failure
             description=$(tail -n 1 live-verification-error.txt 2>/dev/null | tr -d '\r' | cut -c1-140)
-            if [ -z "$description" ]; then description='Live Phase 4.6X.3 verification failed'; fi
+            if [ -z "$description" ]; then description='Live Phase 4.7.1 verification failed'; fi
           fi
-          payload=$(STATE="$state" DESC="$description" python -c 'import json,os;print(json.dumps({"state":os.environ["STATE"],"context":"render/phase-4-6x-3","description":os.environ["DESC"][:140],"target_url":os.environ["RUN_URL"]}))')
+          payload=$(STATE="$state" DESC="$description" python -c 'import json,os;print(json.dumps({"state":os.environ["STATE"],"context":"render/phase-4-7-1","description":os.environ["DESC"][:140],"target_url":os.environ["RUN_URL"]}))')
           curl -sS -X POST -H "Authorization: Bearer ${GH_TOKEN}" -H 'Accept: application/vnd.github+json' -H 'X-GitHub-Api-Version: 2022-11-28' "https://api.github.com/repos/${REPO}/statuses/${SHA}" -d "$payload" >/dev/null
           test "$state" = success
