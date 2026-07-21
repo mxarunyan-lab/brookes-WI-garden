@@ -25,7 +25,7 @@ test('clear front and back analysis prefills a mostly completed packet record',(
  assert.equal(merged.draft.barcode,'041530000001');
  assert.equal(merged.draft.quantity,100);
  assert.equal(merged.draft.germinationEstimate,'7–14 days');
- assert.equal(merged.draft.depth,'0.25 inch');
+ assert.equal(merged.draft.depth,'0.25 inches');
  assert.equal(merged.draft.daysToMaturity,70);
  assert.equal(merged.draft.draftStatus,'Ready to save');
  assert.equal(merged.draft.packetIntelligence.vision.exactIdentitySupportedByImages,true);
