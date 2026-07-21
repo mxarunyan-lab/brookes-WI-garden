@@ -1,0 +1,76 @@
+/* Phase 4.7.4: whole-app certification corrections. */
+
+/* VIS-001 — Today identity uses one protected upper-left text-safe block. */
+.compact-home-hero{
+  height:222px!important;
+  min-height:222px!important;
+}
+.compact-home-hero .compact-hero-title{
+  position:absolute!important;
+  top:18px;
+  left:16px;
+  right:78px;
+  z-index:9;
+  display:block!important;
+  min-width:0;
+  max-width:310px;
+  padding:11px 13px 12px!important;
+  border:1px solid rgba(23,61,43,.2);
+  border-radius:15px;
+  background:rgba(251,247,236,.97);
+  box-shadow:0 5px 14px rgba(23,61,43,.12);
+  color:#173d2b;
+  text-align:left!important;
+}
+.compact-home-hero .compact-hero-title>svg{display:none!important}
+.compact-home-hero .compact-hero-title>div{display:grid;gap:4px;min-width:0}
+.compact-home-hero .compact-hero-title h1{
+  margin:0!important;
+  max-width:100%;
+  color:#173d2b!important;
+  font-size:clamp(1.45rem,6.4vw,1.92rem)!important;
+  line-height:1.06!important;
+  letter-spacing:-.025em!important;
+  white-space:normal!important;
+  overflow-wrap:normal;
+  word-break:normal;
+}
+.compact-home-hero .compact-hero-title p{
+  margin:0!important;
+  max-width:100%;
+  color:#43584b!important;
+  font-size:.78rem!important;
+  font-weight:750!important;
+  line-height:1.35!important;
+  letter-spacing:0!important;
+  text-transform:none!important;
+  overflow-wrap:normal;
+  word-break:normal;
+}
+.compact-home-hero .hero-bell{top:18px!important;right:16px!important}
+.compact-home-hero .wisconsin-landscape{
+  transform:translateY(-18px) scale(.96)!important;
+  transform-origin:center bottom!important;
+}
+/* Move the illustrated sun and rays out of the upper-left identity safe area. */
+.compact-home-hero .wisconsin-landscape>g:first-of-type{
+  transform:translate(300px,58px)!important;
+}
+
+@media(max-width:360px){
+  .compact-home-hero{height:226px!important;min-height:226px!important}
+  .compact-home-hero .compact-hero-title{left:14px;right:72px;top:15px;padding:10px 11px 11px!important;border-radius:14px}
+  .compact-home-hero .compact-hero-title h1{font-size:1.43rem!important}
+  .compact-home-hero .compact-hero-title p{max-width:185px;font-size:.76rem!important;line-height:1.32!important}
+  .compact-home-hero .hero-bell{top:15px!important;right:14px!important}
+  .compact-home-hero .wisconsin-landscape{transform:translateY(-12px) scale(.98)!important}
+  .compact-home-hero .wisconsin-landscape>g:first-of-type{transform:translate(315px,64px)!important}
+}
+
+@media(min-width:600px){
+  .compact-home-hero{height:236px!important;min-height:236px!important}
+  .compact-home-hero .compact-hero-title{top:22px;left:22px;right:auto;width:min(330px,calc(100% - 104px));padding:13px 15px 14px!important}
+  .compact-home-hero .compact-hero-title h1{font-size:1.95rem!important}
+  .compact-home-hero .compact-hero-title p{font-size:.82rem!important}
+  .compact-home-hero .hero-bell{top:22px!important;right:22px!important}
+}
