@@ -9,6 +9,18 @@ const number=value=>Number.isFinite(Number(value))?Number(value):0;
 const array=value=>Array.isArray(value)?value:[];
 const clone=value=>JSON.parse(JSON.stringify(value));
 const dataUrlFields=['photo','frontPhoto','backPhoto','image','imageData','thumbnail','attachment'];
+const mojibakePairs=[
+ ['\u00c2\u00b7','·'],['\u00c2\u00b0','°'],['\u00c2\u00bc','¼'],['\u00c2\u00bd','½'],['\u00c2\u00be','¾'],
+ ['\u00c3\u0097','×'],['\u00c3\u00b7','÷'],['\u00c3\u00a9','é'],['\u00c3\u00b1','ñ'],['\u00c3\u00bc','ü'],
+ ['\u00e2\u20ac\u2122','’'],['\u00e2\u20ac\u0153','“'],['\u00e2\u20ac\u009d','”'],['\u00e2\u20ac\u201c','”'],['\u00e2\u20ac\u201d','”'],
+ ['\u00e2\u20ac\u2013','–'],['\u00e2\u20ac\u201d','—'],['\u00e2\u20ac\u00a2','•'],['\u00e2\u20ac\u00a6','…']
+];
+export function repairKnownMojibakeText(value){
+ if(typeof value==='string'){let next=value;for(const[bad,good]of mojibakePairs)next=next.split(bad).join(good);return next}
+ if(Array.isArray(value))return value.map(repairKnownMojibakeText);
+ if(value&&typeof value==='object')return Object.fromEntries(Object.entries(value).map(([key,row])=>[key,repairKnownMojibakeText(row)]));
+ return value;
+}
 
 function stableStringify(value){
  if(value===null||typeof value!=='object')return JSON.stringify(value);
@@ -120,7 +132,7 @@ function eventStreamsFromPlantProjections(garden,actor,migratedAt){
 function migrationEntry(from,to,at,status='completed',details=''){return{id:`migration-${from}-${to}`,fromVersion:from,toVersion:to,startedAt:at,completedAt:status==='completed'?at:null,status,details,operationId:`schema-migration:${from}:${to}`}}
 
 export function migrateGardenDataset(input={},options={}){
- const migratedAt=options.now||input.migrationMetadata?.lastMigrationAt||input.updatedAt||nowIso(),actor=input.profile?.gardenerName||options.actor||'System',fromVersion=Number(input.schemaVersion)||Number(input.version)||10,garden=clone(input||{});
+ const migratedAt=options.now||input.migrationMetadata?.lastMigrationAt||input.updatedAt||nowIso(),actor=input.profile?.gardenerName||options.actor||'System',fromVersion=Number(input.schemaVersion)||Number(input.version)||10,garden=repairKnownMojibakeText(clone(input||{}));
  const packets=consolidateSeedInventory(garden,actor,migratedAt),prepared={...garden,seedPackets:packets,seeds:[],seedUsage:normalizeCollection('seedUsage',garden.seedUsage,actor,migratedAt)};
  const collectionKeys=['spaces','plants','activity','harvests','problems','succession','trays','growLights','hardeningPlans','hydroPods','greenhouseReadings','reminders','taskHistory','plantingDecisions','shoppingItems','weatherRecommendationHistory','vacationPlans','calculatorResults','environmentalRecords','environmentalCorrections','wateringEvents','soilCheckEvents','attachments','qrLabels','offlineOperations'];
  for(const key of collectionKeys)prepared[key]=normalizeCollection(key,garden[key],actor,migratedAt);

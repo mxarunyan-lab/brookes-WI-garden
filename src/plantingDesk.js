@@ -1,5 +1,6 @@
 import { cropCatalog, newId } from './data.js';
 import { formatGardenDateRange, localDateInputValue } from './dateFormat.js';
+import { timingDefaults } from './gardenTools.js';
 import { assessPlantingWeatherReadiness } from './weatherDecisionEngine.js';
 
 const DAY=86400000;
@@ -7,7 +8,7 @@ const PLANTING_TASK_TYPES=new Set(['Start Seeds','Direct Sow','Transplant','Pot 
 const INDOOR_TYPES=new Set(['indoor','basement','seed-tray','greenhouse','hydro']);
 const OUTDOOR_TYPES=new Set(['bed','black-square-bed','white-oval-bed','in-ground','container','potato-grow-bag','raised-bed']);
 const LONG_SEASON=new Set(['bell-pepper','hot-pepper','tomato','eggplant','onion','leek','winter-squash','pumpkin','melon']);
-const DIRECT_SOW=new Set(['lettuce','spinach','kale','radish','peas','carrot','corn','green-bean','cucumber','zucchini','winter-squash','pumpkin','green-onion','cilantro','dill','parsley','chard','arugula','beet','turnip','bok-choy','nasturtium','calendula','sweet-alyssum']);
+const DIRECT_SOW=new Set(['lettuce','spinach','kale','radish','peas','carrot','corn','green-bean','cucumber','zucchini','winter-squash','pumpkin','green-onion','cilantro','dill','parsley','chard','arugula','beet','turnip','bok-choy','nasturtium','calendula','sweet-alyssum','potato']);
 const COOL_FALL=new Set(['lettuce','spinach','kale','radish','carrot','peas','cabbage','broccoli','cauliflower','chard','arugula','beet','turnip','bok-choy','cilantro','dill']);
 const TRANSPLANT_ONLY_NOW=new Set(['tomato','bell-pepper','hot-pepper','eggplant']);
 const LARGE_CROPS=new Set(['corn','cucumber','zucchini','winter-squash','pumpkin','melon']);
@@ -67,6 +68,7 @@ const todayKey=()=>new Date().toISOString().slice(0,10);
 export const plantingDateKey=value=>value instanceof Date?localDateInputValue(value):String(value||todayKey()).slice(0,10);
 const dateKey=plantingDateKey;
 const addDays=(value,days)=>{const date=new Date(`${dateKey(value)}T12:00:00`);date.setDate(date.getDate()+days);return date.toISOString().slice(0,10)};
+const addWeeksKey=(value,weeks)=>addDays(dateKey(value),Number(weeks||0)*7);
 const normalize=value=>String(value||'').toLowerCase().replace(/[^a-z0-9]+/g,' ').trim();
 const packetKey=packet=>`${packet.exactPacket?'packet':'seed'}-${packet.id}`;
 const decisionMap=garden=>new Map((garden.plantingDecisions||[]).filter(item=>!item.deletedAt).map(item=>[item.subjectKey,item]));
@@ -91,6 +93,25 @@ function seasonWindow(cropId,date=new Date()){
  if(['marigold','nasturtium','calendula','sweet-alyssum'].includes(cropId))return make(5,15,7,31,'Warm-season flower window');
  if(LONG_SEASON.has(cropId))return make(2,15,4,1,'Indoor-start window');
  return make(5,15,7,15,'Green Bay outdoor planting window');
+}
+
+const MONTHS={january:1,february:2,march:3,april:4,may:5,june:6,july:7,august:8,september:9,october:10,november:11,december:12};
+function profileDateKey(value,fallback,year){const text=String(value||fallback).trim(),match=text.match(/([a-z]+)\s+(\d{1,2})/i),month=MONTHS[String(match?.[1]||'').toLowerCase()]||MONTHS[String(fallback).split(/\s+/)[0].toLowerCase()],day=Number(match?.[2]||String(fallback).match(/\d+/)?.[0]||1);return`${year}-${String(month).padStart(2,'0')}-${String(day).padStart(2,'0')}`}
+function packetTitle(packet={},crop={}){return[packet.brand,packet.variety||packet.name||crop.name].filter(Boolean).join(' ')||crop.name||'Saved seed packet'}
+function spaceSummary(garden,crop,method){const spaces=suitableSpaces(garden,crop,method);return spaces[0]?{id:spaces[0].id,name:spaces[0].name,warnings:spaces[0].warnings||[]}:null}
+function harvestWindow(startKey,packet,crop){const days=firstNumber(packet?.daysToMaturity)||firstNumber(crop?.harvest);if(!days)return'';return formatGardenDateRange(addDays(startKey,days),addDays(startKey,days+14))}
+function readinessStatus(today,start,end,fallStart=''){if(today>=start&&today<=end)return'ready-now';if(today<start)return dayDeltaFor(today,start)<=30?'outdoor-approaching':'wait-schedule';if(fallStart&&today<fallStart)return'wait-schedule';return'missed-window'}
+function dayDeltaFor(from,to){return Math.round((new Date(`${dateKey(to)}T12:00:00`)-new Date(`${dateKey(from)}T12:00:00`))/DAY)}
+
+export function plantingReadinessForPacket({packet={},garden={},weather=null,date=new Date()}={}){
+ const cropId=inferCropId(packet),crop=catalogRows().find(row=>row.id===cropId)||{id:cropId,name:packet.name||'Saved packet',harvest:packet.daysToMaturity?`${packet.daysToMaturity} days`:''},year=date.getFullYear(),today=dateKey(date),lastFrost=profileDateKey(garden.profile?.lastFrost,'May 15',year),firstFrost=profileDateKey(garden.profile?.firstFrost,'October 10',year),defaults=timingDefaults(cropId,packet),indoorStart=addWeeksKey(lastFrost,-defaults.indoorBefore),transplantDate=addWeeksKey(lastFrost,defaults.transplantAfter),directSowDate=addWeeksKey(lastFrost,defaults.directAfter),fallPlantingDate=defaults.fallBefore>0?addWeeksKey(firstFrost,-defaults.fallBefore):'',isLong=LONG_SEASON.has(cropId),isDirect=DIRECT_SOW.has(cropId),method=cropId==='potato'?'Plant Seed Potatoes':isLong?'Start Indoors':isDirect?'Direct Sow':'Buy Transplants';
+ let start=isLong?indoorStart:directSowDate,end=isLong?addDays(indoorStart,21):addDays(directSowDate,cropId==='potato'?42:45),label='WAIT AND SCHEDULE',action=`Schedule ${method.toLowerCase()} for ${formatGardenDateRange(start,start)}.`,reason='This uses the saved packet, Green Bay frost timing, and crop-level defaults.';
+ if(fallPlantingDate&&COOL_FALL.has(cropId)&&today>addDays(directSowDate,45)){start=fallPlantingDate;end=addDays(fallPlantingDate,30);reason='The spring window has passed, so the next realistic saved-packet opportunity is the fall planting window.'}
+ const statusKey=readinessStatus(today,start,end,fallPlantingDate),weatherReadiness=assessPlantingWeatherReadiness({method,cropId,seasonallySuitable:statusKey!=='missed-window',weather}),suggestedSpace=spaceSummary(garden,crop,method);
+ if(statusKey==='ready-now'){label='READY NOW';action=weatherReadiness?.status&&/wait|delay|risk/i.test(`${weatherReadiness.status} ${weatherReadiness.explanation}`)?`Use the next calm window, then ${method.toLowerCase()} from this packet.`:`${method} from this saved packet now.`}
+ else if(statusKey==='outdoor-approaching'){label='COMING UP';action=`Get supplies and space ready for ${formatGardenDateRange(start,start)}.`}
+ else if(statusKey==='missed-window'){label='MISSED WINDOW';action=isLong?'Do not start this packet from seed for the current outdoor season; save it for next spring or use a healthy transplant.':'Save this packet for the next realistic planting window.';reason='The normal packet-starting window has passed for a reliable Green Bay result.'}
+ return{packetId:packet.id||'',cropId,statusKey,label,method,action,recommendedDate:start,windowStart:start,windowEnd:end,indoorStart,transplantDate,directSowDate,fallPlantingDate,expectedHarvestWindow:harvestWindow(isLong?transplantDate:start,packet,crop),reason,weatherNote:weatherReadiness?.explanation||'',suggestedSpace,title:packetTitle(packet,crop),packetFacts:[packet.daysToMaturity&&`${packet.daysToMaturity} days to maturity`,packet.germinationEstimate&&`germinates ${packet.germinationEstimate}`,packet.depth&&`plant ${packet.depth} deep`,packet.spacing&&`${packet.spacing} spacing`].filter(Boolean)};
 }
 
 function currentAction(crop,packet,weather,date=new Date(),garden={}){

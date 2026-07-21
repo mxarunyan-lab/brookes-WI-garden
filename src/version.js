@@ -1,7 +1,13 @@
 export const APP_VERSION='0.20.3';
-export const BUILD_ID='phase-4-6x-3-multimodal-vision';
-export const UPDATED_AT='July 18, 2026';
+export const BUILD_ID='phase-4-6x-3-stabilized-packet-planning';
+export const UPDATED_AT='July 21, 2026';
 export const WHATS_NEW=[
+ 'Saved seed packets now open a packet-specific Planting Desk readiness card',
+ 'Connected plantings keep the exact saved packet ID from Seed Department through Plant Journey',
+ 'Grow Now uses saved packet timing, Green Bay frost dates, maturity days, and weather risk before recommending action',
+ 'Today and Garden Center surface packet readiness without auto-creating chores',
+ 'Saved packet editing remains in Seed Department with Edit and Plan actions',
+ 'Visible text corruption checks now guard against mojibake in app text',
  'Seed packets are now analyzed using the front and back photographs together',
  'Packet identity and planting instructions use visual layout and context instead of basic local OCR alone',
  'Barcode, weight, lot, and packet dates receive dedicated analysis and evidence',
