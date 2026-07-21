@@ -7,10 +7,11 @@ const root=new URL('../src/',import.meta.url);
 function walk(directory){return readdirSync(directory,{withFileTypes:true}).flatMap(entry=>{const full=new URL(entry.name+(entry.isDirectory()?'/':''),directory);return entry.isDirectory()?walk(full):/\.(jsx?|css)$/.test(entry.name)?[full]:[]})}
 const files=walk(root);
 const rowsFor=(source,pattern)=>source.split('\n').flatMap((line,index)=>pattern.test(line)?[index+1]:[]);
+const mojibakePattern=new RegExp('[\\u00c3\\u00c2\\u00e2][\\u0080-\\u00ff\\u2010-\\u2122]|\\u00e2\\u20ac[\\u2010-\\u2122]|\\u00c2[\\u00b0-\\u00b7]');
 
 test('source contains no known mojibake sequences',()=>{
  const findings=[];
- for(const file of files){const source=readFileSync(file,'utf8');for(const line of rowsFor(source,/[ÃÂâ][\u0080-\u00ff\u2010-\u2122]|â€“|â€”|â€™|â€œ|â€|Â·|Â°/))findings.push(`${path.basename(file.pathname)}:${line}`)}
+ for(const file of files){const source=readFileSync(file,'utf8');for(const line of rowsFor(source,mojibakePattern))findings.push(`${path.basename(file.pathname)}:${line}`)}
  assert.deepEqual(findings,[],`Broken text encoding remains at ${findings.join(', ')}`);
 });
 
