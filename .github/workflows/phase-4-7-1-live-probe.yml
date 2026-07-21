@@ -20,6 +20,15 @@ jobs:
         with:
           node-version: 22
       - name: Probe live Render deployment
-        run: node scripts/probePhase471Live.mjs
+        run: |
+          mkdir -p diagnostics
+          node scripts/probePhase471Live.mjs | tee diagnostics/live-probe.json
         env:
           APP_URL: https://brookes-garden-compass.onrender.com
+      - name: Upload live probe
+        uses: actions/upload-artifact@v4
+        with:
+          name: phase-4-7-1-live-probe
+          path: diagnostics/live-probe.json
+          if-no-files-found: error
+          retention-days: 2
