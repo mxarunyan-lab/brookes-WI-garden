@@ -26,6 +26,7 @@ jobs:
           node scripts/applyPhase474DestructiveSafety.mjs
           node scripts/applyPhase474SubmissionLocks.mjs
           node scripts/applyPhase474JourneyHarnessFix.mjs
+          node scripts/applyPhase474LabelConsistency.mjs
       - name: Commit corrected release-candidate sources
         run: |
           git config user.name "github-actions[bot]"
