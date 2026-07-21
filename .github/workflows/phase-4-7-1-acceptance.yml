@@ -26,9 +26,13 @@ jobs:
         run: npm test
       - name: Build production app
         run: npm run build
+      - name: Probe current live deployment
+        run: node scripts/probePhase471Live.mjs
+        env:
+          APP_URL: https://brookes-garden-compass.onrender.com
       - name: Verify live Phase 4.7.1 deployment
         run: node scripts/verifyPhase471Live.mjs
         env:
           APP_URL: https://brookes-garden-compass.onrender.com
-          VERIFY_ATTEMPTS: 60
+          VERIFY_ATTEMPTS: 24
           VERIFY_DELAY_MS: 10000
