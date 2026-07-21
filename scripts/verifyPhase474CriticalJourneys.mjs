@@ -10,7 +10,7 @@ await mkdir('phase474-audit/journeys',{recursive:true});
 const browser=await chromium.launch({headless:true}),findings=[],steps=[];
 const record=(name,status='pass',detail='')=>steps.push({name,status,detail});
 const garden=page=>page.evaluate(()=>JSON.parse(localStorage.getItem('brookes-garden-state-v2')||'{}'));
-const waitGarden=async(page,predicate,label)=>{try{await page.waitForFunction(source=>{const row=JSON.parse(localStorage.getItem('brookes-garden-state-v2')||'{}');const fn=new Function('garden',`return (${source})(garden)`);return Boolean(fn(row))},predicate.toString(),{timeout:10000})}catch(error){const snapshot=await garden(page).catch(()=>({}));throw new Error(`${label}. Current stored state: ${JSON.stringify(snapshot).slice(0,2000)}`,{cause:error})}};
+const waitGarden=async(page,predicate,label)=>{const deadline=Date.now()+10000;let snapshot={};while(Date.now()<deadline){snapshot=await garden(page).catch(()=>({}));if(predicate(snapshot))return snapshot;await page.waitForTimeout(75)}throw new Error(`${label}. Current stored state: ${JSON.stringify(snapshot).slice(0,2000)}`)};
 async function go(page,id){await page.goto(`${base}/?page=${encodeURIComponent(id)}`,{waitUntil:'networkidle'});await page.locator('main').first().waitFor({state:'visible'})}
 async function doubleActivate(locator){await locator.evaluate(node=>{node.click();node.click()})}
 async function verifyPlantingDeskReadability(page){
