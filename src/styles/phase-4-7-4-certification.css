@@ -58,6 +58,12 @@
   transform:translate(315px,72px)!important;
 }
 
+/* A11Y-001 / VIS-002 — audited controls retain comfortable phone touch targets. */
+.space-management-row button{min-width:40px!important;min-height:40px!important}
+.bed-detail-tabs button{min-height:40px!important}
+.label-library-card .label-select{width:40px!important;height:40px!important;min-width:40px!important;min-height:40px!important}
+.public-bed-back,.bed-detail-modal .modal-close{min-width:44px!important;min-height:44px!important}
+
 @media(max-width:360px){
   .compact-home-hero{height:226px!important;min-height:226px!important}
   .compact-home-hero .compact-hero-title{top:15px;left:14px;width:calc(100% - 102px)!important;padding:10px 11px 11px!important;border-radius:14px}
