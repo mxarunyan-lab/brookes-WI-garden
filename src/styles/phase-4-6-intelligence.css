@@ -12,4 +12,36 @@
 @media(max-width:600px){.vacation-risk-reasons,.vacation-review-card dl,.vacation-helper-columns,.vacation-return-columns{grid-template-columns:1fr}.vacation-review-card>div:first-child{display:grid}.vacation-risk-card,.vacation-intelligence-section,.vacation-helper-guide,.vacation-return-review{padding:12px}}
 
 .weather-screen{background:var(--cream)}.weather-page-content{display:grid;gap:14px;padding-bottom:calc(108px + env(safe-area-inset-bottom))}.secondary-back-button{justify-self:start;min-height:40px;border:1px solid rgba(6,60,39,.18);border-radius:12px;background:#fffdf8;color:#173d2a;font-weight:850}.weather-page-summary{display:grid;grid-template-columns:44px minmax(0,1fr);gap:12px;align-items:start;padding:15px;border-radius:18px;background:#173d2a;color:#fff}.weather-page-summary svg{width:34px;height:34px;color:#efb52b}.weather-page-summary span{display:grid;gap:2px}.weather-page-summary h1{margin:0;font-size:1.55rem}.weather-page-summary p{margin:0;color:#dbe8df;line-height:1.4}.home-primary-route{width:100%;display:flex;justify-content:center;align-items:center;gap:6px;min-height:42px;border-radius:12px;background:#173d2a;color:#fff;font-weight:900}.phase47-briefing{gap:8px}.phase47-core-facts{grid-template-columns:repeat(2,minmax(0,1fr))}.compact-recommendation-card .recommendation-status-line{align-items:center}.compact-recommendation-card .phase47-card-details{order:20}.garden-center-next-step{display:grid;gap:8px;margin-bottom:12px;padding:14px;border-radius:18px;background:#fff8df;border:1px solid rgba(151,113,17,.2);color:#173d2a}.garden-center-next-step small{font-size:.68rem;font-weight:900;letter-spacing:.09em;color:#8a6113}.garden-center-next-step strong{font-family:var(--font-display,Georgia,serif);font-size:1.16rem}.garden-center-next-step button{display:flex;align-items:center;justify-content:center;gap:6px;min-height:42px;border-radius:12px;background:#173d2a;color:#fff;font-weight:900}.garden-center-compact-grid .is-featured{grid-column:1/-1}.more-screen .more-compact-list{gap:8px}.tool-shed-drawer{border:1px solid rgba(6,60,39,.14);border-radius:16px;background:#fffdf8;overflow:hidden}.tool-shed-drawer>summary{list-style:none;display:grid;grid-template-columns:minmax(0,1fr) 32px;gap:8px;align-items:center;padding:10px 12px;cursor:pointer}.tool-shed-drawer>summary::-webkit-details-marker{display:none}.tool-shed-drawer>summary>span:last-child{display:grid;place-items:center;width:30px;height:30px;border-radius:50%;background:#173d2a;color:#fff;font-weight:900}.tool-shed-drawer .secondary-section-header{margin:0}.tool-shed-drawer .tool-shed-card-list{padding:0 10px 10px}
+
+.secondary-back-arrow{width:42px;height:42px;min-height:42px;padding:0;border:1px solid rgba(6,60,39,.18);border-radius:13px;background:#fffdf8;color:#173d2a;display:grid;place-items:center;box-shadow:0 8px 18px rgba(6,60,39,.08)}
+.secondary-back-arrow svg{width:21px;height:21px}
+.what-matters-today{display:grid;gap:10px;padding:14px;border:1px solid rgba(6,60,39,.14);border-radius:18px;background:#fffdf8;color:#173d2a;box-shadow:0 12px 28px rgba(6,60,39,.08)}
+.what-matters-heading{display:flex;align-items:flex-start;justify-content:space-between;gap:10px}
+.what-matters-heading span{display:grid;gap:2px}
+.what-matters-heading small,.what-matters-list small,.compact-announcement small{font-size:.68rem;font-weight:900;letter-spacing:.08em;color:#7a6718}
+.what-matters-heading strong{font-family:var(--font-display,Georgia,serif);font-size:1.16rem}
+.what-matters-heading em{font-style:normal;font-size:.78rem;font-weight:850;color:#7c351f}
+.what-matters-list{display:grid;gap:8px}
+.what-matters-list button{display:grid;grid-template-columns:minmax(0,1fr) 20px;gap:8px;align-items:center;text-align:left;border:1px solid rgba(6,60,39,.12);border-radius:14px;background:#f7f2e6;color:#173d2a;padding:10px}
+.what-matters-list button span{display:grid;gap:1px;min-width:0}
+.what-matters-list strong{font-size:.96rem}
+.what-matters-list em{font-style:normal;color:#516356;font-size:.82rem;line-height:1.3}
+.what-matters-empty{margin:0;color:#516356}
+.compact-announcement{margin:0}
+.collapsed-garden-intelligence,.other-planting-opportunities{display:grid;gap:10px}
+.collapsed-garden-intelligence .planting-section-heading p,.other-planting-opportunities .planting-section-heading p{margin:3px 0 0;color:#516356;font-size:.86rem}
+.garden-calendar-drawer,.collapsed-recommendation{border:1px solid rgba(6,60,39,.14);border-radius:16px;background:#fffdf8;overflow:hidden}
+.garden-calendar-drawer>summary,.collapsed-recommendation>summary{list-style:none;display:grid;grid-template-columns:minmax(0,1fr) auto 20px;gap:8px;align-items:center;padding:11px;cursor:pointer}
+.collapsed-recommendation>summary{grid-template-columns:minmax(0,1fr) auto minmax(130px,auto) 20px}
+.garden-calendar-drawer>summary::-webkit-details-marker,.collapsed-recommendation>summary::-webkit-details-marker{display:none}
+.recommendation-summary-copy{display:grid;gap:2px;min-width:0}
+.recommendation-summary-copy small{font-size:.66rem;font-weight:900;letter-spacing:.08em;color:#7a6718}
+.recommendation-summary-copy strong{font-size:1rem;color:#173d2a}
+.recommendation-summary-copy em{font-style:normal;font-size:.82rem;color:#516356;line-height:1.25}
+.recommendation-summary-action{min-height:36px;border-radius:11px;padding:0 10px;font-size:.82rem;white-space:normal}
+.collapsed-recommendation-body{display:grid;gap:10px;padding:0 11px 11px}
+.saved-seed-queue-groups .opportunity-group>summary{list-style:none}
+.saved-seed-queue-groups .opportunity-group>summary::-webkit-details-marker{display:none}
+.other-planting-opportunities{margin-top:12px}
+@media(max-width:430px){.collapsed-recommendation>summary{grid-template-columns:minmax(0,1fr) auto 20px}.recommendation-summary-action{grid-column:1/-1;width:100%}.what-matters-heading{display:grid}.garden-center-compact-grid .is-featured{grid-column:auto}}
 @media(max-width:600px){.phase47-core-facts{grid-template-columns:1fr}.weather-page-summary{grid-template-columns:38px minmax(0,1fr);padding:13px}.weather-page-summary h1{font-size:1.35rem}}
