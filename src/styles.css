@@ -42,18 +42,119 @@
 @import './styles/phase-4-4a-weather-intelligence.css';
 @import './styles/phase-4-4b-weather-decisions.css';
 @import './styles/phase-4-5-stabilization.css';
-
 @import './styles/phase-4-6-intelligence.css';
-
 @import './styles/phase-4-6x-pre-sync.css';
-
 @import './styles/phase-4-6x-1-seed-trust.css';
+
 .packet-vision-actions{display:grid;gap:.65rem;padding:.9rem;border:1px solid var(--line,#d8d1c2);border-radius:1rem;background:rgba(255,255,255,.72)}
 .packet-vision-actions .primary-button{min-height:48px;width:100%}.packet-vision-actions p{margin:0;font-size:.9rem}.packet-photo-state.state-analyzing-packet{font-weight:800}
 @media(max-width:430px){.packet-vision-actions{padding:.75rem}.packet-review-summary{margin-top:.75rem}.packet-photo-actions{display:grid;grid-template-columns:1fr 1fr}.packet-photo-actions>*{min-height:44px}}
 
 /* Phase 4.7.1: contain the Today artwork at the 320px acceptance width. */
 @media(max-width:360px){
-  .compact-home-hero{max-width:100%;overflow:hidden}
-  .compact-home-hero .wisconsin-landscape{left:0!important;right:auto!important;width:100%!important;max-width:100%!important}
+ .compact-home-hero{max-width:100%;overflow:hidden}
+ .compact-home-hero .wisconsin-landscape{left:0!important;right:auto!important;width:100%!important;max-width:100%!important}
+}
+
+/* Phase 4.7.2: pre-sync usability cleanup. */
+.chore-board-hero{min-height:158px!important;padding:23px 20px 19px!important}
+.chore-board-hero .secondary-hero-icon{width:42px;height:42px;margin-bottom:5px}
+.chore-board-hero h1{font-size:27px!important;margin:5px auto!important}
+.chore-board-hero p{max-width:315px!important;font-size:11.5px!important}
+.chore-board-content{gap:12px!important;padding-top:13px!important}
+.chore-command-bar{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:10px;padding:14px;border:1px solid #d8cdb9;border-radius:17px;background:#fffaf0;box-shadow:0 6px 16px rgba(21,61,43,.08);color:#173d2b}
+.chore-command-bar>div:first-child{display:grid;gap:3px;min-width:0}
+.chore-command-bar>div:first-child>small,.chore-filter-block>small{font-size:9px;font-weight:900;letter-spacing:.11em;color:#8a6418}
+.chore-command-bar>div:first-child>strong{font-family:'Fraunces',Georgia,serif;font-size:18px;line-height:1.1}
+.chore-command-bar>div:first-child>p{margin:0;color:#5b685f;font-size:10.5px;line-height:1.4}
+.chore-command-bar>button{align-self:start;min-height:40px;padding:8px 10px;border:0;border-radius:11px;display:flex;align-items:center;gap:5px;background:#0b4d33;color:#fff;font-size:10px;font-weight:850}
+.chore-command-bar>button svg{width:16px;height:16px}
+.chore-signal-row{grid-column:1/-1;display:flex;flex-wrap:wrap;gap:6px;padding-top:5px;border-top:1px solid #e8dfcf}
+.chore-signal-row span{padding:5px 8px;border-radius:999px;background:#eee7db;color:#526257;font-size:9px;font-weight:800}
+.chore-signal-row span.is-urgent,.chore-signal-row span.is-overdue{background:#f7ded8;color:#8a3026}
+.chore-filter-block{display:grid;gap:6px}
+.chore-filter-block .secondary-segmented-control{grid-template-columns:repeat(4,minmax(0,1fr));padding:4px}
+.chore-filter-block .secondary-segmented-control button{min-height:34px;font-size:9.5px}
+.chore-section{box-shadow:none!important}
+.chore-section-toggle{min-height:58px!important;padding:10px 12px!important}
+.chore-section-toggle span strong{font-size:16px!important}
+.chore-section-body{padding-top:0!important}
+.task-section-controls{padding:7px 2px!important}
+
+.tool-shed-card-list .secondary-card.tone-green{background:#e7efe3!important;border-color:#c4d5bf!important;color:#173d2b!important}
+.tool-shed-card-list .secondary-card.tone-green .secondary-card-copy strong{color:#173d2b!important}
+.tool-shed-card-list .secondary-card.tone-green .secondary-card-copy small,.tool-shed-card-list .secondary-card.tone-green .secondary-card-copy em{color:#506258!important}
+.tool-shed-card-list .secondary-card.tone-green .secondary-card-icon{background:#d2e1cc!important;color:#174c35!important}
+.tool-shed-card-list .secondary-card.tone-green .secondary-card-chevron{color:#174c35!important}
+.tool-shed-card-list .secondary-card.tone-gold{background:#fff3cf!important;color:#173d2b!important}
+.tool-shed-card-list .secondary-card.tone-gold .secondary-card-copy strong{color:#173d2b!important}
+.tool-shed-card-list .secondary-card.tone-gold .secondary-card-copy small,.tool-shed-card-list .secondary-card.tone-gold .secondary-card-copy em{color:#655d48!important}
+.tool-shed-card-list .secondary-card.tone-gold .secondary-card-icon{background:#f0d98f!important;color:#5c4610!important}
+.tool-shed-card-list .secondary-card.tone-cream .secondary-card-copy strong{color:#173d2b!important}
+
+.weather-brief-decision{display:grid;grid-template-columns:36px minmax(0,1fr) auto;gap:10px;align-items:start}
+.weather-brief-decision>.garden-weather-insight-icon{width:36px;height:36px}
+.weather-brief-decision>span:nth-child(2){display:grid;gap:3px;min-width:0}
+.weather-brief-decision small{font-size:.67rem;letter-spacing:.1em;font-weight:850;color:#825d18}
+.weather-brief-decision strong{font-family:var(--font-display,Georgia,serif);font-size:1.08rem;line-height:1.15;overflow-wrap:normal;word-break:normal}
+.weather-brief-decision p{margin:0;color:#4d493f;font-size:.86rem;line-height:1.4;overflow-wrap:break-word}
+.weather-brief-decision em{font-style:normal;font-size:.7rem;font-weight:800;border-radius:999px;padding:6px 9px;background:#063c27;color:#fff;white-space:nowrap}
+
+.more-hero{min-height:172px!important;padding:25px 20px 21px!important}
+.more-hero .secondary-hero-icon{width:43px;height:43px;margin-bottom:5px}
+.more-hero h1{font-size:28px!important;margin:5px auto!important}
+.more-content{gap:12px!important;padding-top:13px!important}
+.more-settings-hub{overflow:hidden;border:1px solid #d8cdb9;border-radius:18px;background:#fffaf0;box-shadow:0 6px 16px rgba(21,61,43,.08);color:#173d2b}
+.more-settings-hub>header{display:grid;grid-template-columns:44px minmax(0,1fr);gap:10px;align-items:center;padding:13px;background:#eaf1e5}
+.more-settings-icon{width:42px;height:42px;border-radius:13px;display:grid;place-items:center;background:#0b4d33;color:#f3c75a}
+.more-settings-icon svg{width:21px;height:21px}
+.more-settings-hub>header>span:last-child{display:grid;gap:2px;min-width:0}
+.more-settings-hub>header small{font-size:9px;font-weight:900;letter-spacing:.11em;color:#80611b}
+.more-settings-hub>header strong{font-family:'Fraunces',Georgia,serif;font-size:19px}
+.more-settings-hub>header em{font-style:normal;color:#5b685f;font-size:10px}
+.more-settings-hub>div{display:grid}
+.more-settings-hub>div>button{min-height:58px;padding:10px 12px;border:0;border-top:1px solid #e5dccb;display:grid;grid-template-columns:28px minmax(0,1fr) 18px;gap:9px;align-items:center;text-align:left;background:#fffaf0;color:#173d2b}
+.more-settings-hub>div>button>svg:first-child{width:20px;height:20px;color:#1f6546}
+.more-settings-hub>div>button>span{display:grid;gap:2px;min-width:0}
+.more-settings-hub>div>button strong{font-size:12px}
+.more-settings-hub>div>button small{font-size:9.5px;line-height:1.3;color:#657067}
+.more-settings-hub>div>button>svg:last-child{width:17px;height:17px;color:#1f6546}
+.more-compact-list{gap:8px!important}
+.more-compact-list .secondary-card{min-height:72px!important;padding:10px 12px!important}
+
+.compact-home-hero{height:190px!important;min-height:190px!important}
+.compact-home-hero .compact-hero-title{padding-top:20px!important}
+.compact-home-hero .compact-hero-title h1{font-size:clamp(1.75rem,8vw,2.35rem)!important}
+.compact-home-hero .wisconsin-landscape{transform:translateY(-61px) scale(.94)!important}
+.compact-today-body{gap:11px!important;padding-top:11px!important}
+.what-matters-today{padding:13px!important;gap:9px!important;box-shadow:0 7px 18px rgba(6,60,39,.07)!important}
+.what-matters-today.is-clear{background:#eef4e9!important;border-color:#cbd9c6!important}
+.today-clear-message{display:grid;grid-template-columns:34px minmax(0,1fr);gap:9px;align-items:center;padding:8px 0 2px;color:#173d2b}
+.today-clear-message>svg{width:31px;height:31px;color:#2c724b}
+.today-clear-message>span{display:grid;gap:2px}
+.today-clear-message strong{font-size:13px}
+.today-clear-message small{font-size:10px;line-height:1.35;color:#5b685f}
+.today-quick-links{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:7px}
+.today-quick-links button{min-width:0;min-height:82px;padding:10px 7px;border:1px solid rgba(255,255,255,.12);border-radius:15px;display:grid;justify-items:center;align-content:center;gap:5px;text-align:center;background:rgba(255,255,255,.08);color:#fff}
+.today-quick-links button svg{width:22px;height:22px;color:#f3c75a}
+.today-quick-links button span{display:grid;gap:1px;min-width:0}
+.today-quick-links button strong{font-size:10.5px;line-height:1.15}
+.today-quick-links button small{font-size:8.5px;line-height:1.2;color:#d7e2da}
+.compact-handoff{padding:12px!important;border-radius:15px!important}
+.compact-handoff summary{min-height:42px}
+
+@media(max-width:430px){
+ .weather-brief-decision{grid-template-columns:34px minmax(0,1fr)}
+ .weather-brief-decision em{grid-column:2;justify-self:start}
+ .chore-command-bar{grid-template-columns:1fr}
+ .chore-command-bar>button{justify-self:start}
+ .chore-filter-block .secondary-segmented-control{grid-template-columns:repeat(4,minmax(0,1fr))}
+}
+@media(max-width:360px){
+ .today-quick-links button{min-height:76px;padding:8px 4px}
+ .today-quick-links button strong{font-size:9.5px}
+ .today-quick-links button small{font-size:7.8px}
+ .more-settings-hub>header{grid-template-columns:40px minmax(0,1fr)}
+ .more-settings-icon{width:38px;height:38px}
+ .chore-filter-block .secondary-segmented-control{grid-template-columns:repeat(2,minmax(0,1fr))}
 }
