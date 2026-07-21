@@ -1,7 +1,10 @@
 export const APP_VERSION='0.20.3';
-export const BUILD_ID='phase-4-6x-5-garden-intelligence-trust-layer';
+export const BUILD_ID='phase-4-6x-5-vacation-intelligence';
 export const UPDATED_AT='July 21, 2026';
 export const WHATS_NEW=[
+ 'Vacation Mode now understands your garden',
+ 'Pre-trip recommendations consider plants, weather, lifecycle stage, and risk',
+ 'Garden helper instructions are available before leaving as a local printable guide',
  'Garden Compass now explains why each seed recommendation exists',
  'Planting recommendations show confidence, missing information, and information used',
  'Planting Desk now includes a garden calendar timeline for saved packet windows',
