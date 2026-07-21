@@ -14,10 +14,10 @@ function CorrectionForm({initial=null,onSave,onCancel}){
 }
 
 export function WeatherDetails({weather,source,stale,savedAt,error,loading,refresh,recordRain,updateCorrection,removeCorrection,corrections=[],guidance}){
- const[adding,setAdding]=useState(false),[editing,setEditing]=useState(null),[notice,setNotice]=useState(''),[open,setOpen]=useState(()=>{try{return sessionStorage.getItem(DETAILS_KEY)==='open'}catch{return false}});
+ const[adding,setAdding]=useState(false),[editing,setEditing]=useState(null),[notice,setNotice]=useState(''),[open,setOpen]=useState(false);
  const current=weather?.currentObservation,forecast=weather?.forecasts||[],days=useMemo(()=>normalizeForecastDays(forecast,4),[forecast]),impacts=useMemo(()=>groupWeatherImpacts(guidance?.recommendations||[],12),[guidance]),timestamp=bestWeatherTimestamp({weather,savedAt}),nextRain=days.find(day=>(day.rainProbability||0)>=50||day.rainAmount>=.1),recentRain=Number(weather?.recentRain24h||0);
  useEffect(()=>{const handler=()=>setOpen(true);window.addEventListener('runyan-open-weather-details',handler);return()=>window.removeEventListener('runyan-open-weather-details',handler)},[]);
- useEffect(()=>{try{sessionStorage.setItem(DETAILS_KEY,open?'open':'closed')}catch{}},[open]);
+ useEffect(()=>{try{sessionStorage.removeItem(DETAILS_KEY)}catch{}},[open]);
  const saveNew=data=>{const saved=recordRain?.(data);if(saved){setNotice(`${amount(data.rainfall_amount)} recorded`);setAdding(false)}};
  const saveEdit=data=>{updateCorrection?.(editing.record_id,data);setNotice('Home reading updated');setEditing(null)};
  const updatedText=timestamp.value?`${timestamp.label}: ${formatGardenDateTime(timestamp.value)}`:`${timestamp.label}: unavailable`;
