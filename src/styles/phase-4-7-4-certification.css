@@ -9,7 +9,7 @@
   position:absolute!important;
   top:18px;
   left:16px;
-  right:78px;
+  right:82px;
   z-index:9;
   display:block!important;
   min-width:0;
@@ -54,17 +54,17 @@
 }
 /* Move the illustrated sun and rays out of the upper-left identity safe area. */
 .compact-home-hero .wisconsin-landscape>g:first-of-type{
-  transform:translate(300px,58px)!important;
+  transform:translate(315px,72px)!important;
 }
 
 @media(max-width:360px){
   .compact-home-hero{height:226px!important;min-height:226px!important}
-  .compact-home-hero .compact-hero-title{left:14px;right:72px;top:15px;padding:10px 11px 11px!important;border-radius:14px}
-  .compact-home-hero .compact-hero-title h1{font-size:1.43rem!important}
-  .compact-home-hero .compact-hero-title p{max-width:185px;font-size:.76rem!important;line-height:1.32!important}
+  .compact-home-hero .compact-hero-title{left:14px;right:88px;top:15px;padding:10px 11px 11px!important;border-radius:14px}
+  .compact-home-hero .compact-hero-title h1{font-size:1.3rem!important;line-height:1.08!important}
+  .compact-home-hero .compact-hero-title p{max-width:178px;font-size:.75rem!important;line-height:1.32!important}
   .compact-home-hero .hero-bell{top:15px!important;right:14px!important}
   .compact-home-hero .wisconsin-landscape{transform:translateY(-12px) scale(.98)!important}
-  .compact-home-hero .wisconsin-landscape>g:first-of-type{transform:translate(315px,64px)!important}
+  .compact-home-hero .wisconsin-landscape>g:first-of-type{transform:translate(340px,88px)!important}
 }
 
 @media(min-width:600px){
