@@ -1,6 +1,6 @@
 import test from'node:test';
 import assert from'node:assert/strict';
-import{normalizePage,pageFromPopState,pageUrl,readInitialPage,REGISTERED_PAGES}from'../src/pageRouting.js';
+import{normalizePage,pageFromPopState,pageUrl,readInitialPage,REGISTERED_PAGES,syncPageUrl}from'../src/pageRouting.js';
 
 const location=(search='',pathname='/garden',hash='')=>({search,pathname,hash});
 const storage=value=>({getItem:key=>key==='brookes-garden-page-v2'?value:null});
@@ -21,6 +21,10 @@ test('page query wins over saved local page and remains refreshable',()=>{
 test('record query routes retain ownership of their existing startup behavior',()=>{
  assert.equal(readInitialPage(location('?bed=space-123&page=admin-about'),storage('tools')),'today');
  assert.equal(readInitialPage(location('?gardenLabel=plant:plant-123&page=more'),storage('tools')),'today');
+ const calls=[],history={replaceState:(...args)=>calls.push(['replace',...args]),pushState:(...args)=>calls.push(['push',...args])};
+ syncPageUrl('admin-about',{replace:true,location:location('?bed=space-123','/'),history});
+ syncPageUrl('more',{location:location('?gardenLabel=plant:plant-123','/'),history});
+ assert.deepEqual(calls,[],'generic page syncing must not erase direct record query routes');
 });
 
 test('page URLs use a clean root URL for Today and an explicit page query otherwise',()=>{
