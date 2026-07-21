@@ -12,7 +12,8 @@ const replacements=[
  ["dialog.getByLabel('Container size').fill('5 gallon')","dialog.getByLabel('Container size',{exact:true}).fill('5 gallon')"],
  ["dialog.getByLabel('Grow bag size').isVisible()","dialog.getByLabel('Grow bag size',{exact:true}).isVisible()"],
  ["dialog.getByLabel('Container size').count()","dialog.getByLabel('Container size',{exact:true}).count()"],
- ["dialog.getByLabel('Grow bag size').fill('10 gallon')","dialog.getByLabel('Grow bag size',{exact:true}).fill('10 gallon')"]
+ ["dialog.getByLabel('Grow bag size').fill('10 gallon')","dialog.getByLabel('Grow bag size',{exact:true}).fill('10 gallon')"],
+ ["dialog.getByLabel('Hilling stage').fill('First hill')","dialog.getByLabel('Hilling stage').selectOption({label:'First hill'})"]
 ];
 for(const[old,next]of replacements){if(source.includes(next))continue;if(!source.includes(old))throw new Error(`Expected lifecycle locator not found: ${old}`);source=source.replaceAll(old,next);changed=true}
 if(changed)await writeFile(journeyPath,source);
