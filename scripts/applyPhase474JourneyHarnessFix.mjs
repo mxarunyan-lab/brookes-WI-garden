@@ -17,6 +17,7 @@ const replacements=[
  ["plantDialog.getByLabel('Crop').fill('Tomato')","plantDialog.getByLabel('Crop',{exact:true}).fill('Tomato')"],
  ["plantDialog.getByLabel('Planting or batch name').fill('QA Tomato Batch')","plantDialog.getByLabel(/Planting or batch name/).fill('QA Tomato Batch')"],
  ["plantDialog.getByLabel('Growing Space').selectOption({label:'QA Container Renamed'})","plantDialog.getByRole('combobox',{name:/^Growing Space/}).selectOption({label:'QA Container Renamed'})"],
+ ["form.getByLabel('Plant').selectOption({label:'QA Tomato Renamed'})","form.getByRole('combobox',{name:/^Plant/}).selectOption({label:'QA Tomato Renamed'})"],
  ["await page.addInitScript(data=>{localStorage.clear();sessionStorage.clear();localStorage.setItem('runyan-garden-active-profile','archie');localStorage.setItem('brookes-garden-state-v2',JSON.stringify(data))},emptyGarden);","await page.addInitScript(data=>{if(sessionStorage.getItem('phase474-journey-initialized'))return;localStorage.clear();sessionStorage.clear();localStorage.setItem('runyan-garden-active-profile','archie');localStorage.setItem('brookes-garden-state-v2',JSON.stringify(data));sessionStorage.setItem('phase474-journey-initialized','1')},emptyGarden);"]
 ];
 for(const[old,next]of replacements){if(source.includes(next))continue;if(!source.includes(old))throw new Error(`Expected lifecycle locator or initializer not found: ${old}`);source=source.replaceAll(old,next);changed=true}
