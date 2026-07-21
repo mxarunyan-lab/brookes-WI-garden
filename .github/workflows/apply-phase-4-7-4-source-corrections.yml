@@ -1,0 +1,33 @@
+name: Apply Phase 4.7.4 Source Corrections
+
+on:
+  push:
+    branches: [agent/phase-4-7-4-certification]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  apply-guarded-corrections:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out certification branch
+        uses: actions/checkout@v4
+        with:
+          ref: agent/phase-4-7-4-certification
+          fetch-depth: 0
+      - name: Apply guarded source corrections
+        run: node scripts/applyPhase474SourceCorrections.mjs
+      - name: Commit corrected release-candidate sources
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add src/App.jsx src/BedWorkspace.jsx src/ClearDetailModal.jsx src/SeedTools.jsx src/WorkspaceScreens.jsx
+          if git diff --cached --quiet; then
+            echo "Guarded source corrections already applied."
+            exit 0
+          fi
+          git commit -m "Apply Phase 4.7.4 source corrections"
+          git push origin HEAD:agent/phase-4-7-4-certification
