@@ -57,8 +57,6 @@ function RootApp() {
   return <App />;
 }
 
-writeStorage(PAGE_KEY, 'today');
-
 ReactDOM.createRoot(document.getElementById('root')).render(
   <React.StrictMode>
     <RootApp />
