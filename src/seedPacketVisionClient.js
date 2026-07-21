@@ -1,5 +1,6 @@
 const DEVICE_KEY = 'runyan-seed-vision-device-v1';
-const FRONTEND_TIMEOUT_MS = 110_000;
+const FRONTEND_TIMEOUT_MS = 180_000;
+const timeoutMessage = 'Packet analysis is taking too long. Your photos and draft remain saved; try again after the service warms up.';
 
 const deviceId = () => {
   let id = localStorage.getItem(DEVICE_KEY);
@@ -45,8 +46,9 @@ export async function analyzePacketPhotos({frontImage, backImage, draftContext, 
     }
     return body;
   } catch (error) {
-    if (controller.signal.aborted && !error.code) {
-      const timeoutError = new Error('Packet analysis did not finish. Your photos and draft remain saved.');
+    const aborted = controller.signal.aborted || error?.name === 'AbortError' || /aborted|abort/i.test(error?.message || '');
+    if (aborted && !error.code) {
+      const timeoutError = new Error(timeoutMessage);
       timeoutError.code = 'CLIENT_TIMEOUT';
       throw timeoutError;
     }

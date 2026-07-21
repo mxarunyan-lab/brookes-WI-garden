@@ -9,6 +9,9 @@ const MAX_BYTES = Number(process.env.SEED_PACKET_VISION_MAX_IMAGE_BYTES || 9 * 1
 const MAX_DIMENSION = Number(process.env.SEED_PACKET_VISION_MAX_DIMENSION || 12_000);
 const MODEL = process.env.SEED_PACKET_VISION_MODEL || 'gpt-5-mini';
 const TIMEOUT = Number(process.env.SEED_PACKET_VISION_TIMEOUT_MS || 90_000);
+const IMAGE_DETAIL = ['low', 'high', 'auto'].includes(process.env.SEED_PACKET_VISION_DETAIL) ? process.env.SEED_PACKET_VISION_DETAIL : 'auto';
+const REASONING_EFFORT = process.env.SEED_PACKET_VISION_REASONING_EFFORT || 'minimal';
+const DEFAULT_REPAIR_PASSES = /^(1|true|yes|strict)$/i.test(process.env.SEED_PACKET_VISION_REPAIR_PASSES || '');
 const allowed = new Set(['image/jpeg', 'image/png', 'image/webp']);
 
 const prompt = `Act as a careful seed-packet document analyst. Inspect the FRONT and BACK images together as one physical packet. Use visible text, layout, icons, nearby labels, and front/back context. Never concatenate unrelated labels. FULL SUN is sunlight, VEGETABLE is category, and HEIRLOOM is a designation. Read fractions, ranges, barcode digits, lot, weight, packed-for year, sell-by date, and price separately. Return null rather than inventing. Every populated field must have matching fieldEvidence. Every fieldEvidence property not used must be null. Distinguish printed counts from weight-only inventory. Capture succession instructions as automation intelligence. Do not infer an exact seed count from packet weight. Return only the strict schema.`;
@@ -54,6 +57,7 @@ async function requestStructuredAnalysis(client, input, reason, requestId, field
       model: MODEL,
       input,
       store: false,
+      reasoning: {effort: REASONING_EFFORT},
       text: {format: {type: 'json_schema', ...seedPacketJsonSchema}},
     }, {headers: {'X-Client-Request-Id': requestId}});
   } catch (error) {
@@ -170,7 +174,7 @@ function applyMachineBarcode(analysis, barcode) {
   };
 }
 
-export async function analyzeSeedPacket({frontImage, backImage, draftContext}, {openaiClient, requestId = crypto.randomUUID(), barcodeDecoder = decodeBarcode, productResearch = researchExactSeedProduct} = {}) {
+export async function analyzeSeedPacket({frontImage, backImage, draftContext}, {openaiClient, requestId = crypto.randomUUID(), barcodeDecoder = decodeBarcode, productResearch = researchExactSeedProduct, repairPasses = DEFAULT_REPAIR_PASSES} = {}) {
   if (!process.env.OPENAI_API_KEY && !openaiClient) throw modelError('VISION_NOT_CONFIGURED', 'Packet analysis is temporarily unavailable.', 503);
 
   const frontSource = parseDataUrl(frontImage);
@@ -185,9 +189,9 @@ export async function analyzeSeedPacket({frontImage, backImage, draftContext}, {
     role: 'user',
     content: [
       {type: 'input_text', text: `${prompt}\nExisting trusted draft context: ${JSON.stringify(draftContext || {}).slice(0, 4000)}\nImage 1 is FRONT.`},
-      {type: 'input_image', image_url: dataUrl(front.buffer), detail: 'high'},
+      {type: 'input_image', image_url: dataUrl(front.buffer), detail: IMAGE_DETAIL},
       {type: 'input_text', text: 'Image 2 is BACK.'},
-      {type: 'input_image', image_url: dataUrl(back.buffer), detail: 'high'},
+      {type: 'input_image', image_url: dataUrl(back.buffer), detail: IMAGE_DETAIL},
     ],
   }];
 
@@ -216,7 +220,7 @@ export async function analyzeSeedPacket({frontImage, backImage, draftContext}, {
     }
   }
 
-  const incompleteFields = passes.length < 2 ? missingTargetedFields(analysis) : [];
+  const incompleteFields = repairPasses && passes.length < 2 ? missingTargetedFields(analysis) : [];
   if (incompleteFields.length) {
     const targetedInput = [...baseInput, {
       role: 'user',

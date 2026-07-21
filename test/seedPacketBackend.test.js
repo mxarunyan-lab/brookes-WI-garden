@@ -30,8 +30,10 @@ test('multimodal analysis sends front and back together with strict output and s
  const result=await analyzeSeedPacket({frontImage,backImage,draftContext:{brand:'Burpee'}},{openaiClient,requestId:'req_multimodal',barcodeDecoder:async()=>({value:'012345678905',format:'UPC-A',checkDigitValid:true,confidence:'high',method:'machine-decoder',visibleDigits:'012345678905'}),productResearch:async()=>({exact:true,candidate:{brand:'Burpee',crop:'Lettuce',variety:'Iceberg A'},sources:[]})});
  assert.equal(calls.length,1);
  assert.equal(calls[0].body.store,false);
+ assert.equal(calls[0].body.reasoning.effort,'minimal');
  assert.equal(calls[0].body.text.format.type,'json_schema');
  assert.equal(calls[0].body.input[0].content.filter(item=>item.type==='input_image').length,2);
+ assert.ok(calls[0].body.input[0].content.filter(item=>item.type==='input_image').every(item=>item.detail==='auto'));
  assert.equal(calls[0].options.headers['X-Client-Request-Id'],'req_multimodal');
  assert.equal(result.analysis.packetIdentity.variety,'Iceberg A');
  assert.equal(result.analysis.machineIdentifiers.barcode,'012345678905');
@@ -50,7 +52,7 @@ test('one targeted second pass fills missing high-value fields without replacing
  for(const key of ['brand','crop','variety','productName'])incomplete.fieldEvidence[key]=null;
  const {frontImage,backImage}=await createIcebergPacketFixture(),answers=[response(incomplete,'resp_1'),response(icebergAnalysisFixture,'resp_2')],calls=[];
  const openaiClient={responses:{create:async(body)=>{calls.push(body);return answers.shift()}}};
- const result=await analyzeSeedPacket({frontImage,backImage},{openaiClient,requestId:'req_targeted',barcodeDecoder:async()=>({value:null,format:null,checkDigitValid:null,confidence:null,method:'unavailable',visibleDigits:null}),productResearch:async()=>({exact:false,candidate:null,sources:[]})});
+ const result=await analyzeSeedPacket({frontImage,backImage},{openaiClient,requestId:'req_targeted',repairPasses:true,barcodeDecoder:async()=>({value:null,format:null,checkDigitValid:null,confidence:null,method:'unavailable',visibleDigits:null}),productResearch:async()=>({exact:false,candidate:null,sources:[]})});
  assert.equal(calls.length,2);
  assert.equal(result.analysis.packetIdentity.brand,'Burpee');
  assert.equal(result.analysis.packetIdentity.variety,'Iceberg A');
