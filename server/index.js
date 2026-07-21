@@ -72,7 +72,16 @@ export function createApp({analyze = analyzeSeedPacket} = {}) {
       return res.json({...result, cacheHit: false});
     } catch (error) {
       const status = Number(error.status) || (error.code === 'VISION_NOT_CONFIGURED' ? 503 : 502);
-      console.error('[seed-packet-vision]', {requestId, code: error.code || 'ANALYSIS_FAILED', message: error.message});
+      console.error('[seed-packet-vision]', {
+        requestId,
+        code: error.code || 'ANALYSIS_FAILED',
+        message: error.message,
+        upstreamStatus: error.upstreamStatus || null,
+        upstreamCode: error.upstreamCode || null,
+        upstreamType: error.upstreamType || null,
+        upstreamMessage: error.upstreamMessage || null,
+        validationErrors: error.validationErrors || null,
+      });
       return res.status(status).json({code: error.code || 'ANALYSIS_FAILED', message: publicMessage(error.code, status), requestId});
     }
   });

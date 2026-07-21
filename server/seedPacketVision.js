@@ -20,6 +20,15 @@ function modelError(code, message, status = 502, details = {}) {
   return Object.assign(new Error(message), {code, status, ...details});
 }
 
+function upstreamDetails(error) {
+  return {
+    upstreamStatus: Number(error?.status) || null,
+    upstreamCode: error?.code || error?.error?.code || null,
+    upstreamType: error?.type || error?.error?.type || null,
+    upstreamMessage: String(error?.message || error?.error?.message || '').slice(0, 500) || null,
+  };
+}
+
 function parseDataUrl(value) {
   const match = String(value || '').match(/^data:(image\/(?:jpeg|png|webp));base64,([A-Za-z0-9+/=]+)$/);
   if (!match) throw modelError('INVALID_IMAGE', 'Unsupported or malformed packet image.', 400);
@@ -62,8 +71,10 @@ async function requestStructuredAnalysis(client, input, reason, requestId, field
     }, {headers: {'X-Client-Request-Id': requestId}});
   } catch (error) {
     if (error?.status === 429) throw modelError('UPSTREAM_RATE_LIMIT', 'Packet analysis is temporarily busy.', 503);
+    if (error?.status === 401 || error?.status === 403) throw modelError('UPSTREAM_AUTH_FAILED', 'Packet analysis could not authenticate with the vision service.', 503, upstreamDetails(error));
+    if (error?.status === 400) throw modelError('UPSTREAM_BAD_REQUEST', 'Packet analysis request was rejected by the vision service.', 502, upstreamDetails(error));
     if (error?.name === 'AbortError' || /timeout/i.test(error?.message || '')) throw modelError('UPSTREAM_TIMEOUT', 'Packet analysis timed out upstream.', 504);
-    throw modelError('UPSTREAM_REQUEST_FAILED', 'Packet analysis could not reach the vision service.', 502, {cause: error});
+    throw modelError('UPSTREAM_REQUEST_FAILED', 'Packet analysis could not reach the vision service.', 502, {...upstreamDetails(error), cause: error});
   }
   const failure = responseFailure(response);
   if (failure) throw failure;
