@@ -16,9 +16,10 @@ test('Chore Board presents one active queue plus later work and history',()=>{
  assert.equal(source.includes('Due today" tasks='),false);
 });
 
-test('More consolidates household settings into one grouped destination',()=>{
+test('More consolidates household settings into one collapsed destination',()=>{
  const source=src('MoreHub.jsx');
- assert.match(source,/more-settings-hub/);
+ assert.match(source,/<details className="more-settings-hub">/);
+ assert.doesNotMatch(source,/<details className="more-settings-hub" open/);
  assert.match(source,/Garden and gardeners/);
  assert.match(source,/Location and frost dates/);
  assert.match(source,/Notifications/);
@@ -27,28 +28,30 @@ test('More consolidates household settings into one grouped destination',()=>{
  assert.equal((source.match(/title="Garden Preferences"/g)||[]).length,0);
 });
 
-test('Today is useful when caught up and weather copy is human-readable',()=>{
+test('Today stays useful without repeating primary navigation and weather copy is human-readable',()=>{
  const source=src('WorkspaceScreens.jsx');
- assert.match(source,/today-quick-links/);
+ assert.equal(source.includes('today-quick-links'),false);
  assert.match(source,/You are caught up/);
+ assert.match(source,/No garden work needs your attention right now/);
  assert.match(source,/impactDisplayTitle/);
  assert.match(source,/Rain changed the watering plan/);
  assert.match(source,/WHAT TO DO/);
  assert.equal(source.includes('WEATHER-ACTION-SUMMARY'),false);
 });
 
-test('Tool Shed readability and compact mobile ownership overrides load last',()=>{
- const source=src('styles.css');
- assert.match(source,/tool-shed-card-list \.secondary-card\.tone-green/);
+test('Tool Shed readability, weather modes, More drawer, and Indoor spacing load globally',()=>{
+ const source=src('styles/phase-4-7-3-smoothing.css'),toolShed=src('ToolShed.jsx');
+ assert.match(source,/tool-shed-drawer>summary \.secondary-section-header small/);
  assert.match(source,/color:#173d2b!important/);
- assert.match(source,/chore-command-bar/);
- assert.match(source,/more-settings-hub/);
- assert.match(source,/weather-brief-decision/);
- assert.match(source,/today-quick-links/);
+ assert.match(source,/more-settings-hub>summary/);
+ assert.match(source,/weather-tool-tabs/);
+ assert.match(source,/indoor-center-content \.control-center-title/);
+ assert.match(toolShed,/phase-4-7-3-smoothing\.css/);
 });
 
-test('release metadata identifies the pre-sync usability cleanup',()=>{
+test('release metadata identifies the final pre-sync smoothing build',()=>{
  const source=src('version.js');
- assert.match(source,/phase-4-7-2-pre-sync-usability-cleanup/);
- assert.match(source,/Chore Board now has one clear needs-attention queue/);
+ assert.match(source,/phase-4-7-3-final-pre-sync-smoothing/);
+ assert.match(source,/Today no longer repeats primary navigation shortcuts/);
+ assert.match(source,/distinct Garden Weather, Rain and Watering, and Frost and Timing views/);
 });
