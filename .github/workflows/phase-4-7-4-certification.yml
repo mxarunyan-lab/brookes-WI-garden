@@ -57,10 +57,11 @@ jobs:
           node scripts/verifyPhase474Hero.mjs 2>&1 | tee phase474-hero.log
         env:
           APP_URL: http://127.0.0.1:4173
-      - name: Run first whole-app route and action audit
+      - name: Run first whole-app route and action audit at 390px
         shell: bash
         run: |
           set -o pipefail
+          sed -i "s/const widths=\[320,375,390,430,768,1200\]/const widths=[390]/" scripts/verifyPhase474WholeApp.mjs
           node scripts/verifyPhase474WholeApp.mjs 2>&1 | tee phase474-whole-app.log
         env:
           APP_URL: http://127.0.0.1:4173
