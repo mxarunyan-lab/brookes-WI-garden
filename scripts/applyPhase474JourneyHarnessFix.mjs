@@ -13,9 +13,10 @@ const replacements=[
  ["dialog.getByLabel('Grow bag size').isVisible()","dialog.getByLabel('Grow bag size',{exact:true}).isVisible()"],
  ["dialog.getByLabel('Container size').count()","dialog.getByLabel('Container size',{exact:true}).count()"],
  ["dialog.getByLabel('Grow bag size').fill('10 gallon')","dialog.getByLabel('Grow bag size',{exact:true}).fill('10 gallon')"],
- ["dialog.getByLabel('Hilling stage').fill('First hill')","dialog.getByLabel('Hilling stage').selectOption({label:'First hill'})"]
+ ["dialog.getByLabel('Hilling stage').fill('First hill')","dialog.getByLabel('Hilling stage').selectOption({label:'First hill'})"],
+ ["await page.addInitScript(data=>{localStorage.clear();sessionStorage.clear();localStorage.setItem('runyan-garden-active-profile','archie');localStorage.setItem('brookes-garden-state-v2',JSON.stringify(data))},emptyGarden);","await page.addInitScript(data=>{if(sessionStorage.getItem('phase474-journey-initialized'))return;localStorage.clear();sessionStorage.clear();localStorage.setItem('runyan-garden-active-profile','archie');localStorage.setItem('brookes-garden-state-v2',JSON.stringify(data));sessionStorage.setItem('phase474-journey-initialized','1')},emptyGarden);"]
 ];
-for(const[old,next]of replacements){if(source.includes(next))continue;if(!source.includes(old))throw new Error(`Expected lifecycle locator not found: ${old}`);source=source.replaceAll(old,next);changed=true}
+for(const[old,next]of replacements){if(source.includes(next))continue;if(!source.includes(old))throw new Error(`Expected lifecycle locator or initializer not found: ${old}`);source=source.replaceAll(old,next);changed=true}
 if(changed)await writeFile(journeyPath,source);
 
 const modalPath='src/ClearDetailModal.jsx';
