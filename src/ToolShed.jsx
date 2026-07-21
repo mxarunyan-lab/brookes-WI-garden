@@ -1,6 +1,7 @@
 import React from'react';
 import{Calculator,CalendarDays,CloudSun,Droplets,FileText,PackageSearch,Ruler,Sprout,Tags,Wrench}from'lucide-react';
 import{SecondaryCard,SecondaryHero,SecondarySectionHeader}from'./SecondaryUI.jsx';
+import'./styles/phase-4-7-3-smoothing.css';
 
 const WEATHER_MODE_KEY='runyan-weather-tool-mode-v1';
 
