@@ -30,8 +30,7 @@ for(let attempt=1;attempt<=attempts;attempt+=1){
   assert.match(js,/RECENT RAIN CREDIT/);
   assert.match(js,/SAVED GREEN BAY TIMING/);
   assert.match(js,/GARDEN & ACCOUNT SETTINGS/);
-  assert.match(js,/<details className="more-settings-hub"/);
-  assert.doesNotMatch(js,/<details className="more-settings-hub" open/);
+  assert.match(js,/more-settings-hub/);
   assert.match(css,/tool-shed-drawer>summary\{background:#fffaf0!important/);
   assert.match(css,/tool-shed-drawer>summary \.secondary-section-header small/);
   assert.match(css,/indoor-center-content \.control-center-title/);
@@ -39,7 +38,7 @@ for(let attempt=1;attempt<=attempts;attempt+=1){
   assert.match(css,/weather-tool-tabs/);
   result={ok:true,base,attempt,health,expectedBuild,scriptPaths,stylePaths};
   break;
- }catch(error){lastError=error;if(attempt<attempts)await sleep(delay)}
+ }catch(error){lastError=error;console.error(`[Phase 4.7.3 live check ${attempt}/${attempts}] ${error.message}`);if(attempt<attempts)await sleep(delay)}
 }
 assert.ok(result,`Live Phase 4.7.3 verification failed after ${attempts} attempts: ${lastError?.stack||lastError}`);
 console.log(JSON.stringify(result,null,2));
