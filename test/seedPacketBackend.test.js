@@ -79,6 +79,30 @@ test('unsupported vision barcode does not discard otherwise valid packet analysi
  assert.ok(result.analysis.quality.unreadableFields.includes('barcode'));
 });
 
+test('malformed optional guidance does not discard packet identity and planting basics',async()=>{
+ const badGuidance=clone(icebergAnalysisFixture);
+ badGuidance.instructions.directSowGuidance='EARLY SPRING OR LATE SUMMER';
+ badGuidance.fieldEvidence.directSowGuidance={value:'EARLY SPRING OR LATE SUMMER',sourceImage:'back',visibleEvidence:'EARLY SPRING OR LATE SUMMER',confidence:'medium',printed:true,normalized:false};
+ const {frontImage,backImage}=await createIcebergPacketFixture(),openaiClient={responses:{create:async()=>response(badGuidance,'resp_bad_guidance')}};
+ const result=await analyzeSeedPacket({frontImage,backImage},{openaiClient,requestId:'req_bad_guidance',barcodeDecoder:async()=>({value:null,format:null,checkDigitValid:null,confidence:null,method:'unavailable',visibleDigits:null}),productResearch:async()=>({exact:false,candidate:null,sources:[]})});
+ assert.equal(result.analysis.packetIdentity.variety,'Iceberg A');
+ assert.equal(result.analysis.growing.daysToHarvest,65);
+ assert.equal(result.analysis.instructions.directSowGuidance,null);
+ assert.ok(result.analysis.quality.unreadableFields.includes('directSowGuidance'));
+});
+
+test('malformed product identity is blanked instead of failing the full packet',async()=>{
+ const badIdentity=clone(icebergAnalysisFixture);
+ badIdentity.packetIdentity.productName='FULL SUN VEGETABLE Lettuce Seeds';
+ badIdentity.fieldEvidence.productName={value:'FULL SUN VEGETABLE Lettuce Seeds',sourceImage:'front',visibleEvidence:'FULL SUN VEGETABLE Lettuce Seeds',confidence:'medium',printed:true,normalized:false};
+ const {frontImage,backImage}=await createIcebergPacketFixture(),openaiClient={responses:{create:async()=>response(badIdentity,'resp_bad_identity')}};
+ const result=await analyzeSeedPacket({frontImage,backImage},{openaiClient,requestId:'req_bad_identity',barcodeDecoder:async()=>({value:null,format:null,checkDigitValid:null,confidence:null,method:'unavailable',visibleDigits:null}),productResearch:async()=>({exact:false,candidate:null,sources:[]})});
+ assert.equal(result.analysis.packetIdentity.crop,'Lettuce');
+ assert.equal(result.analysis.packetIdentity.variety,'Iceberg A');
+ assert.equal(result.analysis.packetIdentity.productName,null);
+ assert.ok(result.analysis.quality.unreadableFields.includes('productName'));
+});
+
 test('health and analysis routes are served by the Node web service',async()=>{
  const fixture=await createIcebergPacketFixture();
  const app=createApp({analyze:async(_payload,{requestId})=>({requestId,model:'fixture',analyzedAt:new Date().toISOString(),analysisPassCount:1,analysisPasses:[],imageHashes:{front:'a',back:'b'},imageMetadata:{},fingerprint:'fixture',analysis:icebergAnalysisFixture,barcode:{value:null},officialProduct:{exact:false},usage:[]})});

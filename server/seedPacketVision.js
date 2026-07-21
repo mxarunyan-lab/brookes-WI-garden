@@ -154,6 +154,56 @@ function mergeTargetedRepair(base, repair, fieldsRequested) {
   return {analysis: validateSeedPacketAnalysis(merged), addedFields};
 }
 
+const recoverableFieldPaths = {
+  brand: ['packetIdentity', 'brand'],
+  crop: ['packetIdentity', 'crop'],
+  variety: ['packetIdentity', 'variety'],
+  productName: ['packetIdentity', 'productName'],
+  directSowGuidance: ['instructions', 'directSowGuidance'],
+  moistureGuidance: ['instructions', 'moistureGuidance'],
+  soilGuidance: ['instructions', 'soilGuidance'],
+  harvestGuidance: ['instructions', 'harvestGuidance'],
+  successionGuidance: ['instructions', 'successionGuidance'],
+  printedSeedCount: ['inventory', 'printedSeedCount'],
+  estimatedSeedCount: ['inventory', 'estimatedSeedCount'],
+  estimatedSeedCountSource: ['inventory', 'estimatedSeedCountSource'],
+  estimatedSeedCountConfidence: ['inventory', 'estimatedSeedCountConfidence'],
+  emergenceMinimumDays: ['growing', 'emergenceMinimumDays'],
+  emergenceMaximumDays: ['growing', 'emergenceMaximumDays'],
+  germinationTemperatureMinimum: ['growing', 'germinationTemperatureMinimum'],
+  germinationTemperatureMaximum: ['growing', 'germinationTemperatureMaximum'],
+  successionRecommended: ['automation', 'successionRecommended'],
+  successionIntervalDays: ['automation', 'successionIntervalDays'],
+  successionReminderText: ['automation', 'successionReminderText'],
+  successionReason: ['automation', 'successionReason'],
+};
+
+function clearEvidence(next, keys = []) {
+  keys.forEach((key) => {
+    if (next.fieldEvidence?.[key] !== undefined) next.fieldEvidence[key] = null;
+  });
+}
+
+function markForReview(next, fields = [], note = 'Some packet details were not safely validated and were left blank for review.') {
+  next.quality = {
+    ...next.quality,
+    manualReviewFields: [...new Set([...(next.quality?.manualReviewFields || []), ...fields])],
+    unreadableFields: [...new Set([...(next.quality?.unreadableFields || []), ...fields])],
+    analysisNotes: [...(next.quality?.analysisNotes || []), note].slice(0, 30),
+  };
+  next.warnings = [...new Set([...(next.warnings || []), note])].slice(0, 40);
+}
+
+function clearRecoverableField(next, field, note) {
+  const pathValue = recoverableFieldPaths[field];
+  if (!pathValue) return false;
+  const [group, key] = pathValue;
+  next[group][key] = typeof next[group][key] === 'boolean' ? false : null;
+  clearEvidence(next, [field]);
+  markForReview(next, [field], note);
+  return true;
+}
+
 function clearUnsupportedBarcode(input, validationErrors = []) {
   if (!validationErrors.some((message) => /barcode length is unsupported/i.test(String(message)))) return null;
   const next = structuredClone(input);
@@ -179,15 +229,80 @@ function clearUnsupportedBarcode(input, validationErrors = []) {
   return next;
 }
 
+function cleanRecoverableValidationErrors(input, validationErrors = []) {
+  let next = clearUnsupportedBarcode(input, validationErrors) || structuredClone(input);
+  let changed = next !== input;
+  const clearIdentity = (field) => {
+    changed = clearRecoverableField(next, field, `${field} was not safely validated and was left blank for review.`) || changed;
+    if (field === 'variety') next.quality.exactIdentitySupportedByImages = false;
+  };
+  validationErrors.forEach((rawMessage) => {
+    const message = String(rawMessage);
+    if (/variety contains a non-variety label|crop and variety were merged incorrectly/i.test(message)) clearIdentity('variety');
+    if (/productName contains an unrelated label/i.test(message)) clearIdentity('productName');
+    const guidance = message.match(/^(directSowGuidance|moistureGuidance|soilGuidance|harvestGuidance) is incomplete or malformed/i)?.[1];
+    if (guidance) changed = clearRecoverableField(next, guidance, `${guidance} was incomplete and was left blank for review.`) || changed;
+    if (/moistureGuidance contains a price fragment/i.test(message)) changed = clearRecoverableField(next, 'moistureGuidance', 'Moisture guidance contained unrelated text and was left blank for review.') || changed;
+    if (/directSowGuidance contains malformed scanner text/i.test(message)) changed = clearRecoverableField(next, 'directSowGuidance', 'Direct-sow guidance contained malformed text and was left blank for review.') || changed;
+    if (/weight-only inventory cannot claim a printed seed count/i.test(message)) changed = clearRecoverableField(next, 'printedSeedCount', 'Printed seed count conflicted with weight-only inventory and was left blank for review.') || changed;
+    if (/exact-count inventory requires a printed seed count/i.test(message)) {
+      next.inventory.inventoryBasis = 'unknown';
+      clearEvidence(next, ['inventoryBasis']);
+      markForReview(next, ['inventoryBasis', 'printedSeedCount'], 'Seed count basis was not safely validated and was left blank for review.');
+      changed = true;
+    }
+    if (/estimated seed count requires a source/i.test(message)) {
+      ['estimatedSeedCount', 'estimatedSeedCountSource', 'estimatedSeedCountConfidence'].forEach((field) => {
+        changed = clearRecoverableField(next, field, 'Estimated seed count was not safely sourced and was left blank for review.') || changed;
+      });
+    }
+    if (/emergence range is reversed/i.test(message)) {
+      ['emergenceMinimumDays', 'emergenceMaximumDays'].forEach((field) => {
+        changed = clearRecoverableField(next, field, 'Emergence range was not safely validated and was left blank for review.') || changed;
+      });
+    }
+    if (/germination temperature range is reversed/i.test(message)) {
+      ['germinationTemperatureMinimum', 'germinationTemperatureMaximum'].forEach((field) => {
+        changed = clearRecoverableField(next, field, 'Germination temperature range was not safely validated and was left blank for review.') || changed;
+      });
+    }
+    if (/succession recommendation lacks an interval or printed guidance/i.test(message)) {
+      next.automation.successionRecommended = false;
+      ['successionRecommended', 'successionIntervalDays', 'successionReminderText', 'successionReason'].forEach((field) => {
+        if (field !== 'successionRecommended') clearRecoverableField(next, field, 'Succession reminder details were not safely validated and were left blank for review.');
+      });
+      clearEvidence(next, ['successionRecommended']);
+      markForReview(next, ['successionRecommended'], 'Succession reminder details were not safely validated and were left blank for review.');
+      changed = true;
+    }
+    if (/machine-decoded barcode failed check digit/i.test(message)) {
+      next = clearUnsupportedBarcode(next, ['barcode length is unsupported']) || next;
+      changed = true;
+    }
+    const missingEvidence = message.match(/^([A-Za-z0-9]+) is missing field evidence$/)?.[1];
+    if (missingEvidence) changed = clearRecoverableField(next, missingEvidence, `${missingEvidence} did not include matching evidence and was left blank for review.`) || changed;
+    if (/exact identity was claimed without brand, crop, and variety|front image cannot be unusable while exact image identity is claimed/i.test(message)) {
+      next.quality.exactIdentitySupportedByImages = false;
+      markForReview(next, ['brand', 'crop', 'variety'], 'Exact packet identity needs review.');
+      changed = true;
+    }
+  });
+  return changed ? next : null;
+}
+
 function validateWithRecoverableCleanup(input) {
-  try {
-    return validateSeedPacketAnalysis(input);
-  } catch (error) {
-    const validationErrors = error.validationErrors || error.issues?.map((issue) => issue.message) || [error.message];
-    const cleaned = clearUnsupportedBarcode(input, validationErrors);
-    if (cleaned) return validateSeedPacketAnalysis(cleaned);
-    throw error;
+  let candidate = input;
+  for (let attempt = 0; attempt < 4; attempt += 1) {
+    try {
+      return validateSeedPacketAnalysis(candidate);
+    } catch (error) {
+      const validationErrors = error.validationErrors || error.issues?.map((issue) => issue.message) || [error.message];
+      const cleaned = cleanRecoverableValidationErrors(candidate, validationErrors);
+      if (!cleaned) throw error;
+      candidate = cleaned;
+    }
   }
+  return validateSeedPacketAnalysis(candidate);
 }
 
 function applyMachineBarcode(analysis, barcode) {

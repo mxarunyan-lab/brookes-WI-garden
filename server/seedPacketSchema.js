@@ -199,6 +199,7 @@ export function validateSeedPacketAnalysis(input) {
   })) {
     if (value && (value.length < 12 || fragment.test(value) || /^\$/.test(value))) errors.push(`${key} is incomplete or malformed`);
   }
+  if (guide.directSowGuidance && !/\b(sow|plant|outdoor|direct)\b/i.test(guide.directSowGuidance)) errors.push('directSowGuidance is incomplete or malformed');
   if (guide.moistureGuidance && priceFragment.test(guide.moistureGuidance)) errors.push('moistureGuidance contains a price fragment');
   if (guide.directSowGuidance && /\bgo\s+fe\b|\boutdoor\s+sown\s*$/i.test(guide.directSowGuidance)) errors.push('directSowGuidance contains malformed scanner text');
 
