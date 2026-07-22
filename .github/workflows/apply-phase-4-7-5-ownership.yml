@@ -1,0 +1,37 @@
+name: Apply Phase 4.7.5 Ownership Corrections
+
+on:
+  push:
+    branches: [agent/phase-4-7-5-navigation-lock]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: phase-4-7-5-ownership
+  cancel-in-progress: true
+
+jobs:
+  apply-ownership-corrections:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out Phase 4.7.5 branch
+        uses: actions/checkout@v4
+        with:
+          ref: agent/phase-4-7-5-navigation-lock
+          fetch-depth: 0
+      - name: Apply guarded ownership changes
+        run: node scripts/applyPhase475OwnershipCorrections.mjs
+      - name: Commit corrected routes and headers
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add src/App.jsx src/GardenShoppingList.jsx src/VacationMode.jsx src/IndoorCenter.jsx
+          if git diff --cached --quiet; then
+            echo "Phase 4.7.5 ownership corrections already applied."
+            exit 0
+          fi
+          git commit -m "Apply Phase 4.7.5 destination ownership"
+          git push origin HEAD:agent/phase-4-7-5-navigation-lock
