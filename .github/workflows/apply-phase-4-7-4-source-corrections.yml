@@ -24,16 +24,18 @@ jobs:
         with:
           ref: agent/phase-4-7-4-certification
           fetch-depth: 0
-      - name: Apply manual chore history correction
-        run: node scripts/applyPhase474ManualChoreHistory.mjs
-      - name: Commit corrected lifecycle sources
+      - name: Apply focused release-candidate corrections
+        run: |
+          node scripts/applyPhase474ManualChoreHistory.mjs
+          node scripts/applyPhase474PacketHealthHarness.mjs
+      - name: Commit corrected source and certification harness
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add src/App.jsx src/yearRoundEngine.js
+          git add src/App.jsx src/yearRoundEngine.js scripts/verifyPhase474CriticalJourneys.mjs
           if git diff --cached --quiet; then
-            echo "Manual chore history correction already applied."
+            echo "Focused Phase 4.7.4 corrections already applied."
             exit 0
           fi
-          git commit -m "Fix manual chore completion lifecycle"
+          git commit -m "Harden packet capability certification"
           git push origin HEAD:agent/phase-4-7-4-certification
