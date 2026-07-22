@@ -18,7 +18,7 @@ test('Tool Shed weather cards choose distinct weather modes',()=>{
  assert.match(source,/openWeather\('rain'\)/);
  assert.match(source,/openWeather\('frost'\)/);
  assert.match(source,/Rain & Watering Review/);
- assert.match(source,/Frost & Planting Timing/);
+ assert.match(source,/Frost & Planting Dates/);
 });
 
 test('Weather workspace renders distinct Garden, Rain, and Frost content',()=>{
@@ -38,11 +38,12 @@ test('Garden and Account Settings is collapsed by default',()=>{
  assert.match(source,/GARDEN & ACCOUNT SETTINGS/);
 });
 
-test('Smoothing styles enforce readable Tool Shed labels and Indoor icon spacing',()=>{
- const source=src('styles/phase-4-7-3-smoothing.css');
- assert.match(source,/tool-shed-drawer>summary \.secondary-section-header small/);
- assert.match(source,/color:#173d2b!important/);
- assert.match(source,/indoor-center-content \.control-center-title/);
- assert.match(source,/gap:12px!important/);
- assert.match(source,/weather-tool-tabs/);
+test('Phase 4.7.5 styles retain Indoor spacing and distinct weather tabs while flattening Tool Shed',()=>{
+ const smoothing=src('styles/phase-4-7-3-smoothing.css'),lock=src('styles/phase-4-7-5-navigation-lock.css');
+ assert.match(smoothing,/indoor-center-content \.control-center-title/);
+ assert.match(smoothing,/gap:12px!important/);
+ assert.match(smoothing,/weather-tool-tabs/);
+ assert.match(lock,/tool-shed-directory-card/);
+ assert.match(lock,/tool-shed-directory-section/);
+ assert.match(lock,/background:var\(--phase475-surface\)!important/);
 });
