@@ -71,5 +71,10 @@ jobs:
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
           git add .asset-staging/seasonal-images/recovery-report.txt
+          if git diff --cached --quiet; then
+            echo 'Recovery inventory is already current.'
+            exit 0
+          fi
           git commit -m 'Record seasonal asset recovery inventory'
+          git pull --rebase origin agent/seasonal-mobile-garden-header
           git push origin HEAD:agent/seasonal-mobile-garden-header
