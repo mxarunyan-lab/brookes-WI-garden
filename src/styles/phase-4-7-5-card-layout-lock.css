@@ -62,6 +62,16 @@
  width:18px!important;height:18px!important;
  margin:0!important;color:#0b4d33!important;opacity:1!important;
 }
+.tool-shed-screen .tool-shed-directory-section>.secondary-section-header small{
+ color:#f3c75a!important;
+ text-shadow:0 1px 1px rgba(0,0,0,.3);
+}
+/* The app retains a phone-width shell at tablet and desktop viewport sizes. One column prevents cramped two-column cards. */
+@media(min-width:700px){
+ .garden-center-screen .garden-center-compact-grid{grid-template-columns:1fr!important}
+ .tool-shed-screen .tool-shed-card-list{grid-template-columns:1fr!important}
+ .tool-shed-screen .tool-shed-directory-section:last-child .tool-shed-directory-card:last-child{grid-column:auto!important}
+}
 @media(max-width:360px){
  .garden-center-screen .garden-center-tile{grid-template-columns:40px minmax(0,1fr) 17px!important;column-gap:9px!important}
  .garden-center-screen .garden-center-tile>.garden-center-tile-icon{width:40px!important;height:40px!important}
