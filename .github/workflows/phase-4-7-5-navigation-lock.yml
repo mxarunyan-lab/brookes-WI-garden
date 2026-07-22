@@ -22,7 +22,7 @@ jobs:
           cache: npm
       - name: Install dependencies
         run: npm ci
-      - name: Confirm guarded ownership and lifecycle corrections are committed
+      - name: Confirm guarded Phase 4.7.5 corrections are committed
         shell: bash
         run: |
           set -o pipefail
@@ -30,7 +30,9 @@ jobs:
           node scripts/applyPhase474LabelConsistency.mjs
           node scripts/applyPhase475LifecycleHarness.mjs
           node scripts/applyPhase474JourneyHarnessFix.mjs
-          git diff -- src/App.jsx src/GardenShoppingList.jsx src/VacationMode.jsx src/IndoorCenter.jsx src/ClearDetailModal.jsx package-lock.json scripts/verifyPhase474CriticalJourneys.mjs | tee phase475-guarded-diff.log
+          node scripts/applyPhase474PacketHealthHarness.mjs
+          node scripts/applyPhase475CssSyntax.mjs
+          git diff -- src/App.jsx src/GardenShoppingList.jsx src/VacationMode.jsx src/IndoorCenter.jsx src/ClearDetailModal.jsx src/styles/phase-4-7-5-navigation-lock.css package-lock.json scripts/verifyPhase474CriticalJourneys.mjs | tee phase475-guarded-diff.log
           test ! -s phase475-guarded-diff.log
       - name: Run complete existing unit and integration suite
         shell: bash
