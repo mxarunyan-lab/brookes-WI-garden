@@ -50,11 +50,12 @@ test('Phase 4.7.5 navigation styles load globally and retain More, weather, and 
  assert.doesNotMatch(toolShed,/<details/);
 });
 
-test('release metadata identifies the seasonal header while preserving the navigation lock',()=>{
+test('release metadata identifies the exact seasonal header while preserving the navigation lock',()=>{
  const source=src('version.js');
- assert.match(source,/APP_VERSION='0\.20\.4'/);
- assert.match(source,/phase-4-7-6-seasonal-header/);
- assert.match(source,/approved compact seasonal garden artwork/);
+ assert.match(source,/APP_VERSION='0\.20\.5'/);
+ assert.match(source,/phase-4-7-7-exact-seasonal-header/);
+ assert.match(source,/exact 2:1 composition without cropping or stretching/);
+ assert.match(source,/iPhone Safari no longer displays AVIF corruption/);
  assert.match(source,/Garden Center remains locked to the five core garden-management destinations/);
  assert.match(source,/Tool Shed remains a flat one-tap directory/);
 });
