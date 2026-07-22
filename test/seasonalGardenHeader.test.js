@@ -47,3 +47,10 @@ test('every automatic season has one dedicated production image asset',()=>{
  }
  assert.deepEqual(missing,[],`Missing approved header assets: ${missing.join(', ')}`);
 });
+
+test('seasonal header styling uses a fully opaque live identity surface',()=>{
+ const cssPath=new URL('../src/styles/seasonal-home-header.css',import.meta.url);
+ const css=require('node:fs').readFileSync(cssPath,'utf8');
+ assert.match(css,/\.seasonal-garden-header__identity\{[\s\S]*background:#fffaf0;/);
+ assert.match(css,/width:min\(54%,420px\)/);
+});
