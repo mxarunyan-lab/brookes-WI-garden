@@ -7,9 +7,9 @@ const date=new Date('2026-07-22T12:00:00-05:00');
 const baseGarden={
  spaces:[],plants:[],seedPackets:[],vacationPlans:[],hardeningPlans:[],
  reminders:[
-  {id:'reminder-active',taskId:'manual-active',title:'Active manual chore',taskType:'Fertilize',priority:60,dueDate:'2026-07-22',enabled:true,status:'scheduled',deletedAt:null},
-  {id:'reminder-today',taskId:'manual-today',title:'Completed today',taskType:'Fertilize',priority:60,dueDate:'2026-07-22',enabled:false,status:'completed',completedAt:'2026-07-22T14:00:00.000Z',deletedAt:null},
-  {id:'reminder-old',taskId:'manual-old',title:'Completed yesterday',taskType:'Fertilize',priority:60,dueDate:'2026-07-21',enabled:false,status:'completed',completedAt:'2026-07-21T14:00:00.000Z',deletedAt:null},
+  {id:'reminder-active',taskId:'manual-active',title:'Active moisture chore',taskType:'Check Moisture',priority:60,dueDate:'2026-07-22',enabled:true,status:'scheduled',deletedAt:null},
+  {id:'reminder-today',taskId:'manual-today',title:'Completed fertilizer chore',taskType:'Fertilize',priority:60,dueDate:'2026-07-22',enabled:false,status:'completed',completedAt:'2026-07-22T14:00:00.000Z',deletedAt:null},
+  {id:'reminder-old',taskId:'manual-old',title:'Old inspection chore',taskType:'Inspect For Pests',priority:60,dueDate:'2026-07-21',enabled:false,status:'completed',completedAt:'2026-07-21T14:00:00.000Z',deletedAt:null},
  ],
 };
 
