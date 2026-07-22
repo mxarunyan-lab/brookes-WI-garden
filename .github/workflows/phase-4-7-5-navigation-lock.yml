@@ -22,10 +22,13 @@ jobs:
           cache: npm
       - name: Install dependencies
         run: npm ci
-      - name: Confirm guarded ownership corrections are committed
+      - name: Confirm guarded ownership and lifecycle corrections are committed
         run: |
           node scripts/applyPhase475OwnershipCorrections.mjs
-          git diff --exit-code -- src/App.jsx src/GardenShoppingList.jsx src/VacationMode.jsx src/IndoorCenter.jsx package-lock.json
+          node scripts/applyPhase474LabelConsistency.mjs
+          node scripts/applyPhase475LifecycleHarness.mjs
+          node scripts/applyPhase474JourneyHarnessFix.mjs
+          git diff --exit-code -- src/App.jsx src/GardenShoppingList.jsx src/VacationMode.jsx src/IndoorCenter.jsx src/ClearDetailModal.jsx package-lock.json scripts/verifyPhase474CriticalJourneys.mjs
       - name: Run complete existing unit and integration suite
         shell: bash
         run: |
