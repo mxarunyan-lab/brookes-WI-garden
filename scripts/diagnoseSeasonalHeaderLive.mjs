@@ -30,5 +30,7 @@ const diagnosis=await page.locator('.compact-home-hero').evaluate(element=>{
  };
 });
 console.log(JSON.stringify(diagnosis,null,2));
+const c=diagnosis.computed;
+console.log(`height=${diagnosis.rect.height};css=${c.height};min=${c.minHeight};max=${c.maxHeight};pad=${c.paddingTop}/${c.paddingBottom};box=${c.boxSizing}`);
 await context.close();
 await browser.close();
