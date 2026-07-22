@@ -7,6 +7,8 @@ import './styles/phase-4-7-3-smoothing.css';
 import './styles/phase-4-7-4-certification.css';
 import './styles/phase-4-7-5-navigation-lock.css';
 import './styles/phase-4-7-5-card-layout-lock.css';
+import './styles/phase-4-7-6-seasonal-header.css';
+import './seasonalHeaderRuntime.js';
 import './legacyQrFocus.js';
 
 const ACTIVE_PROFILE_KEY = 'runyan-garden-active-profile';
