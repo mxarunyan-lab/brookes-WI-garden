@@ -15,9 +15,7 @@ async function patch(path,replacements){
 const results={};
 results.app=await patch('src/App.jsx',[
  {label:'moved destination contextual parents',old:"const navigate=requested=>{const parentFallbacks={chores:'center','plan-plant':'center',weather:'today'},",next:"const navigate=requested=>{const parentFallbacks={chores:'center','plan-plant':'center',weather:'today',vacation:'tools','shopping-list':'tools',memory:'tools'},"},
- {label:'Vacation Tool Shed ownership',old:"vacation:'center'",next:"vacation:'tools'"},
- {label:'Shopping List Tool Shed ownership',old:"'shopping-list':'center'",next:"'shopping-list':'tools'"},
- {label:'Garden History Tool Shed ownership',old:"memory:'center'",next:"memory:'tools'"},
+ {label:'moved destination navigation ownership',old:"parentMap={weather:'today',chores:'center',vacation:'center','plan-plant':'center','shopping-list':'center','seed-tools':'center',indoor:'center',memory:'center'",next:"parentMap={weather:'today',chores:'center',vacation:'tools','plan-plant':'center','shopping-list':'tools','seed-tools':'center',indoor:'center',memory:'tools'"},
 ]);
 results.shopping=await patch('src/GardenShoppingList.jsx',[
  {label:'Shopping List back ownership',old:"onBack={()=>navigate('center')} backLabel=\"Back to Garden Center\"",next:"onBack={()=>navigate('tools')} backLabel=\"Back to Tool Shed\""},
