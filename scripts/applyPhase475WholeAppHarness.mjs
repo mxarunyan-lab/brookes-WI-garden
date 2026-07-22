@@ -2,12 +2,15 @@ import{readFile,writeFile}from'node:fs/promises';
 
 const path='scripts/verifyPhase474WholeApp.mjs';
 let source=await readFile(path,'utf8'),changed=false;
+const drawerHelper="async function toolCard(page,group,label){await primary(page,'Tool Shed');const drawer=page.locator('.tool-shed-drawer').filter({hasText:group});await drawer.locator('summary').click();await clickButton(page,new RegExp(escape(label),'i'))}";
+const staleFlatHelper="async function toolCard(page,label){await primary(page,'Tool Shed');await clickButton(page,new RegExp(escape(label),'i'))}\nasync function directPage(page,id){await page.goto(`${base}/?page=${id}`,{waitUntil:'networkidle',timeout:20000})}\nasync function printableLabels(page){await toolCard(page,'Printable Garden Pack & Labels');await clickButton(page,/Open Plant Labels/i)}";
+const currentHelper="async function toolCard(page,label){await primary(page,'Tool Shed');await clickButton(page,new RegExp(escape(label),'i'))}\nasync function directPage(page,id){await page.goto(`${base}/?page=${id}`,{waitUntil:'networkidle',timeout:20000})}\nasync function printableLabels(page){await directPage(page,'labels')}";
+if(!source.includes(currentHelper)){
+ const helper=source.includes(staleFlatHelper)?staleFlatHelper:drawerHelper;
+ if(!source.includes(helper))throw new Error(`${path}: expected Tool Shed navigation helper was not found`);
+ source=source.replace(helper,currentHelper);changed=true;
+}
 const changes=[
- {
-  label:'flat Tool Shed navigation helper',
-  old:"async function toolCard(page,group,label){await primary(page,'Tool Shed');const drawer=page.locator('.tool-shed-drawer').filter({hasText:group});await drawer.locator('summary').click();await clickButton(page,new RegExp(escape(label),'i'))}",
-  next:"async function toolCard(page,label){await primary(page,'Tool Shed');await clickButton(page,new RegExp(escape(label),'i'))}\nasync function directPage(page,id){await page.goto(`${base}/?page=${id}`,{waitUntil:'networkidle',timeout:20000})}\nasync function printableLabels(page){await toolCard(page,'Printable Garden Pack & Labels');await clickButton(page,/Open Plant Labels/i)}",
- },
  {label:'compact Garden Center expectation',old:"route('center','Manage and plan the garden',page=>primary(page,'Center'))",next:"route('center','Garden Center',page=>primary(page,'Center'))"},
  {label:'Garden Weather direct card',old:"route('weather-garden','Weather for Your Garden',page=>toolCard(page,'WEATHER TOOLS','Garden Weather'))",next:"route('weather-garden','Weather for Your Garden',page=>toolCard(page,'Garden Weather'))"},
  {label:'Rain direct card',old:"route('weather-rain','Rain and Watering Review',page=>toolCard(page,'WEATHER TOOLS','Rain & Watering Review'))",next:"route('weather-rain','Rain and Watering Review',page=>toolCard(page,'Rain & Watering Review'))"},
@@ -21,7 +24,7 @@ const changes=[
  {label:'Seed quantity direct card',old:"route('seed-quantity-calculator','Seed Quantity Calculator',page=>toolCard(page,'UTILITIES','Seed Quantity Calculator'))",next:"route('seed-quantity-calculator','Seed Quantity Calculator',page=>toolCard(page,'Seed Quantity Calculator'))"},
  {label:'Measurements direct card',old:"route('garden-measurements','Garden Measurements',page=>toolCard(page,'UTILITIES','Garden Measurements'))",next:"route('garden-measurements','Garden Measurements',page=>toolCard(page,'Garden Measurements'))"},
  {label:'Printable pack direct card',old:"route('printable-pack','Printable Garden Pack',page=>toolCard(page,'NOTES & PRINTABLES','Printable Garden Pack'))",next:"route('printable-pack','Printable Garden Pack',page=>toolCard(page,'Printable Garden Pack & Labels'))"},
- {label:'Labels printable handoff',old:"route('labels','Plant Labels',page=>toolCard(page,'NOTES & PRINTABLES','Plant Labels'))",next:"route('labels','Plant Labels',page=>printableLabels(page))"},
+ {label:'Labels direct route coverage',old:"route('labels','Plant Labels',page=>toolCard(page,'NOTES & PRINTABLES','Plant Labels'))",next:"route('labels','Plant Labels',page=>printableLabels(page))"},
 ];
 for(const{label,old,next}of changes){
  if(source.includes(next))continue;
