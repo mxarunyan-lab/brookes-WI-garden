@@ -44,13 +44,17 @@ const noOverflow=async(page,label)=>{
 const assertCards=async(page,selector,label)=>{
  const cards=page.locator(selector),count=await cards.count();
  for(let index=0;index<count;index+=1){
-  const rect=await cards.nth(index).boundingBox();
-  assert.ok(rect,`${label} card ${index} missing geometry`);
-  assert.ok(rect.x>=-1&&rect.x+rect.width<=page.viewportSize().width+1,`${label} card ${index} leaves viewport`);
-  const copy=cards.nth(index).locator('strong').first(),arrow=cards.nth(index).locator('svg').last();
-  const[copyRect,arrowRect]=await Promise.all([copy.boundingBox(),arrow.boundingBox()]);
-  assert.ok(copyRect&&arrowRect,`${label} card ${index} missing copy or arrow`);
-  assert.ok(copyRect.x+copyRect.width<=arrowRect.x+2,`${label} card ${index} text collides with arrow`);
+  const card=cards.nth(index),geometry=await card.evaluate(node=>{
+   const cardRect=node.getBoundingClientRect(),title=node.querySelector('strong'),copy=node.querySelector('.garden-center-tile-copy,.secondary-card-copy'),arrow=node.querySelector('.garden-center-tile-arrow,.secondary-card-chevron')||[...node.querySelectorAll('svg')].at(-1);
+   if(!title||!arrow)return{cardRect:null,titleRect:null,arrowRect:null,copyOverflow:true};
+   const range=document.createRange();range.selectNodeContents(title);
+   const titleRect=range.getBoundingClientRect(),arrowRect=arrow.getBoundingClientRect();
+   return{cardRect:{x:cardRect.x,width:cardRect.width,right:cardRect.right},titleRect:{left:titleRect.left,right:titleRect.right,top:titleRect.top,bottom:titleRect.bottom},arrowRect:{left:arrowRect.left,right:arrowRect.right,top:arrowRect.top,bottom:arrowRect.bottom},copyOverflow:Boolean(copy&&copy.scrollWidth>copy.clientWidth+1)};
+  });
+  assert.ok(geometry.cardRect&&geometry.titleRect&&geometry.arrowRect,`${label} card ${index} missing title or arrow geometry`);
+  assert.ok(geometry.cardRect.x>=-1&&geometry.cardRect.right<=page.viewportSize().width+1,`${label} card ${index} leaves viewport: ${JSON.stringify(geometry)}`);
+  assert.equal(geometry.copyOverflow,false,`${label} card ${index} copy overflows its grid column: ${JSON.stringify(geometry)}`);
+  assert.ok(geometry.titleRect.right<=geometry.arrowRect.left+2,`${label} card ${index} visible title collides with arrow: ${JSON.stringify(geometry)}`);
  }
 };
 
@@ -67,8 +71,8 @@ try{
   assert.ok(hero&&hero.height<160,`Garden Center header is oversized at ${width}: ${hero?.height}`);
   assert.ok(first&&first.y>=hero.y+hero.height-1,`Garden Center first card overlaps header at ${width}`);
   await noOverflow(page,`Garden Center ${width}`);
-  await assertCards(page,'.garden-center-tile',`Garden Center ${width}`);
   if([320,390,768].includes(width))await page.screenshot({path:`phase475-audit/garden-center/garden-center-${width}.png`,fullPage:true});
+  await assertCards(page,'.garden-center-tile',`Garden Center ${width}`);
 
   await goto(page,'tools');
   await page.getByRole('heading',{name:'Tool Shed',exact:true}).waitFor();
@@ -77,12 +81,12 @@ try{
   for(const heading of['CALCULATORS & UTILITIES','WEATHER & TIMING','RECORDS & EXTRAS'])assert.equal(await page.getByText(heading,{exact:true}).count(),1,`${heading} count at ${width}`);
   assert.equal(await page.locator('details.tool-shed-drawer').count(),0,`Tool Shed drawer remains at ${width}`);
   await noOverflow(page,`Tool Shed ${width}`);
+  if([320,390,768].includes(width))await page.screenshot({path:`phase475-audit/tool-shed/tool-shed-${width}.png`,fullPage:true});
   await assertCards(page,'.tool-shed-directory-card',`Tool Shed ${width}`);
   const last=page.locator('.tool-shed-directory-card').last();
   await last.scrollIntoViewIfNeeded();
   const clearance=await page.evaluate(()=>{const last=document.querySelector('.tool-shed-directory-card:last-of-type')||[...document.querySelectorAll('.tool-shed-directory-card')].at(-1),nav=document.querySelector('.bottom-nav');const a=last?.getBoundingClientRect(),b=nav?.getBoundingClientRect();return{lastBottom:a?.bottom||0,navTop:b?.top||innerHeight,viewport:innerHeight}});
   assert.ok(clearance.lastBottom<=clearance.navTop+1||clearance.lastBottom<=clearance.viewport-70,`Final Tool Shed card remains behind navigation at ${width}: ${JSON.stringify(clearance)}`);
-  if([320,390,768].includes(width))await page.screenshot({path:`phase475-audit/tool-shed/tool-shed-${width}.png`,fullPage:true});
   results.push({width,gardenCenter:'pass',toolShed:'pass',clearance});
   await context.close();
  }
