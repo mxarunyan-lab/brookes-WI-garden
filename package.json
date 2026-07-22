@@ -13,7 +13,7 @@
     "verify:phase46x3:live": "node scripts/verifyLivePhase46x3.mjs",
     "verify:phase473:live": "node scripts/verifyPhase472Live.mjs",
     "verify:phase475:live": "node scripts/verifyPhase475Live.mjs",
-    "verify:seasonal-header:live": "node scripts/verifySeasonalHomeHeaderLive.mjs"
+    "verify:seasonal-header:live": "node scripts/verifySeasonalHomeHeader.mjs"
   },
   "dependencies": {
     "@vitejs/plugin-react": "latest",
