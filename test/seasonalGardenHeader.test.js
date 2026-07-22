@@ -1,7 +1,8 @@
 import test from'node:test';
 import assert from'node:assert/strict';
-import{existsSync,readFileSync}from'node:fs';
-import{buildGardenSubtitle,getGreenBaySeason,possessiveGardenTitle,resolveGardenHeaderSeason,SEASONAL_HEADER_IMAGES}from'../src/seasonalGardenHeader.js';
+import{createHash}from'node:crypto';
+import{readFileSync}from'node:fs';
+import{buildGardenSubtitle,GARDEN_SEASONS,getGreenBaySeason,possessiveGardenTitle,resolveGardenHeaderSeason}from'../src/seasonalGardenHeader.js';
 
 const cases=[
  ['2026-02-15T18:00:00Z','winter'],
@@ -38,14 +39,34 @@ test('subtitle never leaves a dangling separator',()=>{
  assert.equal(buildGardenSubtitle('',''),'');
 });
 
-test('every automatic season has one dedicated production image asset',()=>{
- assert.deepEqual(Object.keys(SEASONAL_HEADER_IMAGES),['spring','summer','fall','winter']);
- const missing=[];
- for(const[season,source]of Object.entries(SEASONAL_HEADER_IMAGES)){
-  assert.match(source,new RegExp(`^/images/garden-headers/${season}\\.avif$`));
-  if(!existsSync(`public${source}`))missing.push(season);
+const payloads={
+ spring:['.asset-staging/spring.avif.b64'],
+ summer:['.asset-staging/summer.avif.b64.part00','.asset-staging/summer.avif.b64.part01','.asset-staging/summer.avif.b64.part02'],
+ fall:['.asset-staging/fall.avif.b64'],
+ winter:['.asset-staging/winter.avif.b64.part00'],
+};
+const expectedHashes={
+ spring:'77ada230e515b7332eafd9330a66c56b90d621dd465c37f893852f09cfe6b905',
+ summer:'29144a56500a85ce9a7161660dc8fb453fe779615610dfefb0359e1467add96b',
+ fall:'83c555a1483fbf9fdf9e7f33dbf5ee4a1ca09fe278c7c628628d34fe6659a181',
+ winter:'90194a0c2fa691dc74a916c401804371e0ad6914fb0120eec7f54246a4d5b46e',
+};
+
+test('every automatic season bundles the exact approved AVIF artwork',()=>{
+ assert.deepEqual(GARDEN_SEASONS,['spring','summer','fall','winter']);
+ for(const season of GARDEN_SEASONS){
+  const encoded=payloads[season].map(path=>readFileSync(new URL(`../${path}`,import.meta.url),'utf8')).join('').replace(/\s+/g,'');
+  const asset=Buffer.from(encoded,'base64');
+  assert.ok(asset.length>10000,`${season} asset is unexpectedly small`);
+  assert.equal(asset.subarray(4,12).toString('ascii'),'ftypavif',`${season} is not an AVIF file`);
+  assert.equal(createHash('sha256').update(asset).digest('hex'),expectedHashes[season],`${season} artwork changed`);
  }
- assert.deepEqual(missing,[],`Missing approved header assets: ${missing.join(', ')}`);
+});
+
+test('seasonal asset module provides one data URL for every approved season',()=>{
+ const source=readFileSync(new URL('../src/seasonalGardenAssetSources.js',import.meta.url),'utf8');
+ for(const season of GARDEN_SEASONS)assert.match(source,new RegExp(`${season}:avifDataUrl\\(`));
+ assert.match(source,/data:image\/avif;base64/);
 });
 
 test('seasonal header styling uses a fully opaque live identity surface',()=>{
