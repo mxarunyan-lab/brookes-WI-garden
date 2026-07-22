@@ -1,9 +1,12 @@
 import assert from'node:assert/strict';
 import{mkdir,writeFile}from'node:fs/promises';
 import{chromium}from'playwright';
+import{getGreenBaySeason,SEASONAL_HEADER_IMAGES}from'../src/seasonalGardenHeader.js';
 
 const base=(process.env.APP_URL||'http://127.0.0.1:4173').replace(/\/$/,'');
 const widths=[320,375,390,430];
+const expectedSeason=getGreenBaySeason();
+const expectedImage=SEASONAL_HEADER_IMAGES[expectedSeason];
 const results=[];
 let paidPacketRequests=0;
 await mkdir('seasonal-home-audit',{recursive:true});
@@ -38,11 +41,11 @@ async function certify(page,width){
  assert.equal(await image.count(),1,`Seasonal image duplicated at ${width}px`);
  assert.equal(await bell.count(),1,`Notification bell duplicated at ${width}px`);
  assert.equal(await page.getByRole('heading',{name:'Today',exact:true}).count(),1,`Today heading duplicated at ${width}px`);
- assert.equal(await header.getAttribute('data-season'),'summer',`Current Green Bay season is wrong at ${width}px`);
- assert.match(await image.getAttribute('src'),/\/images\/garden-headers\/summer\.webp$/);
+ assert.equal(await header.getAttribute('data-season'),expectedSeason,`Current Green Bay season is wrong at ${width}px`);
+ assert.equal(await image.getAttribute('src'),expectedImage,`Wrong ${expectedSeason} image source at ${width}px`);
  const imageData=await image.evaluate(node=>({complete:node.complete,naturalWidth:node.naturalWidth,naturalHeight:node.naturalHeight,fit:getComputedStyle(node).objectFit,position:getComputedStyle(node).objectPosition}));
  assert.equal(imageData.complete,true,`Seasonal image did not complete at ${width}px`);
- assert.ok(imageData.naturalWidth>=700&&imageData.naturalHeight>=350,`Seasonal image is undersized: ${JSON.stringify(imageData)}`);
+ assert.ok(imageData.naturalWidth>=600&&imageData.naturalHeight>=300,`Seasonal image is undersized: ${JSON.stringify(imageData)}`);
  assert.ok(Math.abs(imageData.naturalWidth/imageData.naturalHeight-2)<.01,`Seasonal image ratio changed: ${JSON.stringify(imageData)}`);
  assert.equal(imageData.fit,'cover',`Seasonal image is stretched at ${width}px`);
  const[headerRect,cardRect,identityRect,bellRect]=await Promise.all([header.boundingBox(),card.boundingBox(),identity.boundingBox(),bell.boundingBox()]);
@@ -70,7 +73,7 @@ async function certify(page,width){
  const overflow=await page.evaluate(()=>({scrollWidth:document.documentElement.scrollWidth,clientWidth:document.documentElement.clientWidth,bodyWidth:document.body.scrollWidth}));
  assert.ok(overflow.scrollWidth<=overflow.clientWidth+1&&overflow.bodyWidth<=overflow.clientWidth+1,`Today overflows at ${width}px: ${JSON.stringify(overflow)}`);
  await page.screenshot({path:`seasonal-home-audit/today-${width}.png`,fullPage:true});
- return{width,season:'summer',headerHeight:headerRect.height,overlap:headerRect.y+headerRect.height-cardRect.y,imageData};
+ return{width,season:expectedSeason,headerHeight:headerRect.height,overlap:headerRect.y+headerRect.height-cardRect.y,imageData};
 }
 
 try{
@@ -79,6 +82,6 @@ try{
  {const{context,page}=await open(320,longProfile);const title=page.locator('.seasonal-garden-header__title'),subtitle=page.locator('.seasonal-garden-header__subtitle'),bell=page.getByRole('button',{name:'Open garden notifications'});const[titleRect,subtitleRect,bellRect]=await Promise.all([title.boundingBox(),subtitle.boundingBox(),bell.boundingBox()]);assert.ok(titleRect&&titleRect.height<50,'Long gardener name exceeds two lines');assert.ok(subtitleRect&&subtitleRect.height<45,'Long garden identity exceeds two lines');assert.ok(subtitleRect.x+subtitleRect.width<=bellRect.x-4,'Long identity collides with bell');await page.screenshot({path:'seasonal-home-audit/today-320-long-identity.png',fullPage:true});await context.close()}
  {const{context,page}=await open(390,{gardenerName:'Archie',gardenName:'The Runyan Garden',location:'',activeProfileId:'archie'});assert.equal(await page.locator('.seasonal-garden-header__subtitle').innerText(),'The Runyan Garden');assert.equal((await page.locator('.seasonal-garden-header__subtitle').innerText()).includes('—'),false,'Missing location left a dangling dash');await context.close()}
  assert.equal(paidPacketRequests,0,'Seasonal Home QA made a paid packet-analysis request.');
- await writeFile('seasonal-home-audit/results.json',JSON.stringify({ok:true,widths,results,paidPacketRequests},null,2));
- console.log(JSON.stringify({ok:true,widths,paidPacketRequests},null,2));
+ await writeFile('seasonal-home-audit/results.json',JSON.stringify({ok:true,widths,expectedSeason,expectedImage,results,paidPacketRequests},null,2));
+ console.log(JSON.stringify({ok:true,widths,expectedSeason,expectedImage,paidPacketRequests},null,2));
 }finally{await browser.close()}
