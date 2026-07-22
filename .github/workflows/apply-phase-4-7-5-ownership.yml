@@ -22,12 +22,13 @@ jobs:
         with:
           ref: agent/phase-4-7-5-navigation-lock
           fetch-depth: 0
-      - name: Apply guarded ownership, lifecycle, and CSS corrections
+      - name: Apply guarded ownership, lifecycle, packet, and CSS corrections
         run: |
           node scripts/applyPhase475OwnershipCorrections.mjs
           node scripts/applyPhase474LabelConsistency.mjs
           node scripts/applyPhase475LifecycleHarness.mjs
           node scripts/applyPhase474JourneyHarnessFix.mjs
+          node scripts/applyPhase474PacketHealthHarness.mjs
           node scripts/applyPhase475CssSyntax.mjs
       - name: Commit corrected routes, headers, lifecycle harness, and CSS
         run: |
