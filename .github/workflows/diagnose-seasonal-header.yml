@@ -1,0 +1,24 @@
+name: Diagnose Seasonal Header
+
+on:
+  push:
+    branches: [agent/diagnose-seasonal-header]
+
+permissions:
+  contents: read
+
+jobs:
+  diagnose:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npm install --no-save playwright
+      - run: npx playwright install --with-deps chromium
+      - name: Inspect production computed header styles
+        run: node scripts/diagnoseSeasonalHeaderLive.mjs
