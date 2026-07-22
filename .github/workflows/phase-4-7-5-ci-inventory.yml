@@ -1,0 +1,25 @@
+name: Phase 4.7.5 CI Inventory
+
+on:
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  inventory:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Capture workflow and script inventory
+        run: |
+          mkdir -p phase475-ci-inventory
+          cp -R .github/workflows phase475-ci-inventory/
+          find scripts -maxdepth 1 -type f -printf '%f\n' | sort > phase475-ci-inventory/scripts.txt
+      - uses: actions/upload-artifact@v4
+        with:
+          name: phase-4-7-5-ci-inventory
+          path: phase475-ci-inventory
+          retention-days: 1
