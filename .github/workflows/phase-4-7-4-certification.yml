@@ -1,0 +1,103 @@
+name: Phase 4.7.4 Whole-App Certification
+
+on:
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  certify-local-release-candidate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+      - name: Use Node.js 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - name: Install dependencies
+        run: npm ci
+      - name: Apply focused certification harness corrections
+        run: |
+          node scripts/applyPhase474JourneyHarnessFix.mjs
+          node scripts/applyPhase474PacketHealthHarness.mjs
+      - name: Generate route and action inventories
+        shell: bash
+        run: |
+          set -o pipefail
+          node scripts/generatePhase474Inventory.mjs 2>&1 | tee phase474-inventory.log
+      - name: Run complete existing test suite
+        shell: bash
+        run: |
+          set -o pipefail
+          npm test 2>&1 | tee phase474-tests.log
+      - name: Build production application
+        shell: bash
+        run: |
+          set -o pipefail
+          npm run build 2>&1 | tee phase474-build.log
+      - name: Install Playwright Chromium
+        run: |
+          npm install --no-save playwright
+          npx playwright install --with-deps chromium
+      - name: Start production server
+        run: |
+          PORT=4173 npm start > phase474-server.log 2>&1 &
+          for attempt in {1..40}; do
+            if curl --fail --silent http://127.0.0.1:4173/api/health >/dev/null; then exit 0; fi
+            sleep 1
+          done
+          cat phase474-server.log
+          exit 1
+      - name: Verify Today hero identity at all required widths
+        shell: bash
+        run: |
+          set -o pipefail
+          node scripts/verifyPhase474Hero.mjs 2>&1 | tee phase474-hero.log
+        env:
+          APP_URL: http://127.0.0.1:4173
+      - name: Run first whole-app route and action audit at 390px
+        shell: bash
+        run: |
+          set -o pipefail
+          sed -i "s/const widths=\[320,375,390,430,768,1200\]/const widths=[390]/" scripts/verifyPhase474WholeApp.mjs
+          node scripts/verifyPhase474WholeApp.mjs 2>&1 | tee phase474-whole-app.log
+        env:
+          APP_URL: http://127.0.0.1:4173
+          PHASE474_STRICT: '0'
+      - name: Run critical record lifecycle journeys
+        shell: bash
+        run: |
+          set -o pipefail
+          node scripts/verifyPhase474CriticalJourneys.mjs 2>&1 | tee phase474-journeys.log
+        env:
+          APP_URL: http://127.0.0.1:4173
+      - name: Verify PWA, direct routes, and printables
+        shell: bash
+        run: |
+          set -o pipefail
+          node scripts/verifyPhase474PwaAndPrint.mjs 2>&1 | tee phase474-pwa-print.log
+        env:
+          APP_URL: http://127.0.0.1:4173
+      - name: Upload Phase 4.7.4 evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: phase-4-7-4-certification-evidence
+          path: |
+            phase474-audit
+            phase474-*.log
+            src/App.jsx
+            src/BedWorkspace.jsx
+            src/ChoreBoard.jsx
+            src/ClearDetailModal.jsx
+            src/GardenControls.jsx
+            src/SeedTools.jsx
+            src/WorkspaceScreens.jsx
+          if-no-files-found: warn
+          retention-days: 7

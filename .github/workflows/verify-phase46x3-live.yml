@@ -1,4 +1,4 @@
-name: Verify Render Phase 4.7.1
+name: Verify Render Phase 4.7.3
 
 on:
   push:
@@ -9,7 +9,7 @@ permissions:
   statuses: write
 
 concurrency:
-  group: phase471-live-verification
+  group: phase473-live-verification
   cancel-in-progress: true
 
 jobs:
@@ -24,42 +24,55 @@ jobs:
       APP_URL: https://brookes-garden-compass.onrender.com
       VERIFY_ATTEMPTS: 36
       VERIFY_DELAY_MS: 10000
-      VERIFY_PACKET_ATTEMPTS: 3
-      VERIFY_PACKET_DELAY_MS: 10000
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - name: Check out repository
+        uses: actions/checkout@v4
+      - name: Use Node.js 22
+        uses: actions/setup-node@v4
         with:
           node-version: 22
+          cache: npm
       - name: Publish deployment verification pending status
         run: |
-          payload=$(python -c 'import json,os;print(json.dumps({"state":"pending","context":"render/phase-4-7-1","description":"Waiting for the Garden Compass Phase 4.7.1 build","target_url":os.environ["RUN_URL"]}))')
-          curl -sS -X POST -H "Authorization: Bearer ${GH_TOKEN}" -H 'Accept: application/vnd.github+json' -H 'X-GitHub-Api-Version: 2022-11-28' "https://api.github.com/repos/${REPO}/statuses/${SHA}" -d "$payload" >/dev/null
-      - run: npm install
-      - name: Verify deployed health, frontend build, and packet probe
+          payload=$(python -c 'import json,os;print(json.dumps({"state":"pending","context":"render/phase-4-7-3","description":"Waiting for the Garden Compass Phase 4.7.3 build","target_url":os.environ["RUN_URL"]}))')
+          if ! curl --fail-with-body -sS -X POST -H "Authorization: Bearer ${GH_TOKEN}" -H 'Accept: application/vnd.github+json' -H 'X-GitHub-Api-Version: 2022-11-28' "https://api.github.com/repos/${REPO}/statuses/${SHA}" -d "$payload" >/dev/null; then
+            echo "::warning::Could not publish the pending Render verification status. The live verification will still run."
+          fi
+      - name: Install dependencies
+        run: npm ci
+      - name: Verify deployed health and Phase 4.7.3 frontend build
         id: verify
         continue-on-error: true
-        run: npm run verify:phase46x3:live > live-verification.json 2> live-verification-error.txt
+        run: npm run verify:phase473:live > live-verification.json 2> live-verification-error.txt
       - name: Upload verification result
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: phase471-live-verification
+          name: phase473-live-verification
           path: |
             live-verification.json
             live-verification-error.txt
+          if-no-files-found: warn
           retention-days: 2
       - name: Publish Render result
         if: always()
         run: |
           if [ "${{ steps.verify.outcome }}" = success ]; then
             state=success
-            description='Garden Compass serves the Phase 4.7.1 health and frontend build'
+            description='Garden Compass serves the Phase 4.7.3 health and frontend build'
           else
             state=failure
             description=$(tail -n 1 live-verification-error.txt 2>/dev/null | tr -d '\r' | cut -c1-140)
-            if [ -z "$description" ]; then description='Live Phase 4.7.1 verification failed'; fi
+            if [ -z "$description" ]; then description='Live Phase 4.7.3 verification failed'; fi
           fi
-          payload=$(STATE="$state" DESC="$description" python -c 'import json,os;print(json.dumps({"state":os.environ["STATE"],"context":"render/phase-4-7-1","description":os.environ["DESC"][:140],"target_url":os.environ["RUN_URL"]}))')
-          curl -sS -X POST -H "Authorization: Bearer ${GH_TOKEN}" -H 'Accept: application/vnd.github+json' -H 'X-GitHub-Api-Version: 2022-11-28' "https://api.github.com/repos/${REPO}/statuses/${SHA}" -d "$payload" >/dev/null
-          test "$state" = success
+          payload=$(STATE="$state" DESC="$description" python -c 'import json,os;print(json.dumps({"state":os.environ["STATE"],"context":"render/phase-4-7-3","description":os.environ["DESC"][:140],"target_url":os.environ["RUN_URL"]}))')
+          if ! curl --fail-with-body -sS -X POST -H "Authorization: Bearer ${GH_TOKEN}" -H 'Accept: application/vnd.github+json' -H 'X-GitHub-Api-Version: 2022-11-28' "https://api.github.com/repos/${REPO}/statuses/${SHA}" -d "$payload" >/dev/null; then
+            echo "::warning::Live verification completed, but GitHub could not publish the Render commit status."
+          fi
+      - name: Enforce live verification result
+        if: always()
+        run: |
+          if [ "${{ steps.verify.outcome }}" != success ]; then
+            cat live-verification-error.txt 2>/dev/null || true
+            exit 1
+          fi

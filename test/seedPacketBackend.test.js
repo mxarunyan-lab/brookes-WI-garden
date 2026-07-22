@@ -27,7 +27,7 @@ test('machine barcode decoder reads a generated UPC-A packet barcode',async()=>{
 test('multimodal analysis sends front and back together with strict output and store false',async()=>{
  const {frontImage,backImage}=await createIcebergPacketFixture(),calls=[];
  const openaiClient={responses:{create:async(body,options)=>{calls.push({body,options});return response(icebergAnalysisFixture)}}};
- const result=await analyzeSeedPacket({frontImage,backImage,draftContext:{brand:'Burpee'}},{openaiClient,requestId:'req_multimodal',barcodeDecoder:async()=>({value:'012345678905',format:'UPC-A',checkDigitValid:true,confidence:'high',method:'machine-decoder',visibleDigits:'012345678905'}),productResearch:async()=>({exact:true,candidate:{brand:'Burpee',crop:'Lettuce',variety:'Iceberg A'},sources:[]})});
+ const result=await analyzeSeedPacket({frontImage,backImage,draftContext:{brand:'Burpee'}},{openaiClient,requestId:'req_multimodal',repairPasses:false,barcodeDecoder:async()=>({value:'012345678905',format:'UPC-A',checkDigitValid:true,confidence:'high',method:'machine-decoder',visibleDigits:'012345678905'}),productResearch:async()=>({exact:true,candidate:{brand:'Burpee',crop:'Lettuce',variety:'Iceberg A'},sources:[]})});
  assert.equal(calls.length,1);
  assert.equal(calls[0].body.store,false);
  assert.equal(calls[0].body.reasoning.effort,'minimal');
@@ -73,7 +73,7 @@ test('unsupported vision barcode does not discard otherwise valid packet analysi
  invalidBarcode.fieldEvidence.barcodeMethod={value:'vision-read',sourceImage:'back',visibleEvidence:'6285',confidence:'low',printed:false,normalized:true};
  invalidBarcode.fieldEvidence.visibleDigits={value:'6285',sourceImage:'back',visibleEvidence:'6285',confidence:'low',printed:true,normalized:false};
  const {frontImage,backImage}=await createIcebergPacketFixture(),openaiClient={responses:{create:async()=>response(invalidBarcode,'resp_bad_barcode')}};
- const result=await analyzeSeedPacket({frontImage,backImage},{openaiClient,requestId:'req_bad_barcode',barcodeDecoder:async()=>({value:null,format:null,checkDigitValid:null,confidence:null,method:'unavailable',visibleDigits:null}),productResearch:async()=>({exact:false,candidate:null,sources:[]})});
+ const result=await analyzeSeedPacket({frontImage,backImage},{openaiClient,requestId:'req_bad_barcode',repairPasses:false,barcodeDecoder:async()=>({value:null,format:null,checkDigitValid:null,confidence:null,method:'unavailable',visibleDigits:null}),productResearch:async()=>({exact:false,candidate:null,sources:[]})});
  assert.equal(result.analysis.packetIdentity.variety,'Iceberg A');
  assert.equal(result.analysis.machineIdentifiers.barcode,null);
  assert.ok(result.analysis.quality.unreadableFields.includes('barcode'));
@@ -84,7 +84,7 @@ test('malformed optional guidance does not discard packet identity and planting 
  badGuidance.instructions.directSowGuidance='EARLY SPRING OR LATE SUMMER';
  badGuidance.fieldEvidence.directSowGuidance={value:'EARLY SPRING OR LATE SUMMER',sourceImage:'back',visibleEvidence:'EARLY SPRING OR LATE SUMMER',confidence:'medium',printed:true,normalized:false};
  const {frontImage,backImage}=await createIcebergPacketFixture(),openaiClient={responses:{create:async()=>response(badGuidance,'resp_bad_guidance')}};
- const result=await analyzeSeedPacket({frontImage,backImage},{openaiClient,requestId:'req_bad_guidance',barcodeDecoder:async()=>({value:null,format:null,checkDigitValid:null,confidence:null,method:'unavailable',visibleDigits:null}),productResearch:async()=>({exact:false,candidate:null,sources:[]})});
+ const result=await analyzeSeedPacket({frontImage,backImage},{openaiClient,requestId:'req_bad_guidance',repairPasses:false,barcodeDecoder:async()=>({value:null,format:null,checkDigitValid:null,confidence:null,method:'unavailable',visibleDigits:null}),productResearch:async()=>({exact:false,candidate:null,sources:[]})});
  assert.equal(result.analysis.packetIdentity.variety,'Iceberg A');
  assert.equal(result.analysis.growing.daysToHarvest,65);
  assert.equal(result.analysis.instructions.directSowGuidance,null);
@@ -96,7 +96,7 @@ test('malformed product identity is blanked instead of failing the full packet',
  badIdentity.packetIdentity.productName='FULL SUN VEGETABLE Lettuce Seeds';
  badIdentity.fieldEvidence.productName={value:'FULL SUN VEGETABLE Lettuce Seeds',sourceImage:'front',visibleEvidence:'FULL SUN VEGETABLE Lettuce Seeds',confidence:'medium',printed:true,normalized:false};
  const {frontImage,backImage}=await createIcebergPacketFixture(),openaiClient={responses:{create:async()=>response(badIdentity,'resp_bad_identity')}};
- const result=await analyzeSeedPacket({frontImage,backImage},{openaiClient,requestId:'req_bad_identity',barcodeDecoder:async()=>({value:null,format:null,checkDigitValid:null,confidence:null,method:'unavailable',visibleDigits:null}),productResearch:async()=>({exact:false,candidate:null,sources:[]})});
+ const result=await analyzeSeedPacket({frontImage,backImage},{openaiClient,requestId:'req_bad_identity',repairPasses:false,barcodeDecoder:async()=>({value:null,format:null,checkDigitValid:null,confidence:null,method:'unavailable',visibleDigits:null}),productResearch:async()=>({exact:false,candidate:null,sources:[]})});
  assert.equal(result.analysis.packetIdentity.crop,'Lettuce');
  assert.equal(result.analysis.packetIdentity.variety,'Iceberg A');
  assert.equal(result.analysis.packetIdentity.productName,null);

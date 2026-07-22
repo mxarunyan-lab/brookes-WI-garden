@@ -10,7 +10,7 @@ const NWS_STATION='KGRB';
 const labels={0:'Clear',1:'Mostly Clear',2:'Partly Cloudy',3:'Cloudy',45:'Foggy',48:'Icy Fog',51:'Light Drizzle',53:'Drizzle',55:'Heavy Drizzle',61:'Light Rain',63:'Rain',65:'Heavy Rain',66:'Freezing Rain',67:'Heavy Freezing Rain',71:'Light Snow',73:'Snow',75:'Heavy Snow',77:'Snow Grains',80:'Rain Showers',81:'Rain Showers',82:'Heavy Showers',85:'Snow Showers',86:'Heavy Snow Showers',95:'Thunderstorms',96:'Storms with Hail',99:'Severe Storms with Hail'};
 
 const read=(key,fallback=null)=>{try{return JSON.parse(localStorage.getItem(key)||'null')??fallback}catch{return fallback}};
-const write=(key,value)=>{try{localStorage.setItem(key,JSON.stringify(value))}catch{}}
+const write=(key,value)=>{try{localStorage.setItem(key,JSON.stringify(value))}catch{}};
 const toF=value=>Number.isFinite(Number(value))?Number((Number(value)*9/5+32).toFixed(1)):null;
 const measurement=(item,convert=value=>value)=>{const value=Number(item?.value);return Number.isFinite(value)?convert(value):null};
 export const measurementToMph=item=>{const value=Number(item?.value);if(!Number.isFinite(value))return null;const unit=String(item?.unitCode||'').toLowerCase();if(unit.includes('km_h')||unit.includes('km/h'))return Number((value*.621371).toFixed(1));if(unit.includes('m_s')||unit.includes('m/s'))return Number((value*2.23694).toFixed(1));if(unit.includes('[mi_i]/h')||unit.includes('mph'))return Number(value.toFixed(1));return Number(value.toFixed(1))};
@@ -68,15 +68,55 @@ async function fetchFallback(signal){
  return{records:openMeteoRecords(payload),provider:'Open-Meteo',mode:'fallback'};
 }
 
+async function runTimedWeatherOperation(operation,{timeoutMs,onController,stage}){
+ const controller=new AbortController();
+ onController(controller,stage);
+ const timer=setTimeout(()=>controller.abort(),timeoutMs);
+ try{return await operation(controller.signal)}finally{clearTimeout(timer)}
+}
+
+export async function runWeatherWithFallback({primary,fallback,primaryTimeoutMs=15000,fallbackTimeoutMs=15000,onController=()=>{}}){
+ try{
+  const result=await runTimedWeatherOperation(primary,{timeoutMs:primaryTimeoutMs,onController,stage:'primary'});
+  return{result,source:'live',usedFallback:false,primaryError:null};
+ }catch(primaryError){
+  try{
+   const result=await runTimedWeatherOperation(fallback,{timeoutMs:fallbackTimeoutMs,onController,stage:'fallback'});
+   return{result,source:'fallback',usedFallback:true,primaryError};
+  }catch(fallbackError){
+   throw new AggregateError([primaryError,fallbackError],'Official and fallback weather requests failed');
+  }
+ }
+}
+
 export function useGreenBayWeather(){
  const cached=read(CACHE_KEY,{savedAt:0,records:[]}),[records,setRecords]=useState(cached.records||[]),[corrections,setCorrections]=useState(()=>read(CORRECTION_KEY,[])),[loading,setLoading]=useState(true),[error,setError]=useState(''),[source,setSource]=useState(cached.records?.length?'cached':'unavailable'),[savedAt,setSavedAt]=useState(cached.savedAt||0),seq=useRef(0),controllerRef=useRef(null);
  const snapshot=useMemo(()=>buildEnvironmentalSnapshot({records,corrections,spaces:gardenSpaces()}),[records,corrections]);
- const apply=useCallback((result,nextSource,requestId)=>{if(requestId!==seq.current)return;const now=Date.now();setRecords(result.records);setSource(nextSource);setSavedAt(now);setError('');write(CACHE_KEY,{savedAt:now,records:result.records,provider:result.provider});},[]);
+ const apply=useCallback((result,nextSource,requestId)=>{if(requestId!==seq.current)return;const now=Date.now();setRecords(result.records);setSource(nextSource);setSavedAt(now);setError('');write(CACHE_KEY,{savedAt:now,records:result.records,provider:result.provider})},[]);
  const refresh=useCallback(async({force=false}={})=>{
   const currentCache=read(CACHE_KEY,{savedAt:0,records:[]});
   if(!force&&currentCache.savedAt&&Date.now()-currentCache.savedAt<CACHE_MAX_AGE){setRecords(currentCache.records||[]);setSource('cached');setSavedAt(currentCache.savedAt);setLoading(false);return}
-  const requestId=++seq.current;controllerRef.current?.abort();const controller=new AbortController();controllerRef.current=controller;const timer=setTimeout(()=>controller.abort(),15000);setLoading(true);setError('');
-  try{apply(await fetchNws(controller.signal),'live',requestId)}catch(firstError){if(requestId!==seq.current)return;try{apply(await fetchFallback(controller.signal),'fallback',requestId);setError('Official NWS weather was unavailable. Showing a labeled regional forecast fallback.')}catch{if(currentCache.records?.length){setRecords(currentCache.records);setSource('cached');setSavedAt(currentCache.savedAt||0);setError('Garden conditions could not refresh. Showing the latest available reading.')}else{setSource('unavailable');setError('Weather data is temporarily unavailable. Check soil before watering.')}}}finally{clearTimeout(timer);if(requestId===seq.current)setLoading(false)}
+  const requestId=++seq.current;
+  controllerRef.current?.abort();
+  setLoading(true);
+  setError('');
+  try{
+   const outcome=await runWeatherWithFallback({
+    primary:fetchNws,
+    fallback:fetchFallback,
+    primaryTimeoutMs:15000,
+    fallbackTimeoutMs:15000,
+    onController:controller=>{if(requestId!==seq.current)controller.abort();else controllerRef.current=controller}
+   });
+   if(requestId!==seq.current)return;
+   apply(outcome.result,outcome.source,requestId);
+   if(outcome.usedFallback)setError('Official NWS weather was unavailable. Showing a labeled regional forecast fallback.');
+  }catch{
+   if(requestId!==seq.current)return;
+   if(currentCache.records?.length){setRecords(currentCache.records);setSource('cached');setSavedAt(currentCache.savedAt||0);setError('Garden conditions could not refresh. Showing the latest available reading.')}else{setSource('unavailable');setError('Weather data is temporarily unavailable. Check soil before watering.')}
+  }finally{
+   if(requestId===seq.current){controllerRef.current=null;setLoading(false)}
+  }
  },[apply]);
  const persistCorrections=useCallback(next=>{setCorrections(next);write(CORRECTION_KEY,next)},[]);
  const recordRain=useCallback(input=>{try{const data=typeof input==='object'?input:{rainfall_amount:input},record=createManualCorrection({...data,rainfall_amount:data.rainfall_amount??data.amount,source:data.source||'Home weather monitor',entered_by:null});persistCorrections([record,...corrections]);return record}catch{return false}},[corrections,persistCorrections]);

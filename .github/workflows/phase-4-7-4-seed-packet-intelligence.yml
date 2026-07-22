@@ -1,0 +1,65 @@
+name: Phase 4.7.4 Seed Packet Intelligence
+
+on:
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  verify-smart-packet-workflow:
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+      - name: Use Node.js 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - name: Install dependencies
+        run: npm ci
+      - name: Apply guarded packet corrections in test workspace
+        run: |
+          node scripts/applyPhase474SeedPacketIntelligenceFix.mjs
+          node scripts/applyPhase474PacketValueQualityFix.mjs
+      - name: Check transformed source syntax
+        run: |
+          node --check server/index.js
+          node --check server/productResearch.js
+          node --check server/seedPacketVision.js
+          node --check src/seedPacketIntelligence.js
+          node --check src/seedProductLookup.js
+          node --check scripts/verifyPhase474SeedPacketIntelligence.mjs
+          git diff --check
+      - name: Run full test suite
+        shell: bash
+        run: |
+          set +e
+          npm test > phase474-seed-packet-tests.log 2>&1
+          status=$?
+          tail -n 240 phase474-seed-packet-tests.log
+          exit $status
+      - name: Build production application
+        run: npm run build
+      - name: Verify Sow Right and all-brand packet behavior
+        shell: bash
+        run: |
+          set +e
+          node scripts/verifyPhase474SeedPacketIntelligence.mjs > phase474-seed-packet-verifier.log 2>&1
+          status=$?
+          cat phase474-seed-packet-verifier.log
+          exit $status
+      - name: Upload packet certification evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: phase-4-7-4-seed-packet-evidence
+          path: |
+            phase474-seed-packet-tests.log
+            phase474-seed-packet-verifier.log
+          if-no-files-found: warn
+          retention-days: 7

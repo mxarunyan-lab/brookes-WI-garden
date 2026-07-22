@@ -10,7 +10,8 @@
     "test": "node --test",
     "start": "node server/index.js",
     "analyze:packet:images": "node scripts/analyzePacketImages.mjs",
-    "verify:phase46x3:live": "node scripts/verifyLivePhase46x3.mjs"
+    "verify:phase46x3:live": "node scripts/verifyLivePhase46x3.mjs",
+    "verify:phase473:live": "node scripts/verifyPhase472Live.mjs"
   },
   "dependencies": {
     "@vitejs/plugin-react": "latest",

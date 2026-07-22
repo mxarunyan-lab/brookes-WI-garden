@@ -5,7 +5,7 @@ import compression from 'compression';
 import express from 'express';
 import helmet from 'helmet';
 import {analyzeSeedPacket} from './seedPacketVision.js';
-import {configuredResearchProviders} from './productResearch.js';
+import {configuredResearchProviders, researchExactSeedProduct} from './productResearch.js';
 
 const port = Number(process.env.PORT || 3000);
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..', 'dist');
@@ -35,7 +35,19 @@ const publicMessage = (code, status) => {
   return 'Packet analysis could not finish. Your photos and draft remain saved.';
 };
 
-export function createApp({analyze = analyzeSeedPacket} = {}) {
+const cleanLookupIdentity = (input = {}) => ({
+  brand: String(input.brand || '').slice(0, 160),
+  crop: String(input.crop || input.name || '').slice(0, 160),
+  cropId: String(input.cropId || '').slice(0, 120),
+  variety: String(input.variety || '').slice(0, 200),
+  productName: String(input.productName || '').slice(0, 240),
+  barcode: String(input.barcode || '').replace(/\D/g, '').slice(0, 20),
+  sku: String(input.sku || input.officialProductId || '').slice(0, 160),
+  packetYear: String(input.packetYear || '').slice(0, 12),
+  rawVisibleText: String(input.rawText || input.rawVisibleText || '').slice(0, 4000),
+});
+
+export function createApp({analyze = analyzeSeedPacket, research = researchExactSeedProduct} = {}) {
   const app = express();
   app.disable('x-powered-by');
   app.set('trust proxy', 1);
@@ -56,6 +68,21 @@ export function createApp({analyze = analyzeSeedPacket} = {}) {
     productResearchProviders: configuredResearchProviders(),
     version: process.env.APP_VERSION || '0.20.3',
   }));
+
+  app.post('/api/seed-products/lookup', rateLimit, async (req, res) => {
+    const requestId = crypto.randomUUID();
+    try {
+      const identity = cleanLookupIdentity(req.body?.identity || req.body || {});
+      if (!identity.brand || !identity.crop || !identity.variety) {
+        return res.status(400).json({code: 'IDENTITY_REQUIRED', message: 'Brand, crop, and variety are required for exact product research.', requestId});
+      }
+      const result = await research(identity);
+      return res.json({...result, requestId});
+    } catch (error) {
+      console.error('[seed-product-research]', {requestId, code: error.code || 'RESEARCH_FAILED', message: error.message});
+      return res.status(Number(error.status) || 502).json({code: error.code || 'RESEARCH_FAILED', message: 'Exact-product research could not finish. Packet text remains available.', requestId});
+    }
+  });
 
   app.post('/api/seed-packets/analyze', rateLimit, async (req, res) => {
     const requestId = crypto.randomUUID();
