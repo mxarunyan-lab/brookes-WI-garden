@@ -50,10 +50,11 @@ test('Phase 4.7.5 navigation styles load globally and retain More, weather, and 
  assert.doesNotMatch(toolShed,/<details/);
 });
 
-test('release metadata identifies the Phase 4.7.5 navigation lock',()=>{
+test('release metadata preserves the navigation lock and identifies the seasonal header release',()=>{
  const source=src('version.js');
- assert.match(source,/APP_VERSION='0\.20\.4'/);
- assert.match(source,/phase-4-7-5-navigation-lock/);
+ assert.match(source,/APP_VERSION='0\.20\.5'/);
+ assert.match(source,/seasonal-mobile-garden-header/);
+ assert.match(source,/Today now uses the approved automatic Green Bay seasonal garden header/);
  assert.match(source,/Garden Center now contains only the five core garden-management destinations/);
  assert.match(source,/Tool Shed is a flat one-tap directory/);
  assert.match(source,/three distinct focused weather modes/);
