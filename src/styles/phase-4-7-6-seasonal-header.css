@@ -1,4 +1,4 @@
-/* Phase 4.7.7: exact approved seasonal artwork, stable iPhone rendering, no crop or duplicate title panel. */
+/* Phase 4.7.8: exact approved seasonal artwork from static build-generated WebP files. */
 .today-screen .today-hero.compact-home-hero{
  position:relative!important;
  box-sizing:border-box!important;
@@ -17,76 +17,18 @@
  border-radius:22px!important;
  isolation:isolate;
 }
-html[data-garden-season="spring"] .today-screen .today-hero.compact-home-hero{background-image:url('/images/garden-headers/garden-header-spring.webp?v=0477')!important}
-html[data-garden-season="summer"] .today-screen .today-hero.compact-home-hero{background-image:url('/images/garden-headers/garden-header-summer.webp?v=0477')!important}
-html[data-garden-season="fall"] .today-screen .today-hero.compact-home-hero{background-image:url('/images/garden-headers/garden-header-fall.webp?v=0477')!important}
-html[data-garden-season="winter"] .today-screen .today-hero.compact-home-hero{background-image:url('/images/garden-headers/garden-header-winter.webp?v=0477')!important}
+html[data-garden-season="spring"] .today-screen .today-hero.compact-home-hero{background-image:url('/images/garden-headers/garden-header-spring.webp?v=0478')!important}
+html[data-garden-season="summer"] .today-screen .today-hero.compact-home-hero{background-image:url('/images/garden-headers/garden-header-summer.webp?v=0478')!important}
+html[data-garden-season="fall"] .today-screen .today-hero.compact-home-hero{background-image:url('/images/garden-headers/garden-header-fall.webp?v=0478')!important}
+html[data-garden-season="winter"] .today-screen .today-hero.compact-home-hero{background-image:url('/images/garden-headers/garden-header-winter.webp?v=0478')!important}
 .compact-home-hero .wisconsin-landscape{display:none!important}
 .compact-home-hero:after{display:none!important}
-
-/* The approved artwork already contains the exact title panel. Keep the live heading accessible without drawing a second panel over it. */
-.compact-home-hero .compact-hero-title{
- position:absolute!important;
- width:1px!important;
- height:1px!important;
- margin:-1px!important;
- padding:0!important;
- overflow:hidden!important;
- clip:rect(0 0 0 0)!important;
- clip-path:inset(50%)!important;
- white-space:nowrap!important;
- border:0!important;
-}
-.compact-home-hero .hero-bell{
- top:10px!important;
- right:10px!important;
- z-index:12!important;
- min-width:44px;
- min-height:44px;
- background:rgba(255,250,240,.96)!important;
- box-shadow:0 5px 14px rgba(23,61,43,.18)!important;
-}
+.compact-home-hero .compact-hero-title{position:absolute!important;width:1px!important;height:1px!important;margin:-1px!important;padding:0!important;overflow:hidden!important;clip:rect(0 0 0 0)!important;clip-path:inset(50%)!important;white-space:nowrap!important;border:0!important}
+.compact-home-hero .hero-bell{top:10px!important;right:10px!important;z-index:12!important;min-width:44px;min-height:44px;background:rgba(255,250,240,.96)!important;box-shadow:0 5px 14px rgba(23,61,43,.18)!important}
 .compact-home-hero .notification-popover{z-index:20!important}
-.compact-today-body{
- position:relative;
- z-index:5;
- display:flex!important;
- flex-direction:column!important;
- gap:11px!important;
- margin-top:-22px!important;
- padding-top:0!important;
-}
-.compact-today-body>.what-matters-today{
- order:-2;
- border:1px solid rgba(23,61,43,.14)!important;
- border-radius:22px!important;
- background:rgba(255,250,240,.985)!important;
- box-shadow:0 11px 26px rgba(23,61,43,.18)!important;
-}
-.compact-today-body>.what-matters-today.is-clear{
- background:rgba(247,250,240,.985)!important;
- border-color:rgba(44,114,75,.22)!important;
-}
-.compact-today-body>.compact-weather-line{order:-1}
-.compact-today-body>.compact-handoff{order:0}
-
-@media(max-width:350px){
- .today-screen .today-hero.compact-home-hero{
-  width:calc(100% - 16px)!important;
-  margin:8px 8px 0!important;
-  border-radius:18px!important;
- }
- .compact-home-hero .hero-bell{top:8px!important;right:8px!important}
- .compact-today-body{margin-top:-18px!important}
- .compact-today-body>.what-matters-today{border-radius:18px!important}
-}
-
-@media(min-width:600px){
- .today-screen .today-hero.compact-home-hero{
-  width:min(calc(100% - 28px),1100px)!important;
-  margin:14px auto 0!important;
-  border-radius:24px!important;
- }
- .compact-home-hero .hero-bell{top:14px!important;right:14px!important}
- .compact-today-body{margin-top:-26px!important}
-}
+.compact-today-body{position:relative;z-index:5;display:flex!important;flex-direction:column!important;gap:11px!important;margin-top:-22px!important;padding-top:0!important}
+.compact-today-body>.what-matters-today{order:-2;border:1px solid rgba(23,61,43,.14)!important;border-radius:22px!important;background:rgba(255,250,240,.985)!important;box-shadow:0 11px 26px rgba(23,61,43,.18)!important}
+.compact-today-body>.what-matters-today.is-clear{background:rgba(247,250,240,.985)!important;border-color:rgba(44,114,75,.22)!important}
+.compact-today-body>.compact-weather-line{order:-1}.compact-today-body>.compact-handoff{order:0}
+@media(max-width:350px){.today-screen .today-hero.compact-home-hero{width:calc(100% - 16px)!important;margin:8px 8px 0!important;border-radius:18px!important}.compact-home-hero .hero-bell{top:8px!important;right:8px!important}.compact-today-body{margin-top:-18px!important}.compact-today-body>.what-matters-today{border-radius:18px!important}}
+@media(min-width:600px){.today-screen .today-hero.compact-home-hero{width:min(calc(100% - 28px),1100px)!important;margin:14px auto 0!important;border-radius:24px!important}.compact-home-hero .hero-bell{top:14px!important;right:14px!important}.compact-today-body{margin-top:-26px!important}}
