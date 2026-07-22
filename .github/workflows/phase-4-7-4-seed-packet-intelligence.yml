@@ -34,8 +34,22 @@ jobs:
           node --check scripts/verifyPhase474SeedPacketIntelligence.mjs
           git diff --check
       - name: Run full test suite
-        run: npm test
+        shell: bash
+        run: |
+          set +e
+          npm test > phase474-seed-packet-tests.log 2>&1
+          status=$?
+          tail -n 240 phase474-seed-packet-tests.log
+          exit $status
       - name: Build production application
         run: npm run build
       - name: Verify Sow Right and all-brand packet behavior
         run: node scripts/verifyPhase474SeedPacketIntelligence.mjs
+      - name: Upload packet certification evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: phase-4-7-4-seed-packet-evidence
+          path: phase474-seed-packet-tests.log
+          if-no-files-found: warn
+          retention-days: 7
