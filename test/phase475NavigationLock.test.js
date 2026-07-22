@@ -8,8 +8,8 @@ test('Garden Center is locked to five core destinations',async()=>{
  const source=await read('src/GardenCenter.jsx');
  const titles=['Seed Department','Planting Desk','Growing Spaces','Indoor Growing','Garden Chore Board'];
  assert.equal((source.match(/<DepartmentTile /g)||[]).length,5);
- for(const title of titles)assert.equal((source.match(new RegExp(`title=\\"${title.replace(/[.*+?^${}()|[\\]\\]/g,'\\$&')}\\"`,'g'))||[]).length,1,`${title} must appear once`);
- for(const removed of['Shopping List','Vacation Mode','Garden History','Next Season'])assert.doesNotMatch(source,new RegExp(`title=\\"${removed}\\"`));
+ for(const title of titles)assert.equal(source.split(`title="${title}"`).length-1,1,`${title} must appear once`);
+ for(const removed of['Shopping List','Vacation Mode','Garden History','Next Season'])assert.equal(source.includes(`title="${removed}"`),false,`${removed} must not remain in Garden Center`);
  assert.match(source,/title="Garden Center"/);
  assert.doesNotMatch(source,/Departments for seeds/);
  assert.match(source,/navigation-directory-card/);
@@ -19,8 +19,8 @@ test('Tool Shed is a flat eleven-destination directory',async()=>{
  const source=await read('src/ToolShed.jsx');
  const titles=['Spacing Calculator','Soil & Container Calculator','Seed Quantity Calculator','Garden Measurements','Garden Weather','Rain & Watering Review','Frost & Planting Dates','Shopping List','Vacation Mode','Printable Garden Pack & Labels','Garden History'];
  assert.equal((source.match(/<ToolCard /g)||[]).length,11);
- for(const title of titles)assert.match(source,new RegExp(`title=\\"${title.replace(/[.*+?^${}()|[\\]\\]/g,'\\$&')}\\"`));
- for(const heading of['CALCULATORS & UTILITIES','WEATHER & TIMING','RECORDS & EXTRAS'])assert.match(source,new RegExp(heading.replace('&','&')));
+ for(const title of titles)assert.equal(source.includes(`title="${title}"`),true,`${title} must be directly visible`);
+ for(const heading of['CALCULATORS & UTILITIES','WEATHER & TIMING','RECORDS & EXTRAS'])assert.equal(source.includes(heading),true,`${heading} section missing`);
  assert.doesNotMatch(source,/<details/);
  assert.doesNotMatch(source,/tool-shed-drawer/);
  assert.doesNotMatch(source,/count=/);
@@ -34,7 +34,7 @@ test('moved destinations keep existing routes and Tool Shed ownership',async()=>
  assert.match(app,/vacation:'tools'/);
  assert.match(app,/'shopping-list':'tools'/);
  assert.match(app,/memory:'tools'/);
- assert.match(app,/vacation:'tools','shopping-list':'tools',memory:'tools'/);
+ assert.match(app,/parentMap=\{weather:'today',chores:'center',vacation:'tools','plan-plant':'center','shopping-list':'tools','seed-tools':'center',indoor:'center',memory:'tools'/);
  assert.match(shopping,/navigate\('tools'\)/);
  assert.match(vacation,/navigate\('tools'\)/);
  assert.match(memory,/navigate\('tools'\)/);
