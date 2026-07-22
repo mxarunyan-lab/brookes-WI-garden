@@ -6,7 +6,7 @@ const workflowPath=new URL('../.github/workflows/verify-phase46x3-live.yml',impo
 const packagePath=new URL('../package.json',import.meta.url);
 const verifierPath=new URL('../scripts/verifyPhase475Live.mjs',import.meta.url);
 
-test('permanent Render workflow uses the current exact seasonal-header verifier and established status names',async()=>{
+test('permanent Render workflow uses the current static seasonal-header verifier and established status names',async()=>{
  const workflow=await readFile(workflowPath,'utf8');
  const pkg=JSON.parse(await readFile(packagePath,'utf8'));
  const verifier=await readFile(verifierPath,'utf8');
@@ -18,7 +18,7 @@ test('permanent Render workflow uses the current exact seasonal-header verifier 
  assert.match(workflow,/Install Playwright Chromium/);
  assert.doesNotMatch(workflow,/render\/phase-4-7-3|phase473-live-verification/);
  assert.equal(pkg.scripts['verify:phase475:live'],'node scripts/verifyPhase475Live.mjs');
- assert.match(verifier,/phase-4-7-7-exact-seasonal-header/);
+ assert.match(verifier,/phase-4-7-8-static-seasonal-header/);
  assert.match(verifier,/garden-header-.*\.webp/);
  assert.ok(verifier.includes('aspect-ratio:2\\/1'));
  assert.match(verifier,/background-size:contain/);
