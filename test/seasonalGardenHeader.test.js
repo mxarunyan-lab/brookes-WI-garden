@@ -40,8 +40,10 @@ test('subtitle never leaves a dangling separator',()=>{
 
 test('every automatic season has one dedicated production image asset',()=>{
  assert.deepEqual(Object.keys(SEASONAL_HEADER_IMAGES),['spring','summer','fall','winter']);
+ const missing=[];
  for(const[season,source]of Object.entries(SEASONAL_HEADER_IMAGES)){
   assert.match(source,new RegExp(`^/images/garden-headers/${season}\\.avif$`));
-  assert.equal(existsSync(`public${source}`),true,`${season} approved header asset is missing`);
+  if(!existsSync(`public${source}`))missing.push(season);
  }
+ assert.deepEqual(missing,[],`Missing approved header assets: ${missing.join(', ')}`);
 });
