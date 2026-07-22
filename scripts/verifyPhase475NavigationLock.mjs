@@ -41,6 +41,12 @@ const noOverflow=async(page,label)=>{
  assert.ok(row.scrollWidth<=row.clientWidth+1,`${label} document overflow ${JSON.stringify(row)}`);
  assert.ok(row.bodyScrollWidth<=row.clientWidth+1,`${label} body overflow ${JSON.stringify(row)}`);
 };
+const captureFullPage=async(page,path,{hideFixedNav=false}={})=>{
+ let previous=null;
+ if(hideFixedNav)previous=await page.evaluate(()=>{const nav=document.querySelector('.bottom-nav');if(!nav)return null;const value=nav.style.visibility;nav.style.visibility='hidden';return value});
+ await page.screenshot({path,fullPage:true});
+ if(hideFixedNav&&previous!==null)await page.evaluate(value=>{const nav=document.querySelector('.bottom-nav');if(nav)nav.style.visibility=value},previous);
+};
 const assertCards=async(page,selector,label)=>{
  const cards=page.locator(selector),count=await cards.count();
  for(let index=0;index<count;index+=1){
@@ -71,7 +77,7 @@ try{
   assert.ok(hero&&hero.height<160,`Garden Center header is oversized at ${width}: ${hero?.height}`);
   assert.ok(first&&first.y>=hero.y+hero.height-1,`Garden Center first card overlaps header at ${width}`);
   await noOverflow(page,`Garden Center ${width}`);
-  if([320,390,768].includes(width))await page.screenshot({path:`phase475-audit/garden-center/garden-center-${width}.png`,fullPage:true});
+  if([320,390,768].includes(width))await captureFullPage(page,`phase475-audit/garden-center/garden-center-${width}.png`);
   await assertCards(page,'.garden-center-tile',`Garden Center ${width}`);
 
   await goto(page,'tools');
@@ -81,12 +87,13 @@ try{
   for(const heading of['CALCULATORS & UTILITIES','WEATHER & TIMING','RECORDS & EXTRAS'])assert.equal(await page.getByText(heading,{exact:true}).count(),1,`${heading} count at ${width}`);
   assert.equal(await page.locator('details.tool-shed-drawer').count(),0,`Tool Shed drawer remains at ${width}`);
   await noOverflow(page,`Tool Shed ${width}`);
-  if([320,390,768].includes(width))await page.screenshot({path:`phase475-audit/tool-shed/tool-shed-${width}.png`,fullPage:true});
+  if([320,390,768].includes(width))await captureFullPage(page,`phase475-audit/tool-shed/tool-shed-${width}.png`,{hideFixedNav:true});
   await assertCards(page,'.tool-shed-directory-card',`Tool Shed ${width}`);
   const last=page.locator('.tool-shed-directory-card').last();
   await last.scrollIntoViewIfNeeded();
-  const clearance=await page.evaluate(()=>{const last=document.querySelector('.tool-shed-directory-card:last-of-type')||[...document.querySelectorAll('.tool-shed-directory-card')].at(-1),nav=document.querySelector('.bottom-nav');const a=last?.getBoundingClientRect(),b=nav?.getBoundingClientRect();return{lastBottom:a?.bottom||0,navTop:b?.top||innerHeight,viewport:innerHeight}});
+  const clearance=await page.evaluate(()=>{const last=[...document.querySelectorAll('.tool-shed-directory-card')].at(-1),nav=document.querySelector('.bottom-nav');const a=last?.getBoundingClientRect(),b=nav?.getBoundingClientRect();return{lastBottom:a?.bottom||0,navTop:b?.top||innerHeight,viewport:innerHeight}});
   assert.ok(clearance.lastBottom<=clearance.navTop+1||clearance.lastBottom<=clearance.viewport-70,`Final Tool Shed card remains behind navigation at ${width}: ${JSON.stringify(clearance)}`);
+  if([320,390,768].includes(width))await page.screenshot({path:`phase475-audit/tool-shed/tool-shed-${width}-bottom-clearance.png`});
   results.push({width,gardenCenter:'pass',toolShed:'pass',clearance});
   await context.close();
  }
