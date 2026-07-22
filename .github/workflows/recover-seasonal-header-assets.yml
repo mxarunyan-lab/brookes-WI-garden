@@ -3,6 +3,9 @@ name: Recover Seasonal Header Assets
 on:
   push:
     branches: [agent/seasonal-mobile-garden-header]
+  pull_request:
+    branches: [main]
+    types: [ready_for_review]
   workflow_dispatch:
 
 permissions:
