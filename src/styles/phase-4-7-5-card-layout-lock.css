@@ -1,4 +1,12 @@
-/* Final Phase 4.7.5 card-column ownership. Imported after all legacy card systems. */
+/* Final Phase 4.7.5 layout ownership. Imported after all legacy systems. */
+.secondary-hero.compact-secondary-header{
+ padding-top:calc(12px + env(safe-area-inset-top))!important;
+ padding-bottom:12px!important;
+}
+.secondary-hero.compact-secondary-header p{
+ -webkit-line-clamp:1!important;
+ line-clamp:1!important;
+}
 .garden-center-screen .garden-center-tile{
  display:grid!important;
  grid-template-columns:44px minmax(0,1fr) 19px!important;
