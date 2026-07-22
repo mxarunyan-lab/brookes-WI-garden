@@ -5,6 +5,7 @@ export const WHATS_NEW=[
  'Today now uses the approved automatic Green Bay seasonal garden header and one compact overlapping dashboard card',
  'Today now uses the approved automatic Green Bay seasonal garden header and one compact overlapping dashboard card',
  'Today now uses the approved automatic Green Bay seasonal garden header and one compact overlapping dashboard card',
+ 'Today now uses the approved automatic Green Bay seasonal garden header and one compact overlapping dashboard card',
  'Garden Center now contains only the five core garden-management destinations',
  'Tool Shed is a flat one-tap directory with Calculators & Utilities, Weather & Timing, and Records & Extras',
  'Shopping List, Vacation Mode, and Garden History now live under Records & Extras without changing their saved data',
