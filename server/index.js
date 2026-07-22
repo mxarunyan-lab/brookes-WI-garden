@@ -89,22 +89,35 @@ export function createApp({analyze = analyzeSeedPacket, research = researchExact
     try {
       const {frontImage, backImage, draftContext} = req.body || {};
       if (!frontImage || !backImage) return res.status(400).json({code: 'BOTH_IMAGES_REQUIRED', message: publicMessage('BOTH_IMAGES_REQUIRED', 400), requestId});
-      const fingerprint = req.body?.photoFingerprint || hashPacketPayload(frontImage, backImage);
-      const cached = cache.get(fingerprint);
-      if (cached && Date.now() - cached.at < CACHE_TTL_MS) return res.json({...cached.result, requestId, cached: true});
-      const result = await analyze({frontImage, backImage, draftContext, requestId});
-      cache.set(fingerprint, {at: Date.now(), result});
-      return res.json({...result, requestId, cached: false});
+      const cacheKey = `${process.env.SEED_PACKET_VISION_MODEL || 'gpt-5-mini'}:${hashPacketPayload(frontImage, backImage)}`;
+      const cached = cache.get(cacheKey);
+      if (cached && Date.now() - cached.cachedAt < CACHE_TTL_MS) return res.json({...cached.result, cacheHit: true});
+      const result = await analyze({frontImage, backImage, draftContext}, {requestId});
+      cache.set(cacheKey, {result, cachedAt: Date.now()});
+      const timer = setTimeout(() => cache.delete(cacheKey), CACHE_TTL_MS);
+      timer.unref?.();
+      return res.json({...result, cacheHit: false});
     } catch (error) {
-      const status = Number(error.status) || (error.code === 'UPSTREAM_TIMEOUT' ? 504 : 502);
-      console.error('[seed-packet-analysis]', {requestId, code: error.code || 'ANALYSIS_FAILED', message: error.message});
+      const status = Number(error.status) || (error.code === 'VISION_NOT_CONFIGURED' ? 503 : 502);
+      console.error('[seed-packet-vision]', {
+        requestId,
+        code: error.code || 'ANALYSIS_FAILED',
+        message: error.message,
+        upstreamStatus: error.upstreamStatus || null,
+        upstreamCode: error.upstreamCode || null,
+        upstreamType: error.upstreamType || null,
+        upstreamMessage: error.upstreamMessage || null,
+        validationErrors: error.validationErrors || null,
+      });
       return res.status(status).json({code: error.code || 'ANALYSIS_FAILED', message: publicMessage(error.code, status), requestId});
     }
   });
 
+  app.use('/api', (req, res) => res.status(404).json({code: 'NOT_FOUND', message: 'API route not found.'}));
   app.use(express.static(root, {index: false, maxAge: '1h'}));
-  app.get('*', (req, res) => res.sendFile(path.join(root, 'index.html')));
+  app.use((req, res) => res.sendFile(path.join(root, 'index.html')));
   return app;
 }
 
-if (process.env.NODE_ENV !== 'test') createApp().listen(port, () => console.log(`Runyan Garden server listening on ${port}`));
+const isDirectRun = process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url);
+if (isDirectRun) createApp().listen(port, () => console.log(`Runyan Garden web service listening on ${port}`));
