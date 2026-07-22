@@ -23,6 +23,11 @@ const replacements=[
   old:"await page.route('**/api/seed-packets/analyze',route=>route.fulfill({status:503,contentType:'application/json',body:JSON.stringify({code:'CERTIFICATION_FAILURE',message:'Certification analysis failure. Photos and draft remain saved.'})}));",
   next:"await context.route('**/api/seed-packets/analyze',route=>route.fulfill({status:503,contentType:'application/json',body:JSON.stringify({code:'CERTIFICATION_FAILURE',message:'Certification analysis failure. Photos and draft remain saved.'})}));",
  },
+ {
+  label:'open optional packet details before seed count',
+  old:"await page.getByLabel(/^Brand/).first().fill('Burpee');await page.getByLabel(/^Seed count/).first().fill('100');",
+  next:"await page.getByLabel(/^Brand/).first().fill('Burpee');const allPacketDetails=page.locator('details.packet-all-details');if(!(await allPacketDetails.getAttribute('open')))await allPacketDetails.locator(':scope > summary').click();await page.getByLabel(/^Seed count/).first().fill('100');",
+ },
 ];
 for(const{label,old,next}of replacements){
  if(source.includes(next))continue;
