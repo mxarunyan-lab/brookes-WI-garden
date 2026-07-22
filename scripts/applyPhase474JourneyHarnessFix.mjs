@@ -7,8 +7,10 @@ if(source.includes('page.waitForFunction(source=>')){
  changed=true;
 }
 const helperOld="async function doubleActivate(locator){await locator.evaluate(node=>{node.click();node.click()})}";
-const helperNext="async function doubleActivate(locator){await locator.evaluate(node=>{node.click();node.click()})}\nasync function expandTaskRow(row){const summary=row.locator('.task-card-summary');await summary.scrollIntoViewIfNeeded();await summary.click({force:true});const handle=await summary.elementHandle();await page.waitForFunction(node=>node?.getAttribute('aria-expanded')==='true',handle,{timeout:5000});await row.locator('.task-card-expanded').waitFor({state:'visible',timeout:5000})}";
-if(!source.includes(helperNext)){if(!source.includes(helperOld))throw new Error('Lifecycle interaction helper was not found.');source=source.replace(helperOld,helperNext);changed=true}
+const helperFaulty="async function doubleActivate(locator){await locator.evaluate(node=>{node.click();node.click()})}\nasync function expandTaskRow(row){const summary=row.locator('.task-card-summary');await summary.scrollIntoViewIfNeeded();await summary.click({force:true});const handle=await summary.elementHandle();await page.waitForFunction(node=>node?.getAttribute('aria-expanded')==='true',handle,{timeout:5000});await row.locator('.task-card-expanded').waitFor({state:'visible',timeout:5000})}";
+const helperNext="async function doubleActivate(locator){await locator.evaluate(node=>{node.click();node.click()})}\nasync function expandTaskRow(row){const summary=row.locator('.task-card-summary');await summary.scrollIntoViewIfNeeded();if(await summary.getAttribute('aria-expanded')!=='true')await summary.click({force:true});await row.locator('.task-card-expanded').waitFor({state:'visible',timeout:5000});assert.equal(await summary.getAttribute('aria-expanded'),'true','Task row did not remain expanded')}";
+if(source.includes(helperFaulty)){source=source.replace(helperFaulty,helperNext);changed=true}
+else if(!source.includes(helperNext)){if(!source.includes(helperOld))throw new Error('Lifecycle interaction helper was not found.');source=source.replace(helperOld,helperNext);changed=true}
 const replacements=[
  ["dialog.getByLabel('Container size').isVisible()","dialog.getByLabel('Container size',{exact:true}).isVisible()"],
  ["dialog.getByLabel('Grow bag size').count()","dialog.getByLabel('Grow bag size',{exact:true}).count()"],
