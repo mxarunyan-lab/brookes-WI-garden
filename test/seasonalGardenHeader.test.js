@@ -1,6 +1,6 @@
 import test from'node:test';
 import assert from'node:assert/strict';
-import{existsSync}from'node:fs';
+import{existsSync,readFileSync}from'node:fs';
 import{buildGardenSubtitle,getGreenBaySeason,possessiveGardenTitle,resolveGardenHeaderSeason,SEASONAL_HEADER_IMAGES}from'../src/seasonalGardenHeader.js';
 
 const cases=[
@@ -49,8 +49,7 @@ test('every automatic season has one dedicated production image asset',()=>{
 });
 
 test('seasonal header styling uses a fully opaque live identity surface',()=>{
- const cssPath=new URL('../src/styles/seasonal-home-header.css',import.meta.url);
- const css=require('node:fs').readFileSync(cssPath,'utf8');
+ const css=readFileSync(new URL('../src/styles/seasonal-home-header.css',import.meta.url),'utf8');
  assert.match(css,/\.seasonal-garden-header__identity\{[\s\S]*background:#fffaf0;/);
  assert.match(css,/width:min\(54%,420px\)/);
 });
