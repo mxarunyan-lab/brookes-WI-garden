@@ -31,7 +31,7 @@ async function createSpace(page,{name,type,container=false,growBag=false,double=
  await go(page,'garden');await page.getByRole('button',{name:'Add Growing Space'}).click();
  const dialog=page.locator('.detail-modal');await dialog.getByLabel('Garden space name').fill(name);await dialog.getByLabel('Growing area or container type').selectOption(type);
  if(container){assert.equal(await dialog.getByLabel('Container size').isVisible(),true);assert.equal(await dialog.getByLabel('Grow bag size').count(),0);await dialog.getByLabel('Container size').fill('5 gallon');await dialog.getByLabel('Material').fill('plastic');await dialog.getByLabel('Drainage holes').check()}
- if(growBag){assert.equal(await dialog.getByLabel('Grow bag size').isVisible(),true);assert.equal(await dialog.getByLabel('Container size').count(),0);await dialog.getByLabel('Grow bag size').fill('10 gallon');await dialog.getByLabel('Seed potatoes planted').fill('4');await dialog.getByLabel('Hilling stage').selectOption('First hill');await dialog.getByLabel('Last hilled date').fill(today)}
+ if(growBag){assert.equal(await dialog.getByLabel('Grow bag size').isVisible(),true);assert.equal(await dialog.getByLabel('Container size').count(),0);await dialog.getByLabel('Grow bag size').fill('10 gallon');await dialog.getByLabel('Seed potatoes planted').fill('4');await dialog.getByLabel('Hilling stage').selectOption({label:'First hill'});await dialog.getByLabel('Last hilled date').fill(today)}
  const submit=dialog.getByRole('button',{name:'Add garden space'});if(double)await doubleActivate(submit);else await submit.click();
  await waitGarden(page,g=>g.spaces?.some(row=>row.name===name),`space ${name} did not save`);
  const data=await garden(page);assert.equal(data.spaces.filter(row=>row.name===name&&!row.deletedAt).length,1,`${name} duplicated`);record(`Create ${name}`);
@@ -40,7 +40,7 @@ async function createSpace(page,{name,type,container=false,growBag=false,double=
 
 const page=await context.newPage();
 const pageErrors=[],failed=[];page.on('pageerror',error=>pageErrors.push(String(error?.stack||error)));page.on('response',response=>{if(response.status()>=400&&!/api\/seed-packets\/analyze/.test(response.url()))failed.push({status:response.status(),url:response.url()})});page.on('dialog',dialog=>dialog.accept());
-await page.addInitScript(data=>{localStorage.clear();sessionStorage.clear();localStorage.setItem('runyan-garden-active-profile','archie');localStorage.setItem('brookes-garden-state-v2',JSON.stringify(data))},emptyGarden);
+await page.addInitScript(data=>{if(sessionStorage.getItem('phase474-journey-initialized'))return;localStorage.clear();sessionStorage.clear();localStorage.setItem('runyan-garden-active-profile','archie');localStorage.setItem('brookes-garden-state-v2',JSON.stringify(data));sessionStorage.setItem('phase474-journey-initialized','1')},emptyGarden);
 await context.route('**/api/health',route=>route.fulfill({status:200,contentType:'application/json',body:JSON.stringify({ok:true,version:'0.20.3',packetVisionConfigured:true})}));
 await context.route('**/api/seed-packets/analyze',route=>route.fulfill({status:503,contentType:'application/json',body:JSON.stringify({code:'CERTIFICATION_FAILURE',message:'Certification analysis failure. Photos and draft remain saved.'})}));
 try{
