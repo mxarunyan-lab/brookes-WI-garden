@@ -1,0 +1,45 @@
+name: Apply Phase 4.7.4 Seed Packet Corrections
+
+on:
+  push:
+    branches: [agent/phase-4-7-4-certification]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: phase-4-7-4-seed-packet-source
+  cancel-in-progress: false
+
+jobs:
+  apply-seed-packet-corrections:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out certification branch
+        uses: actions/checkout@v4
+        with:
+          ref: agent/phase-4-7-4-certification
+          fetch-depth: 0
+      - name: Apply packet intelligence corrections
+        run: |
+          node scripts/applyPhase474SeedPacketIntelligenceFix.mjs
+          node scripts/applyPhase474PacketValueQualityFix.mjs
+          node --check server/index.js
+          node --check server/productResearch.js
+          node --check server/seedPacketVision.js
+          node --check src/seedPacketIntelligence.js
+          node --check src/seedProductLookup.js
+          git diff --check
+      - name: Commit corrected packet sources
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add server/index.js server/productResearch.js server/seedPacketVision.js src/SeedTools.jsx src/seedPacketIntelligence.js src/seedProductLookup.js src/styles/phase-4-7-4-certification.css
+          if git diff --cached --quiet; then
+            echo "Seed Packet Intelligence corrections already applied."
+            exit 0
+          fi
+          git commit -m "Apply Seed Packet Intelligence corrections"
+          git push origin HEAD:agent/phase-4-7-4-certification
