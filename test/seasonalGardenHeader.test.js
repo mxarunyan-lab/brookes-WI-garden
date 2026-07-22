@@ -1,5 +1,6 @@
 import test from'node:test';
 import assert from'node:assert/strict';
+import{existsSync}from'node:fs';
 import{buildGardenSubtitle,getGreenBaySeason,possessiveGardenTitle,resolveGardenHeaderSeason,SEASONAL_HEADER_IMAGES}from'../src/seasonalGardenHeader.js';
 
 const cases=[
@@ -37,7 +38,10 @@ test('subtitle never leaves a dangling separator',()=>{
  assert.equal(buildGardenSubtitle('',''),'');
 });
 
-test('every automatic season has one dedicated image asset',()=>{
+test('every automatic season has one dedicated production image asset',()=>{
  assert.deepEqual(Object.keys(SEASONAL_HEADER_IMAGES),['spring','summer','fall','winter']);
- for(const source of Object.values(SEASONAL_HEADER_IMAGES))assert.match(source,/^\/images\/garden-headers\/(spring|summer|fall|winter)\.webp$/);
+ for(const[season,source]of Object.entries(SEASONAL_HEADER_IMAGES)){
+  assert.match(source,new RegExp(`^/images/garden-headers/${season}\\.avif$`));
+  assert.equal(existsSync(`public${source}`),true,`${season} approved header asset is missing`);
+ }
 });
