@@ -11,10 +11,10 @@ const MODEL = process.env.SEED_PACKET_VISION_MODEL || 'gpt-5-mini';
 const TIMEOUT = Number(process.env.SEED_PACKET_VISION_TIMEOUT_MS || 90_000);
 const IMAGE_DETAIL = ['low', 'high', 'auto'].includes(process.env.SEED_PACKET_VISION_DETAIL) ? process.env.SEED_PACKET_VISION_DETAIL : 'auto';
 const REASONING_EFFORT = process.env.SEED_PACKET_VISION_REASONING_EFFORT || 'minimal';
-const DEFAULT_REPAIR_PASSES = /^(1|true|yes|strict)$/i.test(process.env.SEED_PACKET_VISION_REPAIR_PASSES || '');
+const DEFAULT_REPAIR_PASSES = !/^(0|false|no|off)$/i.test(process.env.SEED_PACKET_VISION_REPAIR_PASSES || '');
 const allowed = new Set(['image/jpeg', 'image/png', 'image/webp']);
 
-const prompt = `Act as a careful seed-packet document analyst. Inspect the FRONT and BACK images together as one physical packet. Use visible text, layout, icons, nearby labels, and front/back context. Never concatenate unrelated labels. FULL SUN is sunlight, VEGETABLE is category, and HEIRLOOM is a designation. Read fractions, ranges, barcode digits, lot, weight, packed-for year, sell-by date, and price separately. Return null rather than inventing. Every populated field must have matching fieldEvidence. Every fieldEvidence property not used must be null. Distinguish printed counts from weight-only inventory. Capture succession instructions as automation intelligence. Do not infer an exact seed count from packet weight. Return only the strict schema.`;
+const prompt = `Act as a meticulous seed-packet document analyst. Inspect the FRONT and BACK images together as one physical packet. Read every clearly visible identity, inventory, planting, timing, care, and harvest fact before returning. Preserve complete printed sentences and ranges; never shorten a sentence merely to fit a field. Use visible text, layout, icons, nearby labels, and front/back context. Never concatenate unrelated labels. FULL SUN is sunlight, VEGETABLE is category, HEIRLOOM and NON-GMO are designations, and long-day/short-day wording belongs in seasonal or regional guidance. Read fractions, ranges, barcode digits, lot, weight, packed-for year, sell-by date, and price separately. Return null rather than inventing, and treat a manufacturer-not-stated value as legitimately absent rather than a failure. Every populated field must have matching fieldEvidence. Every fieldEvidence property not used must be null. Distinguish printed counts from weight-only inventory. Capture succession instructions as automation intelligence. Do not infer an exact seed count from packet weight. Return only the strict schema.`;
 
 function modelError(code, message, status = 502, details = {}) {
   return Object.assign(new Error(message), {code, status, ...details});
@@ -102,6 +102,10 @@ const targetedFields = [
   ['packetIdentity.crop', 'crop'],
   ['packetIdentity.variety', 'variety'],
   ['packetIdentity.productName', 'productName'],
+  ['packetIdentity.category', 'category'],
+  ['packetIdentity.designations', 'designations'],
+  ['inventory.packetYear', 'packetYear'],
+  ['inventory.printedSeedCount', 'printedSeedCount'],
   ['inventory.packetWeightValue', 'packetWeightValue'],
   ['inventory.packetWeightUnit', 'packetWeightUnit'],
   ['growing.sunlight', 'sunlight'],
@@ -113,7 +117,16 @@ const targetedFields = [
   ['growing.plantingDepthUnit', 'plantingDepthUnit'],
   ['growing.thinningSpacingValue', 'thinningSpacingValue'],
   ['growing.thinningSpacingUnit', 'thinningSpacingUnit'],
+  ['growing.finalSpacingValue', 'finalSpacingValue'],
+  ['growing.finalSpacingUnit', 'finalSpacingUnit'],
+  ['growing.germinationTemperatureMinimum', 'germinationTemperatureMinimum'],
+  ['growing.germinationTemperatureMaximum', 'germinationTemperatureMaximum'],
   ['instructions.directSowGuidance', 'directSowGuidance'],
+  ['instructions.indoorStartGuidance', 'indoorStartGuidance'],
+  ['instructions.transplantGuidance', 'transplantGuidance'],
+  ['instructions.seasonalWindow', 'seasonalWindow'],
+  ['instructions.frostTiming', 'frostTiming'],
+  ['instructions.fertilizingGuidance', 'fertilizingGuidance'],
   ['instructions.moistureGuidance', 'moistureGuidance'],
   ['instructions.soilGuidance', 'soilGuidance'],
   ['instructions.successionGuidance', 'successionGuidance'],
@@ -126,7 +139,7 @@ const missingValue = (value) => value === null || value === undefined || value =
 function missingTargetedFields(analysis) {
   const missing = targetedFields.filter(([pathValue]) => missingValue(readPath(analysis, pathValue))).map(([pathValue]) => pathValue);
   const identityMissing = missing.some((pathValue) => ['packetIdentity.brand', 'packetIdentity.crop', 'packetIdentity.variety'].includes(pathValue));
-  return identityMissing || missing.length >= 6 ? missing : [];
+  return identityMissing || missing.length ? missing.slice(0, 18) : [];
 }
 function writePath(record, pathValue, value) {
   const keys = pathValue.split('.');
@@ -407,7 +420,7 @@ export async function analyzeSeedPacket({frontImage, backImage, draftContext}, {
 
   const barcode = await barcodePromise;
   analysis = validateSeedPacketAnalysis(applyMachineBarcode(analysis, barcode));
-  const officialProduct = await productResearch({...analysis.packetIdentity, ...analysis.machineIdentifiers}).catch(() => ({exact: false, candidate: null, sources: []}));
+  const officialProduct = await productResearch({...analysis.packetIdentity, ...analysis.machineIdentifiers, packetYear: analysis.inventory.packetYear, rawVisibleText: analysis.rawVisibleText}).catch(() => ({exact: false, candidate: null, sources: []}));
 
   return {
     requestId,

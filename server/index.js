@@ -66,7 +66,7 @@ export function createApp({analyze = analyzeSeedPacket, research = researchExact
     packetVisionConfigured: Boolean(process.env.OPENAI_API_KEY),
     packetVisionModel: process.env.SEED_PACKET_VISION_MODEL || 'gpt-5-mini',
     productResearchProviders: configuredResearchProviders(),
-    version: process.env.APP_VERSION || '0.20.4',
+    version: process.env.APP_VERSION || '0.20.3',
   }));
 
   app.post('/api/seed-products/lookup', rateLimit, async (req, res) => {

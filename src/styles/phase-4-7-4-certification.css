@@ -268,3 +268,11 @@
   .compact-home-hero .compact-hero-title p{font-size:.82rem!important}
   .compact-home-hero .hero-bell{top:22px!important;right:22px!important}
 }
+
+
+/* VIS-004 — Seed Packet Intelligence keeps complete instructions readable. */
+.seed-tools-screen .packet-field{min-width:0}
+.seed-tools-screen .packet-field textarea,.seed-tools-screen .packet-exception-fields textarea{width:100%;min-height:92px;max-height:240px;padding:12px 14px;border:1px solid rgba(23,61,43,.22);border-radius:15px;background:#fffdf8;color:#173d2b;font:inherit;font-size:1rem;line-height:1.42;white-space:pre-wrap;overflow-wrap:anywhere;resize:vertical;box-sizing:border-box}
+.seed-tools-screen .packet-field textarea:focus,.seed-tools-screen .packet-exception-fields textarea:focus{outline:3px solid rgba(44,114,75,.18);border-color:#2c724b}
+.seed-tools-screen .packet-exception-fields{grid-template-columns:1fr!important}
+.seed-tools-screen .packet-exception-fields input{min-width:0;text-overflow:ellipsis}
