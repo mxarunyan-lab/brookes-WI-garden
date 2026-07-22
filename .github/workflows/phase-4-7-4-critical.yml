@@ -22,6 +22,7 @@ jobs:
       - name: Apply guarded focused-run corrections
         run: |
           node scripts/applyPhase474JourneyHarnessFix.mjs
+          node scripts/applyPhase474PacketHealthHarness.mjs
           node scripts/applyPhase474LabelConsistency.mjs
           node scripts/applyPhase474TodayPriority.mjs
       - run: npm run build
