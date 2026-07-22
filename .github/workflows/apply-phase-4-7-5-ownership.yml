@@ -22,17 +22,18 @@ jobs:
         with:
           ref: agent/phase-4-7-5-navigation-lock
           fetch-depth: 0
-      - name: Apply guarded ownership and lifecycle corrections
+      - name: Apply guarded ownership, lifecycle, and CSS corrections
         run: |
           node scripts/applyPhase475OwnershipCorrections.mjs
           node scripts/applyPhase474LabelConsistency.mjs
           node scripts/applyPhase475LifecycleHarness.mjs
           node scripts/applyPhase474JourneyHarnessFix.mjs
-      - name: Commit corrected routes, headers, and lifecycle harness
+          node scripts/applyPhase475CssSyntax.mjs
+      - name: Commit corrected routes, headers, lifecycle harness, and CSS
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add src/App.jsx src/GardenShoppingList.jsx src/VacationMode.jsx src/IndoorCenter.jsx src/ClearDetailModal.jsx package-lock.json scripts/verifyPhase474CriticalJourneys.mjs
+          git add src/App.jsx src/GardenShoppingList.jsx src/VacationMode.jsx src/IndoorCenter.jsx src/ClearDetailModal.jsx src/styles/phase-4-7-5-navigation-lock.css package-lock.json scripts/verifyPhase474CriticalJourneys.mjs
           if git diff --cached --quiet; then
             echo "Phase 4.7.5 guarded corrections already applied."
             exit 0
