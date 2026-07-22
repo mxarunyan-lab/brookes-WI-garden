@@ -23,7 +23,9 @@ jobs:
       - name: Install dependencies
         run: npm ci
       - name: Apply guarded packet corrections in test workspace
-        run: node scripts/applyPhase474SeedPacketIntelligenceFix.mjs
+        run: |
+          node scripts/applyPhase474SeedPacketIntelligenceFix.mjs
+          node scripts/applyPhase474PacketValueQualityFix.mjs
       - name: Check transformed source syntax
         run: |
           node --check server/index.js
