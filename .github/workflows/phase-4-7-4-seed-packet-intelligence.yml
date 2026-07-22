@@ -44,12 +44,20 @@ jobs:
       - name: Build production application
         run: npm run build
       - name: Verify Sow Right and all-brand packet behavior
-        run: node scripts/verifyPhase474SeedPacketIntelligence.mjs
+        shell: bash
+        run: |
+          set +e
+          node scripts/verifyPhase474SeedPacketIntelligence.mjs > phase474-seed-packet-verifier.log 2>&1
+          status=$?
+          cat phase474-seed-packet-verifier.log
+          exit $status
       - name: Upload packet certification evidence
         if: always()
         uses: actions/upload-artifact@v4
         with:
           name: phase-4-7-4-seed-packet-evidence
-          path: phase474-seed-packet-tests.log
+          path: |
+            phase474-seed-packet-tests.log
+            phase474-seed-packet-verifier.log
           if-no-files-found: warn
           retention-days: 7
