@@ -57,6 +57,7 @@ async function certify(page,width){
  const panelStyle=await identity.evaluate(node=>({background:getComputedStyle(node).backgroundColor,opacity:getComputedStyle(node).opacity}));
  assert.match(panelStyle.background,/rgba?\(/,`Identity panel lacks an opaque surface at ${width}px`);
  assert.equal(panelStyle.opacity,'1');
+ assert.equal(panelStyle.background,'rgb(255, 250, 240)',`Identity panel must completely hide baked image text at ${width}px`);
  const title=await header.locator('.seasonal-garden-header__title').innerText(),subtitle=await header.locator('.seasonal-garden-header__subtitle').innerText();
  assert.equal(title,'Archie’s Garden');
  assert.equal(subtitle,'The Runyan Garden — Green Bay');
