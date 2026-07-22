@@ -20,7 +20,7 @@ test('permanent Render workflow uses the current exact seasonal-header verifier 
  assert.equal(pkg.scripts['verify:phase475:live'],'node scripts/verifyPhase475Live.mjs');
  assert.match(verifier,/phase-4-7-7-exact-seasonal-header/);
  assert.match(verifier,/garden-header-.*\.webp/);
- assert.match(verifier,/aspect-ratio:2\/1/);
+ assert.ok(verifier.includes('aspect-ratio:2\\/1'));
  assert.match(verifier,/background-size:contain/);
  assert.match(verifier,/garden-center-tile/);
  assert.match(verifier,/tool-shed-directory-card/);
