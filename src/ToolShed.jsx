@@ -1,15 +1,31 @@
 import React from'react';
-import{Calculator,CalendarDays,CloudSun,Droplets,FileText,PackageSearch,Ruler,Sprout,Tags,Wrench}from'lucide-react';
+import{BookOpen,Calculator,CalendarDays,CalendarRange,CloudSun,Droplets,FileText,PackageSearch,Ruler,ShoppingBasket,Sprout,Wrench}from'lucide-react';
 import{SecondaryCard,SecondaryHero,SecondarySectionHeader}from'./SecondaryUI.jsx';
-import'./styles/phase-4-7-3-smoothing.css';
 
 const WEATHER_MODE_KEY='runyan-weather-tool-mode-v1';
 
+function DirectorySection({eyebrow,children}){return <section className="tool-shed-directory-section" aria-labelledby={`tool-section-${eyebrow.toLowerCase().replace(/[^a-z0-9]+/g,'-')}`}><SecondarySectionHeader eyebrow={eyebrow}/><div className="secondary-card-list tool-shed-card-list">{children}</div></section>}
+function ToolCard({icon,title,description,onClick}){return <SecondaryCard kind="utility tool-shed-directory" tone="cream" icon={icon} title={title} description={description} onClick={onClick}/>}
+
 export default function ToolShed({navigate}){
  const openWeather=mode=>{try{sessionStorage.setItem(WEATHER_MODE_KEY,mode)}catch{}navigate('weather')};
- return <main className="screen secondary-screen tool-shed-screen"><SecondaryHero icon={Wrench} eyebrow="OPTIONAL GARDEN UTILITIES" title="Tool Shed" description="Calculate, measure, estimate, print, label, and check weather tools." className="tool-shed-hero"/><section className="screen-pad secondary-screen-content tool-shed-content">
-  <details className="tool-shed-group tool-shed-drawer"><summary><SecondarySectionHeader eyebrow="WEATHER TOOLS"/><span>3</span></summary><div className="secondary-card-list tool-shed-card-list"><SecondaryCard kind="utility" tone="green" icon={CloudSun} title="Garden Weather" description="See how current conditions affect your saved plants and Growing Spaces." onClick={()=>openWeather('garden')}/><SecondaryCard kind="utility" tone="gold" icon={Droplets} title="Rain & Watering Review" description="Review recorded rain, upcoming rain, and what still needs a soil check." onClick={()=>openWeather('rain')}/><SecondaryCard kind="utility" tone="cream" icon={CalendarDays} title="Frost & Planting Timing" description="Compare forecast conditions with your saved Green Bay frost dates." onClick={()=>openWeather('frost')}/></div></details>
-  <details className="tool-shed-group tool-shed-drawer"><summary><SecondarySectionHeader eyebrow="NOTES & PRINTABLES"/><span>2</span></summary><div className="secondary-card-list tool-shed-card-list"><SecondaryCard kind="utility" tone="gold" icon={Tags} title="Plant Labels" description="Create bed signs, plant tags, and custom QR labels." meta="Existing QR and PDF workflow" onClick={()=>navigate('labels')}/><SecondaryCard kind="utility" tone="green" icon={FileText} title="Printable Garden Pack" description="Print garden logs, maps, planning sheets, and checklists." onClick={()=>navigate('printable-pack')}/></div></details>
-  <details className="tool-shed-group tool-shed-drawer"><summary><SecondarySectionHeader eyebrow="UTILITIES"/><span>5</span></summary><div className="secondary-card-list tool-shed-card-list"><SecondaryCard kind="utility" tone="cream" icon={Ruler} title="Spacing Calculator" description="Estimate how many plants fit in a Growing Space." onClick={()=>navigate('spacing-calculator')}/><SecondaryCard kind="utility" tone="green" icon={PackageSearch} title="Soil & Container Calculator" description="Estimate soil volume and common bag quantities." onClick={()=>navigate('soil-calculator')}/><SecondaryCard kind="utility" tone="gold" icon={CalendarDays} title="Frost & Planting Dates" description="Calculate planting windows from your saved frost dates." onClick={()=>navigate('frost-calculator')}/><SecondaryCard kind="utility" tone="cream" icon={Sprout} title="Seed Quantity Calculator" description="Estimate how many seeds to start for the plants wanted." onClick={()=>navigate('seed-quantity-calculator')}/><SecondaryCard kind="utility" tone="green" icon={Calculator} title="Garden Measurements" description="Convert common garden dimensions, areas, volumes, and row lengths." onClick={()=>navigate('garden-measurements')}/></div></details>
+ return <main className="screen secondary-screen tool-shed-screen"><SecondaryHero icon={Wrench} eyebrow="GARDEN UTILITIES" title="Tool Shed" className="tool-shed-hero"/><section className="screen-pad secondary-screen-content tool-shed-content">
+  <DirectorySection eyebrow="CALCULATORS & UTILITIES">
+   <ToolCard icon={Ruler} title="Spacing Calculator" description="Estimate how many plants fit in a Growing Space." onClick={()=>navigate('spacing-calculator')}/>
+   <ToolCard icon={PackageSearch} title="Soil & Container Calculator" description="Estimate soil volume and common bag quantities." onClick={()=>navigate('soil-calculator')}/>
+   <ToolCard icon={Sprout} title="Seed Quantity Calculator" description="Estimate how many seeds to start for the plants wanted." onClick={()=>navigate('seed-quantity-calculator')}/>
+   <ToolCard icon={Calculator} title="Garden Measurements" description="Convert common garden dimensions, areas, volumes, and row lengths." onClick={()=>navigate('garden-measurements')}/>
+  </DirectorySection>
+  <DirectorySection eyebrow="WEATHER & TIMING">
+   <ToolCard icon={CloudSun} title="Garden Weather" description="Current conditions and effects on saved plants and Growing Spaces." onClick={()=>openWeather('garden')}/>
+   <ToolCard icon={Droplets} title="Rain & Watering Review" description="Rain credit, watering decisions, and soil-check guidance." onClick={()=>openWeather('rain')}/>
+   <ToolCard icon={CalendarDays} title="Frost & Planting Dates" description="Forecast conditions and saved Green Bay frost timing." onClick={()=>openWeather('frost')}/>
+  </DirectorySection>
+  <DirectorySection eyebrow="RECORDS & EXTRAS">
+   <ToolCard icon={ShoppingBasket} title="Shopping List" description="Seeds, plants, and supplies still needed for the garden." onClick={()=>navigate('shopping-list')}/>
+   <ToolCard icon={CalendarRange} title="Vacation Mode" description="Build and manage connected garden-care trip plans." onClick={()=>navigate('vacation')}/>
+   <ToolCard icon={FileText} title="Printable Garden Pack & Labels" description="Create printable logs, maps, planning sheets, and plant labels." onClick={()=>navigate('printable-pack')}/>
+   <ToolCard icon={BookOpen} title="Garden History" description="Review harvests, issues, photos, and season decisions." onClick={()=>navigate('memory')}/>
+  </DirectorySection>
  </section></main>;
 }

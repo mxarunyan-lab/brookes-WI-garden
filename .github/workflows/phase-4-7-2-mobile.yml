@@ -1,4 +1,4 @@
-name: Phase 4.7.2 Mobile Acceptance
+name: Phase 4.7.5 Mobile Acceptance
 
 on:
   pull_request:
@@ -9,7 +9,7 @@ permissions:
   contents: read
 
 jobs:
-  verify-phase-472-mobile:
+  verify-phase-475-mobile:
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
@@ -30,12 +30,12 @@ jobs:
         run: npm run build
       - name: Start production server
         run: |
-          PORT=4173 npm start > phase472-server.log 2>&1 &
+          PORT=4173 npm start > phase475-mobile-server.log 2>&1 &
           for attempt in {1..30}; do
             if curl --fail --silent http://127.0.0.1:4173/api/health >/dev/null; then exit 0; fi
             sleep 1
           done
-          cat phase472-server.log
+          cat phase475-mobile-server.log
           exit 1
       - name: Verify photographed workflows at mobile widths
         shell: bash
@@ -49,9 +49,9 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: phase-4-7-2-mobile-acceptance
+          name: phase-4-7-5-mobile-acceptance
           path: |
             phase472-mobile
-            phase472-server.log
+            phase475-mobile-server.log
           if-no-files-found: warn
           retention-days: 3

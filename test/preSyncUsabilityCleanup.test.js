@@ -39,19 +39,22 @@ test('Today stays useful without repeating primary navigation and weather copy i
  assert.equal(source.includes('WEATHER-ACTION-SUMMARY'),false);
 });
 
-test('Tool Shed readability, weather modes, More drawer, and Indoor spacing load globally',()=>{
- const source=src('styles/phase-4-7-3-smoothing.css'),toolShed=src('ToolShed.jsx');
- assert.match(source,/tool-shed-drawer>summary \.secondary-section-header small/);
- assert.match(source,/color:#173d2b!important/);
- assert.match(source,/more-settings-hub>summary/);
- assert.match(source,/weather-tool-tabs/);
- assert.match(source,/indoor-center-content \.control-center-title/);
- assert.match(toolShed,/phase-4-7-3-smoothing\.css/);
+test('Phase 4.7.5 navigation styles load globally and retain More, weather, and Indoor protections',()=>{
+ const lock=src('styles/phase-4-7-5-navigation-lock.css'),smoothing=src('styles/phase-4-7-3-smoothing.css'),toolShed=src('ToolShed.jsx'),main=src('main.jsx');
+ assert.match(main,/phase-4-7-5-navigation-lock\.css/);
+ assert.match(lock,/compact-secondary-header/);
+ assert.match(lock,/tool-shed-directory-card/);
+ assert.match(smoothing,/more-settings-hub>summary/);
+ assert.match(smoothing,/weather-tool-tabs/);
+ assert.match(smoothing,/indoor-center-content \.control-center-title/);
+ assert.doesNotMatch(toolShed,/<details/);
 });
 
-test('release metadata identifies the final pre-sync smoothing build',()=>{
+test('release metadata identifies the Phase 4.7.5 navigation lock',()=>{
  const source=src('version.js');
- assert.match(source,/phase-4-7-3-final-pre-sync-smoothing/);
- assert.match(source,/Today no longer repeats primary navigation shortcuts/);
- assert.match(source,/distinct Garden Weather, Rain and Watering, and Frost and Timing views/);
+ assert.match(source,/APP_VERSION='0\.20\.4'/);
+ assert.match(source,/phase-4-7-5-navigation-lock/);
+ assert.match(source,/Garden Center now contains only the five core garden-management destinations/);
+ assert.match(source,/Tool Shed is a flat one-tap directory/);
+ assert.match(source,/three distinct focused weather modes/);
 });

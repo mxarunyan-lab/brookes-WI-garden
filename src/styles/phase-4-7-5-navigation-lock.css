@@ -1,0 +1,181 @@
+/* Phase 4.7.5 — information architecture and compact secondary-header lock. */
+
+:root{
+ --phase475-surface:#fffaf0;
+ --phase475-surface-strong:#f7f0e3;
+ --phase475-text:#173d2b;
+ --phase475-muted:#56665c;
+ --phase475-green:#0b4d33;
+ --phase475-gold:#9a7118;
+ --phase475-border:#d8cdb9;
+ --phase475-shadow:0 5px 14px rgba(21,61,43,.08);
+}
+
+.secondary-screen{overflow-x:clip}
+.secondary-screen-content{padding-top:12px!important;padding-bottom:calc(128px + env(safe-area-inset-bottom))!important}
+
+/* Shared compact system for every full-page SecondaryHero. Today and My Garden do not use this component. */
+.secondary-hero.compact-secondary-header{
+ min-height:0!important;
+ padding:calc(14px + env(safe-area-inset-top)) 64px 14px!important;
+ border-radius:0 0 20px 20px!important;
+ display:flex!important;
+ flex-direction:column;
+ align-items:center;
+ justify-content:center;
+ gap:4px;
+ text-align:center;
+ overflow:hidden;
+}
+.secondary-hero.compact-secondary-header:before,.secondary-hero.compact-secondary-header:after{opacity:.38}
+.secondary-hero.compact-secondary-header .secondary-hero-icon{
+ width:36px!important;height:36px!important;min-width:36px;
+ margin:0 auto 1px!important;
+ border-radius:11px!important;
+}
+.secondary-hero.compact-secondary-header .secondary-hero-icon svg{width:19px!important;height:19px!important}
+.secondary-hero.compact-secondary-header .secondary-hero-copy{width:100%;min-width:0;display:grid;justify-items:center;gap:2px}
+.secondary-hero.compact-secondary-header .secondary-hero-eyebrow{font-size:8.5px!important;letter-spacing:.12em!important;line-height:1.15!important}
+.secondary-hero.compact-secondary-header h1{
+ max-width:100%!important;
+ margin:1px auto 0!important;
+ font-size:clamp(1.42rem,6vw,1.82rem)!important;
+ line-height:1.08!important;
+ overflow-wrap:normal;
+ word-break:normal;
+}
+.secondary-hero.compact-secondary-header p{
+ display:-webkit-box;
+ -webkit-box-orient:vertical;
+ -webkit-line-clamp:2;
+ overflow:hidden;
+ max-width:520px!important;
+ margin:2px auto 0!important;
+ font-size:10.5px!important;
+ line-height:1.34!important;
+}
+.secondary-hero.compact-secondary-header .secondary-back-button{
+ top:calc(12px + env(safe-area-inset-top))!important;
+ left:14px!important;
+ width:42px!important;height:42px!important;min-height:42px!important;
+}
+.garden-center-hero,.tool-shed-hero{padding-bottom:12px!important}
+.garden-center-hero p,.tool-shed-hero p{display:none!important}
+
+/* Garden Center: five equal destinations, no color hierarchy. */
+.garden-center-content{gap:10px!important}
+.garden-center-compact-grid{display:grid!important;grid-template-columns:1fr;gap:9px!important;min-width:0}
+.garden-center-tile{
+ width:100%;min-width:0;min-height:76px;
+ padding:11px 12px!important;
+ border:1px solid var(--phase475-border)!important;
+ border-radius:16px!important;
+ display:grid!important;
+ grid-template-columns:44px minmax(0,1fr) 19px!important;
+ gap:11px!important;
+ align-items:center!important;
+ text-align:left!important;
+ background:var(--phase475-surface)!important;
+ color:var(--phase475-text)!important;
+ box-shadow:var(--phase475-shadow)!important;
+}
+.garden-center-tile-icon{
+ width:44px!important;height:44px!important;
+ border-radius:13px!important;
+ display:grid!important;place-items:center!important;
+ background:#e6eddf!important;
+ color:var(--phase475-green)!important;
+}
+.garden-center-tile-icon svg{width:22px!important;height:22px!important}
+.garden-center-tile-copy{min-width:0;display:grid;gap:3px}
+.garden-center-tile-copy strong{color:var(--phase475-text)!important;font-family:'Fraunces',Georgia,serif;font-size:16px!important;line-height:1.12!important;overflow-wrap:normal;word-break:normal}
+.garden-center-tile-copy small{color:var(--phase475-muted)!important;font-size:10px!important;line-height:1.35!important;overflow-wrap:break-word}
+.garden-center-tile-arrow{width:18px!important;height:18px!important;color:var(--phase475-green)!important;justify-self:end}
+.garden-center-tile:focus-visible,.tool-shed-directory-card:focus-visible{outline:3px solid rgba(239,181,43,.72);outline-offset:2px}
+
+/* Tool Shed: flat, one-tap directory. Section headings are labels only. */
+.tool-shed-content{display:grid!important;gap:17px!important}
+.tool-shed-directory-section{display:grid;gap:7px;min-width:0}
+.tool-shed-directory-section>.secondary-section-header{margin:0 2px 2px!important;pointer-events:none}
+.tool-shed-directory-section>.secondary-section-header small{color:var(--phase475-green)!important;font-size:10px!important;font-weight:950!important;letter-spacing:.11em!important}
+.tool-shed-card-list{display:grid!important;grid-template-columns:1fr;gap:8px!important;min-width:0}
+.tool-shed-directory-card{
+ min-width:0!important;min-height:78px!important;
+ padding:11px 12px!important;
+ grid-template-columns:43px minmax(0,1fr) 19px!important;
+ gap:10px!important;
+ border:1px solid var(--phase475-border)!important;
+ border-radius:16px!important;
+ background:var(--phase475-surface)!important;
+ color:var(--phase475-text)!important;
+ box-shadow:var(--phase475-shadow)!important;
+}
+.tool-shed-directory-card .secondary-card-icon{width:43px!important;height:43px!important;border-radius:13px!important;background:#e6eddf!important;color:var(--phase475-green)!important}
+.tool-shed-directory-card .secondary-card-icon svg{width:22px!important;height:22px!important}
+.tool-shed-directory-card .secondary-card-copy{gap:3px!important}
+.tool-shed-directory-card .secondary-card-copy strong{color:var(--phase475-text)!important;font-size:15.5px!important;line-height:1.14!important;overflow-wrap:normal;word-break:normal}
+.tool-shed-directory-card .secondary-card-copy small{color:var(--phase475-muted)!important;font-size:10px!important;line-height:1.35!important;overflow-wrap:break-word}
+.tool-shed-directory-card .secondary-card-chevron{width:18px!important;height:18px!important;color:var(--phase475-green)!important;opacity:1!important}
+.tool-shed-directory-section:last-child{padding-bottom:8px}
+.tool-shed-screen details.tool-shed-drawer,.tool-shed-screen .tool-shed-drawer{display:none!important}
+
+/* Legacy full-page headers join the same compact visual system. */
+.indoor-center-screen .indoor-center-header,.memory-screen .memory-header{
+ min-height:0!important;
+ padding:calc(14px + env(safe-area-inset-top)) 64px 14px!important;
+ border-radius:0 0 20px 20px!important;
+}
+.indoor-center-screen .indoor-center-header>svg,.memory-screen .memory-header .secondary-hero-icon{width:36px!important;height:36px!important;margin:0 auto 3px!important;padding:8px!important;border-radius:11px!important}
+.indoor-center-screen .indoor-center-header h1,.memory-screen .memory-header h1{font-size:clamp(1.42rem,6vw,1.82rem)!important;margin:3px auto!important;line-height:1.08!important}
+.indoor-center-screen .indoor-center-header p,.memory-screen .memory-header p{max-width:500px!important;font-size:10.5px!important;line-height:1.34!important;margin:2px auto 0!important}
+.indoor-center-screen .back-button{top:calc(12px + env(safe-area-inset-top))!important;left:14px!important;width:42px!important;height:42px!important;min-height:42px!important}
+.indoor-center-content,.memory-body{padding-top:12px!important;padding-bottom:calc(128px + env(safe-area-inset-bottom))!important}
+
+/* Weather uses the same compact spacing while retaining its mode-specific workspace. */
+.weather-page-content{position:relative;padding-top:12px!important}
+.weather-page-summary{
+ min-height:86px!important;
+ margin:0 0 10px!important;
+ padding:12px 14px 12px 54px!important;
+ border:1px solid var(--phase475-border)!important;
+ border-radius:17px!important;
+ display:grid!important;
+ grid-template-columns:38px minmax(0,1fr)!important;
+ gap:10px!important;
+ align-items:center!important;
+ background:var(--phase475-surface)!important;
+ color:var(--phase475-text)!important;
+ box-shadow:var(--phase475-shadow)!important;
+}
+.weather-page-summary>svg{width:36px!important;height:36px!important;padding:8px!important;border-radius:11px!important;box-sizing:border-box;background:#e6eddf!important;color:var(--phase475-green)!important}
+.weather-page-summary>span{min-width:0;display:grid;gap:2px}
+.weather-page-summary small{color:var(--phase475-gold)!important;font-size:8.5px!important;font-weight:950!important;letter-spacing:.1em!important}
+.weather-page-summary h1{margin:0!important;color:var(--phase475-text)!important;font-size:clamp(1.3rem,5.8vw,1.7rem)!important;line-height:1.1!important;overflow-wrap:normal!important;word-break:normal!important}
+.weather-page-summary p{display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;overflow:hidden;margin:0!important;color:var(--phase475-muted)!important;font-size:10px!important;line-height:1.35!important}
+.secondary-back-arrow{position:absolute!important;top:22px!important;left:18px!important;z-index:2;width:42px!important;height:42px!important;min-height:42px!important}
+
+@media(max-width:360px){
+ .secondary-hero.compact-secondary-header{padding-left:57px!important;padding-right:57px!important}
+ .secondary-hero.compact-secondary-header .secondary-back-button{left:10px!important}
+ .garden-center-tile{grid-template-columns:40px minmax(0,1fr) 17px!important;padding:10px!important;gap:9px!important}
+ .garden-center-tile-icon{width:40px!important;height:40px!important}
+ .garden-center-tile-copy strong{font-size:15px!important}
+ .tool-shed-directory-card{grid-template-columns:40px minmax(0,1fr) 17px!important;padding:10px!important;gap:9px!important}
+ .tool-shed-directory-card .secondary-card-icon{width:40px!important;height:40px!important}
+ .tool-shed-directory-card .secondary-card-copy strong{font-size:14.5px!important}
+ .weather-page-summary{padding-left:50px!important;grid-template-columns:34px minmax(0,1fr)!important}
+ .secondary-back-arrow{left:12px!important}
+}
+
+@media(min-width:700px){
+ .secondary-hero.compact-secondary-header{padding-top:calc(16px + env(safe-area-inset-top))!important;padding-bottom:16px!important}
+ .garden-center-compact-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:10px!important}
+ .tool-shed-card-list{grid-template-columns:repeat(2,minmax(0,1fr));gap:9px!important}
+ .tool-shed-directory-section:last-child .tool-shed-directory-card:last-child{grid-column:1/-1}
+}
+
+@media(min-width:1050px){
+ .garden-center-content,.tool-shed-content{max-width:920px!important;margin-inline:auto!important;width:100%}
+ .garden-center-compact-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+ .tool-shed-card-list{grid-template-columns:repeat(2,minmax(0,1fr))}
+}

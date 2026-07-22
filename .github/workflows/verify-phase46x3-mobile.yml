@@ -1,4 +1,4 @@
-name: Verify Phase 4.6X.3 Mobile and Node Service
+name: Verify Phase 4.7.5 Mobile and Node Service
 
 on:
   push:
@@ -21,7 +21,7 @@ jobs:
       - run: npm install --no-save playwright
       - run: npx playwright install --with-deps chromium
       - run: npm run build
-      - name: Check Node health and Seed Department at mobile widths
+      - name: Check Phase 4.7.5 Node health and Seed Department at mobile widths
         run: |
           set -euo pipefail
           mkdir -p diagnostics
@@ -30,7 +30,7 @@ jobs:
             if curl -fsS http://127.0.0.1:3000/api/health > diagnostics/health.json; then break; fi
             sleep 1
           done
-          node -e "const h=require('./diagnostics/health.json');if(!h.ok||h.version!=='0.20.3')throw new Error(JSON.stringify(h))"
+          node -e "const h=require('./diagnostics/health.json');if(!h.ok||h.version!=='0.20.4')throw new Error(JSON.stringify(h))"
           cat > diagnostics/mobile.mjs <<'JS'
           import{chromium}from'playwright';
           import{writeFileSync}from'node:fs';
@@ -82,6 +82,6 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: phase46x3-mobile-service-diagnostics
+          name: phase475-mobile-service-diagnostics
           path: diagnostics/
           retention-days: 2

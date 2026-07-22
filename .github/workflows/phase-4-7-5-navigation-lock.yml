@@ -1,0 +1,93 @@
+name: Phase 4.7.5 Navigation Lock
+
+on:
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  certify-navigation-lock:
+    runs-on: ubuntu-latest
+    timeout-minutes: 55
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+      - name: Use Node.js 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - name: Install dependencies
+        run: npm ci
+      - name: Confirm guarded Phase 4.7.5 corrections are committed
+        shell: bash
+        run: |
+          set -o pipefail
+          node scripts/applyPhase475OwnershipCorrections.mjs
+          node scripts/applyPhase474LabelConsistency.mjs
+          node scripts/applyPhase475LifecycleHarness.mjs
+          node scripts/applyPhase474JourneyHarnessFix.mjs
+          node scripts/applyPhase474PacketHealthHarness.mjs
+          node scripts/applyPhase475WholeAppHarness.mjs
+          node scripts/applyPhase475CssSyntax.mjs
+          git diff -- src/App.jsx src/GardenShoppingList.jsx src/VacationMode.jsx src/IndoorCenter.jsx src/ClearDetailModal.jsx src/styles/phase-4-7-5-navigation-lock.css package-lock.json scripts/verifyPhase474CriticalJourneys.mjs scripts/verifyPhase474WholeApp.mjs | tee phase475-guarded-diff.log
+          test ! -s phase475-guarded-diff.log
+      - name: Run complete existing unit and integration suite
+        shell: bash
+        run: |
+          set -o pipefail
+          npm test 2>&1 | tee phase475-tests.log
+      - name: Build production application
+        shell: bash
+        run: |
+          set -o pipefail
+          npm run build 2>&1 | tee phase475-build.log
+      - name: Install Playwright Chromium
+        run: |
+          npm install --no-save playwright
+          npx playwright install --with-deps chromium
+      - name: Start production server
+        run: |
+          PORT=4173 npm start > phase475-server.log 2>&1 &
+          for attempt in {1..40}; do
+            if curl --fail --silent http://127.0.0.1:4173/api/health >/dev/null; then exit 0; fi
+            sleep 1
+          done
+          cat phase475-server.log
+          exit 1
+      - name: Re-run Phase 4.7.4 interconnected lifecycle
+        shell: bash
+        run: |
+          set -o pipefail
+          node scripts/verifyPhase474CriticalJourneys.mjs 2>&1 | tee phase475-phase474-lifecycle.log
+        env:
+          APP_URL: http://127.0.0.1:4173
+      - name: Re-run Phase 4.7.4 PWA, routes, and printables
+        shell: bash
+        run: |
+          set -o pipefail
+          node scripts/verifyPhase474PwaAndPrint.mjs 2>&1 | tee phase475-phase474-pwa-print.log
+        env:
+          APP_URL: http://127.0.0.1:4173
+      - name: Verify Garden Center, Tool Shed, headers, routes, and responsive geometry
+        shell: bash
+        run: |
+          set -o pipefail
+          node scripts/verifyPhase475NavigationLock.mjs 2>&1 | tee phase475-navigation-lock.log
+        env:
+          APP_URL: http://127.0.0.1:4173
+      - name: Upload Phase 4.7.5 QA evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: phase-4-7-5-navigation-lock-evidence
+          path: |
+            phase475-audit
+            phase475-*.log
+            phase474-audit/journeys
+            phase474-audit/pwa-print
+          if-no-files-found: warn
+          retention-days: 7

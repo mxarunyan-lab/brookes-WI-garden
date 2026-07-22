@@ -37,11 +37,13 @@ try{
 
   await page.getByRole('button',{name:'Tool Shed'}).click();
   await checkOverflow('Tool Shed');
-  await page.locator('.tool-shed-drawer').first().evaluate(element=>element.open=true);
-  const drawerLabelStyles=await page.locator('.tool-shed-drawer>summary .secondary-section-header small').evaluateAll(labels=>labels.map(label=>{const style=getComputedStyle(label),summary=label.closest('summary'),summaryStyle=getComputedStyle(summary);return{text:label.textContent||'',foreground:style.color,background:summaryStyle.backgroundColor}}));
-  for(const label of drawerLabelStyles)assert.ok(contrast(label.foreground,label.background)>=4.5,`${label.text} drawer label contrast is too low: ${JSON.stringify(label)}`);
+  assert.equal(await page.locator('details.tool-shed-drawer').count(),0,'Tool Shed must remain a flat one-tap directory.');
+  assert.equal(await page.locator('.tool-shed-directory-card').count(),11,'Tool Shed should expose eleven direct destinations.');
+  const sectionLabelStyles=await page.locator('.tool-shed-directory-section>.secondary-section-header small').evaluateAll(labels=>labels.map(label=>{const style=getComputedStyle(label);let ancestor=label.parentElement,background='';while(ancestor){const candidate=getComputedStyle(ancestor).backgroundColor;if(candidate&&!/rgba?\(0, 0, 0, 0\)|transparent/.test(candidate)){background=candidate;break}ancestor=ancestor.parentElement}return{text:label.textContent||'',foreground:style.color,background:background||'rgb(11, 77, 51)'}}));
+  assert.equal(sectionLabelStyles.length,3,'Tool Shed should expose three visual section headings.');
+  for(const label of sectionLabelStyles)assert.ok(contrast(label.foreground,label.background)>=4.5,`${label.text} section label contrast is too low: ${JSON.stringify(label)}`);
   const cardStyles=await page.locator('.tool-shed-card-list .secondary-card').evaluateAll(cards=>cards.map(card=>{const title=card.querySelector('.secondary-card-copy strong'),cardStyle=getComputedStyle(card),titleStyle=getComputedStyle(title);return{title:title?.textContent||'',foreground:titleStyle.color,background:cardStyle.backgroundColor}}));
-  assert.ok(cardStyles.length>0,'Tool Shed cards were not found.');
+  assert.equal(cardStyles.length,11,'Tool Shed direct cards were not found.');
   for(const card of cardStyles)assert.ok(contrast(card.foreground,card.background)>=4.5,`${card.title} contrast is too low: ${JSON.stringify(card)}`);
   if(width===390)await page.screenshot({path:'phase472-mobile/390-tool-shed.png',fullPage:true});
 

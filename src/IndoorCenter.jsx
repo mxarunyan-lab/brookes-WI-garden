@@ -1,6 +1,7 @@
 import React,{useEffect,useMemo,useState}from'react';
-import{ArrowLeft,Check,ChevronRight,Droplets,FlaskConical,LampDesk,PackageSearch,Plus,Sprout,ThermometerSun,Warehouse}from'lucide-react';
+import{Check,ChevronRight,Droplets,FlaskConical,LampDesk,PackageSearch,Plus,Sprout,ThermometerSun,Warehouse}from'lucide-react';
 import{formatDateTime,getCropProfile}from'./data.js';
+import{SecondaryHero}from'./SecondaryUI.jsx';
 
 const todayKey=()=>new Date().toISOString().slice(0,10);
 const emptyTray=spaceId=>({name:'Tray A',sourcePacketId:'',cropId:'',crop:'',variety:'',cells:12,seedsUsed:12,seedCountType:'estimated',stage:'Sown',startedAt:todayKey(),spaceId:spaceId||''});
@@ -71,7 +72,7 @@ export default function IndoorCenter({garden,navigate,addTray,addLight,toggleLig
  const indoorPlants=useMemo(()=>garden.plants.filter(plant=>{const space=garden.spaces.find(row=>row.id===plant.spaceId);return!plant.deletedAt&&!plant.archived&&['indoor','basement','greenhouse','hydro'].includes(space?.type)}),[garden.plants,garden.spaces]);
  const hardening=garden.hardeningPlans||[],latestReading=garden.greenhouseReadings?.[0],outdoorCandidates=indoorPlants.filter(plant=>plant.growingGoal==='spring-seedling'&&['Seedling','Growing'].includes(plant.stage)&&!hardening.some(plan=>plan.plantId===plant.id&&!plan.complete));
 
- return <main className="screen indoor-center-screen"><section className="dark-header garden-header indoor-center-header"><button className="back-button" onClick={()=>navigate('back')} aria-label="Go back"><ArrowLeft/></button><Sprout/><span>YEAR-ROUND GROWING</span><h1>Indoor Growing</h1><p>Start from a saved packet when possible. The tray, seed use, expected emergence, care guidance, and Plant Journey then stay connected.</p></section><section className="indoor-center-content screen-pad">
+ return <main className="screen secondary-screen indoor-center-screen"><SecondaryHero icon={Sprout} eyebrow="YEAR-ROUND GROWING" title="Indoor Growing" description="Start from a saved packet when possible so tray, seed use, care guidance, and Plant Journey stay connected." onBack={()=>navigate('center')} backLabel="Back to Garden Center" className="center-department-hero indoor-center-header"/><section className="indoor-center-content secondary-screen-content screen-pad">
   {indoorPlants.length>0&&<article className="control-center-card"><div className="control-center-title"><LampDesk/><div><span className="section-kicker">SUGGESTED FROM YOUR PLANTS</span><h2>Light and next-step recommendations</h2></div></div><div className="center-list">{indoorPlants.map(plant=>{const suggestion=lightSuggestion(plant),assigned=garden.growLights?.find(row=>row.id===plant.growLightId);return <div key={plant.id}><span><strong>{plant.name}</strong><small>{assigned?`${assigned.name}: ${assigned.onTime}–${assigned.offTime}`:`Suggested ${suggestion.on}–${suggestion.off} (${suggestion.hours} hours)`} · {suggestion.why}</small></span><em>{plant.stage}</em></div>})}</div></article>}
 
   <article className="control-center-card indoor-tray-card"><div className="control-center-title"><Sprout/><div><span className="section-kicker">SEEDLING TRAYS</span><h2>{garden.trays?.length||0} active trays</h2></div><button onClick={()=>setTrayOpen(value=>!value)}><Plus/> Add</button></div>

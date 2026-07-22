@@ -1,0 +1,44 @@
+name: Apply Phase 4.7.5 Ownership Corrections
+
+on:
+  push:
+    branches: [agent/phase-4-7-5-navigation-lock]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: phase-4-7-5-ownership
+  cancel-in-progress: true
+
+jobs:
+  apply-ownership-corrections:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out Phase 4.7.5 branch
+        uses: actions/checkout@v4
+        with:
+          ref: agent/phase-4-7-5-navigation-lock
+          fetch-depth: 0
+      - name: Apply guarded ownership, lifecycle, packet, whole-app, and CSS corrections
+        run: |
+          node scripts/applyPhase475OwnershipCorrections.mjs
+          node scripts/applyPhase474LabelConsistency.mjs
+          node scripts/applyPhase475LifecycleHarness.mjs
+          node scripts/applyPhase474JourneyHarnessFix.mjs
+          node scripts/applyPhase474PacketHealthHarness.mjs
+          node scripts/applyPhase475WholeAppHarness.mjs
+          node scripts/applyPhase475CssSyntax.mjs
+      - name: Commit corrected routes, headers, browser harnesses, and CSS
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add src/App.jsx src/GardenShoppingList.jsx src/VacationMode.jsx src/IndoorCenter.jsx src/ClearDetailModal.jsx src/styles/phase-4-7-5-navigation-lock.css package-lock.json scripts/verifyPhase474CriticalJourneys.mjs scripts/verifyPhase474WholeApp.mjs
+          if git diff --cached --quiet; then
+            echo "Phase 4.7.5 guarded corrections already applied."
+            exit 0
+          fi
+          git commit -m "Apply Phase 4.7.5 guarded corrections"
+          git push origin HEAD:agent/phase-4-7-5-navigation-lock
