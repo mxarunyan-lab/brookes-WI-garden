@@ -34,7 +34,7 @@ async function primary(page,label){await clickButton(page,new RegExp(`^${escape(
 async function centerCard(page,label){await primary(page,'Center');await clickButton(page,new RegExp(escape(label),'i'))}
 async function toolCard(page,label){await primary(page,'Tool Shed');await clickButton(page,new RegExp(escape(label),'i'))}
 async function directPage(page,id){await page.goto(`${base}/?page=${id}`,{waitUntil:'networkidle',timeout:20000})}
-async function printableLabels(page){await toolCard(page,'Printable Garden Pack & Labels');await clickButton(page,/Open Plant Labels/i)}
+async function printableLabels(page){await directPage(page,'labels')}
 async function moreSetting(page,label){await primary(page,'More');await page.locator('.more-settings-hub>summary').click();await clickButton(page,new RegExp(escape(label),'i'))}
 async function moreCard(page,label){await primary(page,'More');await clickButton(page,new RegExp(escape(label),'i'))}
 
