@@ -43,14 +43,16 @@ test('moved destinations keep existing routes and Tool Shed ownership',async()=>
  assert.match(app,/page==='memory'/);
 });
 
-test('secondary pages share the compact header system without changing Today or My Garden',async()=>{
+test('secondary pages share the compact header system while Today uses the seasonal header',async()=>{
  const[ui,main,css,layout,today,garden]=await Promise.all(['src/SecondaryUI.jsx','src/main.jsx','src/styles/phase-4-7-5-navigation-lock.css','src/styles/phase-4-7-5-card-layout-lock.css','src/WorkspaceScreens.jsx','src/BedWorkspace.jsx'].map(read));
  assert.match(ui,/compact-secondary-header/);
  assert.match(main,/phase-4-7-5-navigation-lock\.css/);
  assert.match(main,/phase-4-7-5-card-layout-lock\.css/);
+ assert.match(main,/seasonal-home-header\.css/);
  assert.match(css,/secondary-hero\.compact-secondary-header/);
  assert.match(layout,/-webkit-line-clamp:1!important/);
- assert.match(today,/compact-home-hero/);
+ assert.match(today,/SeasonalGardenHeader/);
+ assert.match(today,/today-dashboard-card/);
  assert.match(garden,/individual-bed-card/);
  assert.doesNotMatch(css,/compact-home-hero\s*\{/);
 });
@@ -62,8 +64,8 @@ test('Phase 4.7.5 CSS files have balanced braces',async()=>{
  }
 });
 
-test('Phase 4.7.5 build marker is present',async()=>{
+test('seasonal release build marker is present',async()=>{
  const version=await read('src/version.js');
- assert.match(version,/APP_VERSION='0\.20\.4'/);
- assert.match(version,/BUILD_ID='phase-4-7-5-navigation-lock'/);
+ assert.match(version,/APP_VERSION='0\.20\.5'/);
+ assert.match(version,/BUILD_ID='seasonal-mobile-garden-header'/);
 });
