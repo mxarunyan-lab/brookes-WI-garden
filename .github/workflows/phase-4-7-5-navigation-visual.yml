@@ -1,0 +1,52 @@
+name: Phase 4.7.5 Navigation Visual QA
+
+on:
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  verify-navigation-visuals:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npm run build
+      - name: Install Playwright Chromium
+        run: |
+          npm install --no-save playwright
+          npx playwright install --with-deps chromium
+      - name: Start production server
+        run: |
+          PORT=4173 npm start > phase475-navigation-server.log 2>&1 &
+          for attempt in {1..40}; do
+            if curl --fail --silent http://127.0.0.1:4173/api/health >/dev/null; then exit 0; fi
+            sleep 1
+          done
+          cat phase475-navigation-server.log
+          exit 1
+      - name: Verify six-width navigation and capture screenshots
+        shell: bash
+        run: |
+          set -o pipefail
+          node scripts/verifyPhase475NavigationLock.mjs 2>&1 | tee phase475-navigation-visual.log
+        env:
+          APP_URL: http://127.0.0.1:4173
+      - name: Upload focused navigation evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: phase-4-7-5-navigation-visual-evidence
+          path: |
+            phase475-audit
+            phase475-navigation-*.log
+          if-no-files-found: warn
+          retention-days: 7
