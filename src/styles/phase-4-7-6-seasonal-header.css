@@ -1,21 +1,25 @@
 /* Phase 4.7.6: compact Green Bay seasonal Today header and dashboard overlap. */
-.compact-home-hero{
- position:relative;
+.today-screen .today-hero.compact-home-hero{
+ position:relative!important;
  box-sizing:border-box!important;
+ width:100%!important;
  height:clamp(168px,46vw,190px)!important;
  min-height:clamp(168px,46vw,190px)!important;
+ max-height:190px!important;
+ margin:0!important;
  padding:0!important;
  overflow:hidden!important;
- background-color:#dfe9d6;
- background-repeat:no-repeat;
- background-position:center center;
- background-size:cover;
+ background-color:#dfe9d6!important;
+ background-position:center center!important;
+ background-repeat:no-repeat!important;
+ background-size:cover!important;
+ border-radius:0!important;
  isolation:isolate;
 }
-html[data-garden-season="spring"] .compact-home-hero{background-image:url('/images/garden-headers/garden-header-spring.avif')}
-html[data-garden-season="summer"] .compact-home-hero{background-image:url('/images/garden-headers/garden-header-summer.avif')}
-html[data-garden-season="fall"] .compact-home-hero{background-image:url('/images/garden-headers/garden-header-fall.avif')}
-html[data-garden-season="winter"] .compact-home-hero{background-image:url('/images/garden-headers/garden-header-winter.avif')}
+html[data-garden-season="spring"] .today-screen .today-hero.compact-home-hero{background-image:url('/images/garden-headers/garden-header-spring.avif')!important}
+html[data-garden-season="summer"] .today-screen .today-hero.compact-home-hero{background-image:url('/images/garden-headers/garden-header-summer.avif')!important}
+html[data-garden-season="fall"] .today-screen .today-hero.compact-home-hero{background-image:url('/images/garden-headers/garden-header-fall.avif')!important}
+html[data-garden-season="winter"] .today-screen .today-hero.compact-home-hero{background-image:url('/images/garden-headers/garden-header-winter.avif')!important}
 .compact-home-hero .wisconsin-landscape{display:none!important}
 .compact-home-hero:after{
  content:"";
@@ -76,9 +80,10 @@ html[data-garden-season="winter"] .compact-home-hero{background-image:url('/imag
 .compact-today-body>.compact-handoff{order:0}
 
 @media(max-width:350px){
- .compact-home-hero{
+ .today-screen .today-hero.compact-home-hero{
   height:168px!important;
   min-height:168px!important;
+  max-height:168px!important;
  }
  .compact-home-hero .compact-hero-title{
   top:9px!important;
@@ -95,10 +100,11 @@ html[data-garden-season="winter"] .compact-home-hero{background-image:url('/imag
 }
 
 @media(min-width:600px){
- .compact-home-hero{
+ .today-screen .today-hero.compact-home-hero{
   height:210px!important;
   min-height:210px!important;
-  background-position:center 51%;
+  max-height:210px!important;
+  background-position:center 51%!important;
  }
  .compact-home-hero .compact-hero-title{
   top:18px!important;
