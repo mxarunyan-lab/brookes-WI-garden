@@ -1,7 +1,7 @@
 import assert from'node:assert/strict';
 import{chromium}from'playwright';
 
-const base=(process.env.APP_URL||'https://brookes-garden-compass.onrender.com').replace(/\/$/,'');
+const base=(process.env.APP_URL||'https://brookes-wi-garden.onrender.com').replace(/\/$/,'');
 const expectedBuild='phase-4-7-6-seasonal-header';
 const attempts=Number(process.env.VERIFY_ATTEMPTS||48),delay=Number(process.env.VERIFY_DELAY_MS||10000);
 const sleep=ms=>new Promise(resolve=>setTimeout(resolve,ms));
