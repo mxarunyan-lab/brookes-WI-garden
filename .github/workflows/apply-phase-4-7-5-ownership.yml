@@ -27,6 +27,7 @@ jobs:
           node scripts/applyPhase475OwnershipCorrections.mjs
           node scripts/applyPhase474LabelConsistency.mjs
           node scripts/applyPhase475LifecycleHarness.mjs
+          node scripts/applyPhase474JourneyHarnessFix.mjs
       - name: Commit corrected routes, headers, and lifecycle harness
         run: |
           git config user.name "github-actions[bot]"
