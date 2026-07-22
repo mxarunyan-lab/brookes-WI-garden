@@ -35,5 +35,16 @@ for(const{label,old,next}of replacements){
  source=source.replace(old,next);
  changed=true;
 }
+const urgentNext="await form.getByLabel('Task type').selectOption('Fertilize');await form.getByLabel('Priority').selectOption('95');";
+if(!source.includes(urgentNext)){
+ const variants=[
+  "await form.getByLabel('Task type').selectOption('Fertilize');await form.getByRole('combobox',{name:/^Plant/}).selectOption({label:'QA Tomato Renamed'});",
+  "await form.getByLabel('Task type').selectOption('Fertilize');await form.getByLabel('Plant').selectOption({label:'QA Tomato Renamed'});",
+ ];
+ const current=variants.find(value=>source.includes(value));
+ if(!current)throw new Error(`${path}: expected manual chore creation sequence was not found`);
+ source=source.replace(current,current.replace("await form.getByLabel('Task type').selectOption('Fertilize');",urgentNext));
+ changed=true;
+}
 if(changed)await writeFile(path,source);
 console.log(JSON.stringify({ok:true,changed},null,2));
