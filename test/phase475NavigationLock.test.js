@@ -64,6 +64,6 @@ test('Phase 4.7.5 CSS files have balanced braces',async()=>{
 
 test('current build marker preserves the Phase 4.7.5 navigation lock',async()=>{
  const version=await read('src/version.js');
- assert.match(version,/APP_VERSION='0\.20\.4'/);
- assert.match(version,/BUILD_ID='phase-4-7-6-seasonal-header'/);
+ assert.match(version,/APP_VERSION='0\.20\.5'/);
+ assert.match(version,/BUILD_ID='phase-4-7-7-exact-seasonal-header'/);
 });
