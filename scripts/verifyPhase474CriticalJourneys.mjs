@@ -7,7 +7,7 @@ const now=new Date().toISOString(),today=now.slice(0,10);
 const emptyGarden={schemaVersion:10,profile:{gardenerName:'Archie',activeProfileId:'archie',gardenName:'The Runyan Garden',location:'Green Bay, Wisconsin 54302',zip:'54302',zone:'5b',lastFrost:'May 15',firstFrost:'October 10',notifications:{weather:true,tasks:true,shopping:true}},spaces:[],plants:[],seedPackets:[],reminders:[],taskHistory:[],seedTransactions:[],seedUsage:[],activity:[],harvests:[],problems:[],succession:[],trays:[],growLights:[],hardeningPlans:[],hydroPods:[],greenhouseReadings:[],plantingDecisions:[],shoppingItems:[],weatherRecommendationHistory:[],vacationPlans:[],calculatorResults:[],environmentalRecords:[],environmentalCorrections:[],wateringEvents:[],soilCheckEvents:[],photos:[],attachments:[],qrLabels:[],offlineOperations:[],yearPlan:{crops:[]}};
 const png=Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAusB9Wl2nWQAAAAASUVORK5CYII=','base64');
 await mkdir('phase474-audit/journeys',{recursive:true});
-const browser=await chromium.launch({headless:true}),findings=[],steps=[];
+const browser=await chromium.launch({headless:true}),context=await browser.newContext({serviceWorkers:'block',viewport:{width:390,height:900},deviceScaleFactor:1}),findings=[],steps=[];
 const record=(name,status='pass',detail='')=>steps.push({name,status,detail});
 const garden=page=>page.evaluate(()=>JSON.parse(localStorage.getItem('brookes-garden-state-v2')||'{}'));
 const waitGarden=async(page,predicate,label)=>{const deadline=Date.now()+10000;let snapshot={};while(Date.now()<deadline){snapshot=await garden(page).catch(()=>({}));if(predicate(snapshot))return snapshot;await page.waitForTimeout(75)}throw new Error(`${label}. Current stored state: ${JSON.stringify(snapshot).slice(0,2000)}`)};
@@ -38,11 +38,11 @@ async function createSpace(page,{name,type,container=false,growBag=false,double=
  return data.spaces.find(row=>row.name===name&&!row.deletedAt);
 }
 
-const page=await browser.newPage({viewport:{width:390,height:900},deviceScaleFactor:1});
+const page=await context.newPage();
 const pageErrors=[],failed=[];page.on('pageerror',error=>pageErrors.push(String(error?.stack||error)));page.on('response',response=>{if(response.status()>=400&&!/api\/seed-packets\/analyze/.test(response.url()))failed.push({status:response.status(),url:response.url()})});page.on('dialog',dialog=>dialog.accept());
 await page.addInitScript(data=>{localStorage.clear();sessionStorage.clear();localStorage.setItem('runyan-garden-active-profile','archie');localStorage.setItem('brookes-garden-state-v2',JSON.stringify(data))},emptyGarden);
-await page.route('**/api/health',route=>route.fulfill({status:200,contentType:'application/json',body:JSON.stringify({ok:true,version:'0.20.3',packetVisionConfigured:true})}));
-await page.route('**/api/seed-packets/analyze',route=>route.fulfill({status:503,contentType:'application/json',body:JSON.stringify({code:'CERTIFICATION_FAILURE',message:'Certification analysis failure. Photos and draft remain saved.'})}));
+await context.route('**/api/health',route=>route.fulfill({status:200,contentType:'application/json',body:JSON.stringify({ok:true,version:'0.20.3',packetVisionConfigured:true})}));
+await context.route('**/api/seed-packets/analyze',route=>route.fulfill({status:503,contentType:'application/json',body:JSON.stringify({code:'CERTIFICATION_FAILURE',message:'Certification analysis failure. Photos and draft remain saved.'})}));
 try{
  const container=await createSpace(page,{name:'QA Container Planter',type:'container',container:true,double:true});
  assert.equal(container.type,'container');assert.equal(container.size,'5 gallon');assert.equal(container.drainageHoles,true);
