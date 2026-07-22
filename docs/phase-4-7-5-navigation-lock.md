@@ -30,19 +30,24 @@ Today retains the approved illustrated hero and Phase 4.7.4 identity-safe positi
 
 No collection name, stable record ID, relationship, backup format, attribution field, weather calculation, seed-analysis behavior, or Phase 4.7.4 lifecycle protection is changed by this phase.
 
-The actual committed grow-bag create form carries the approved `Grow bag size` label. The committed lifecycle journey now seeds local data once per browser context, preserves records across direct-page navigation and refresh, uses exact field locators, interacts with Hilling stage as a select, and opens completed-task History before Undo. No application control or persistence rule was weakened for testing.
+The actual committed grow-bag create form carries the approved `Grow bag size` label. The committed lifecycle journey seeds local data once per browser context, preserves records across direct-page navigation and refresh, uses exact field locators, interacts with Hilling stage as a select, and opens completed-task History before Undo. No application control or persistence rule was weakened for testing.
 
 ## Release gates
 
 | Gate | Result |
 |---|---|
-| Complete unit and integration suite | Passing on corrected source |
-| Production build | Passing on corrected source |
-| Phase 4.7.4 interconnected lifecycle | Full committed persistence-safe rerun in progress |
-| Phase 4.7.4 PWA, direct routes, and printables | Pending lifecycle gate |
-| Garden Center and Tool Shed at 320/375/390/430/768/1200 | Pending lifecycle gate |
-| Screenshot review at 320/390/768 | Pending |
-| Seed Packet Intelligence paid requests during navigation QA | Must remain 0 |
+| Complete unit and integration suite | Passing |
+| Production build | Passing |
+| Phase 4.7.4 interconnected lifecycle | Passing |
+| Phase 4.7.4 PWA, direct routes, and printables | Passing |
+| Garden Center and Tool Shed at 320/375/390/430/768/1200 | Passing |
+| Compact secondary headers and preserved Today/My Garden headers | Passing |
+| Three distinct weather destination modes | Passing |
+| Moved-page routes, refresh, browser Back, and in-app Back | Passing |
+| Shopping, vacation, and history data preservation | Passing |
+| Screenshot review at 320/390/768 | Passing |
+| Final Tool Shed card bottom-navigation clearance | Passing |
+| Seed Packet Intelligence paid requests during navigation QA | 0 |
 | Live Render assets and 390px mobile navigation | Pending merge |
 
-Phase 5 work remains excluded until every gate and the live production verifier pass.
+The required local, lifecycle, PWA, routing, responsive, contrast, screenshot, and data-preservation gates are complete. Phase 5 work remains excluded until PR #31 is merged and the exact `main` build passes the Phase 4.7.5 live Render verifier.
