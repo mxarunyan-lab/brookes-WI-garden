@@ -1,10 +1,10 @@
 export const GREEN_BAY_TIME_ZONE='America/Chicago';
 
 export const SEASONAL_GARDEN_HEADERS={
- spring:'/images/garden-headers/garden-header-spring.webp?v=0477',
- summer:'/images/garden-headers/garden-header-summer.webp?v=0477',
- fall:'/images/garden-headers/garden-header-fall.webp?v=0477',
- winter:'/images/garden-headers/garden-header-winter.webp?v=0477'
+ spring:'/images/garden-headers/garden-header-spring.webp?v=0478',
+ summer:'/images/garden-headers/garden-header-summer.webp?v=0478',
+ fall:'/images/garden-headers/garden-header-fall.webp?v=0478',
+ winter:'/images/garden-headers/garden-header-winter.webp?v=0478'
 };
 
 export function getGreenBayMonth(date=new Date()){
