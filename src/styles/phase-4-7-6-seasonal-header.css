@@ -1,0 +1,111 @@
+/* Phase 4.7.6: compact Green Bay seasonal Today header and dashboard overlap. */
+.compact-home-hero{
+ position:relative;
+ height:clamp(168px,46vw,190px)!important;
+ min-height:clamp(168px,46vw,190px)!important;
+ padding:0!important;
+ overflow:hidden!important;
+ background-color:#dfe9d6;
+ background-repeat:no-repeat;
+ background-position:center center;
+ background-size:cover;
+ isolation:isolate;
+}
+html[data-garden-season="spring"] .compact-home-hero{background-image:url('/images/garden-headers/garden-header-spring.webp')}
+html[data-garden-season="summer"] .compact-home-hero{background-image:url('/images/garden-headers/garden-header-summer.webp')}
+html[data-garden-season="fall"] .compact-home-hero{background-image:url('/images/garden-headers/garden-header-fall.webp')}
+html[data-garden-season="winter"] .compact-home-hero{background-image:url('/images/garden-headers/garden-header-winter.webp')}
+.compact-home-hero .wisconsin-landscape{display:none!important}
+.compact-home-hero:after{
+ content:"";
+ position:absolute;
+ inset:auto 0 0;
+ z-index:0;
+ height:34%;
+ pointer-events:none;
+ background:linear-gradient(to bottom,transparent,rgba(13,54,35,.08));
+}
+.compact-home-hero .compact-hero-title{
+ top:12px!important;
+ left:12px!important;
+ width:min(285px,calc(100% - 92px))!important;
+ padding:9px 12px 10px!important;
+ border-radius:15px!important;
+ background:rgba(251,247,236,.98)!important;
+ box-shadow:0 6px 16px rgba(23,61,43,.16)!important;
+}
+.compact-home-hero .compact-hero-title h1{
+ font-size:clamp(1.18rem,6vw,1.72rem)!important;
+ line-height:1.04!important;
+}
+.compact-home-hero .compact-hero-title p{
+ margin-top:4px!important;
+ font-size:clamp(.68rem,2.8vw,.78rem)!important;
+ line-height:1.22!important;
+}
+.compact-home-hero .hero-bell{
+ top:12px!important;
+ right:12px!important;
+ z-index:12!important;
+ min-width:44px;
+ min-height:44px;
+}
+.compact-home-hero .notification-popover{z-index:20!important}
+.compact-today-body{
+ position:relative;
+ z-index:5;
+ display:flex!important;
+ flex-direction:column!important;
+ gap:11px!important;
+ margin-top:-24px!important;
+ padding-top:0!important;
+}
+.compact-today-body>.what-matters-today{
+ order:-2;
+ border:1px solid rgba(23,61,43,.14)!important;
+ border-radius:22px!important;
+ background:rgba(255,250,240,.985)!important;
+ box-shadow:0 11px 26px rgba(23,61,43,.18)!important;
+}
+.compact-today-body>.what-matters-today.is-clear{
+ background:rgba(247,250,240,.985)!important;
+ border-color:rgba(44,114,75,.22)!important;
+}
+.compact-today-body>.compact-weather-line{order:-1}
+.compact-today-body>.compact-handoff{order:0}
+
+@media(max-width:350px){
+ .compact-home-hero{
+  height:168px!important;
+  min-height:168px!important;
+  background-position:center center;
+ }
+ .compact-home-hero .compact-hero-title{
+  top:9px!important;
+  left:9px!important;
+  width:calc(100% - 82px)!important;
+  padding:8px 10px 9px!important;
+  border-radius:13px!important;
+ }
+ .compact-home-hero .compact-hero-title h1{font-size:1.16rem!important}
+ .compact-home-hero .compact-hero-title p{font-size:.66rem!important}
+ .compact-home-hero .hero-bell{top:9px!important;right:9px!important}
+ .compact-today-body{margin-top:-18px!important}
+ .compact-today-body>.what-matters-today{border-radius:18px!important}
+}
+
+@media(min-width:600px){
+ .compact-home-hero{
+  height:210px!important;
+  min-height:210px!important;
+  background-position:center 51%;
+ }
+ .compact-home-hero .compact-hero-title{
+  top:18px!important;
+  left:18px!important;
+  width:min(330px,calc(100% - 112px))!important;
+  padding:11px 14px 12px!important;
+ }
+ .compact-home-hero .hero-bell{top:18px!important;right:18px!important}
+ .compact-today-body{margin-top:-28px!important}
+}
