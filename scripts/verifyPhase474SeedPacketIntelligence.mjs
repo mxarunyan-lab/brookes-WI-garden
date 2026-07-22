@@ -4,6 +4,7 @@ import{extractionReview,emptyPacketDraft}from'../src/seedPacketIntelligence.js';
 import{lookupSeedProducts,scoreSeedProduct,OFFICIAL_SEED_PRODUCTS}from'../src/seedProductLookup.js';
 import{createApp}from'../server/index.js';
 
+// Release-blocking regression for the committed all-brand smart packet workflow.
 const medium=(sourcePhoto='back')=>({source:'packet-vision',sourceLabel:'Read from packet photos',confidence:'Medium',sourcePhoto,evidence:{printed:true,confidence:'medium'}});
 const draft=emptyPacketDraft({
  brand:'Sow Right Seeds',name:'Onion',variety:'Ailsa Craig',category:'vegetable',designations:['Heirloom','Non-GMO'],seasonalWindow:'Long-day onion; start indoors 10–12 weeks before the last frost and transplant early.',fertilizingGuidance:'Nitrogen encourages larger bulb growth.',depth:'1/2 inch',spacing:'6–8 inches',germinationEstimate:'7–15 days',sunlight:'Full sun',
