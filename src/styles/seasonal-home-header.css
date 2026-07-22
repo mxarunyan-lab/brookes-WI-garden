@@ -152,6 +152,7 @@
 }
 @media(min-width:700px){
  .seasonal-garden-header{max-width:1100px;border-radius:22px}
+ .seasonal-garden-header__identity{width:min(420px,calc(100% - 76px))}
  .today-dashboard-card{width:min(620px,calc(100% - 24px));margin:-24px auto 0}
 }
 @media(prefers-reduced-motion:reduce){.seasonal-garden-header__image{transition:none}}
