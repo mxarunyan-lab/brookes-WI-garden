@@ -10,12 +10,8 @@ const replaceOnce=(source,oldValue,newValue,label)=>{
 
 {
  const path='server/index.js';
- let source=await readFile(path,'utf8');
- source=replaceOnce(source,
-  "version: process.env.APP_VERSION || '0.20.4'",
-  "version: process.env.APP_VERSION || '0.20.3'",
-  'current release version');
- await writeFile(path,source);
+ const source=await readFile(path,'utf8');
+ if(!source.includes("version: process.env.APP_VERSION || '0.20.4'"))throw new Error('Expected Phase 4.7.5 server version was not found.');
 }
 
 {
