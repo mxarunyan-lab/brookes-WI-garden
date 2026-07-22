@@ -30,15 +30,17 @@ Today retains the approved illustrated hero and Phase 4.7.4 identity-safe positi
 
 No collection name, stable record ID, relationship, backup format, attribution field, weather calculation, seed-analysis behavior, or Phase 4.7.4 lifecycle protection is changed by this phase.
 
+The actual committed grow-bag create form now carries the approved `Grow bag size` label. The inherited lifecycle harness uses `selectOption` for the existing Hilling stage select control; no application field type was weakened for the test.
+
 ## Release gates
 
 | Gate | Result |
 |---|---|
-| Complete unit and integration suite | Pending final head |
-| Production build | Pending final head |
-| Phase 4.7.4 interconnected lifecycle | Pending final head |
-| Phase 4.7.4 PWA, direct routes, and printables | Pending final head |
-| Garden Center and Tool Shed at 320/375/390/430/768/1200 | Pending final head |
+| Complete unit and integration suite | Passing on corrected source |
+| Production build | Passing on corrected source |
+| Phase 4.7.4 interconnected lifecycle | Rerun in progress after committed harness correction |
+| Phase 4.7.4 PWA, direct routes, and printables | Pending lifecycle gate |
+| Garden Center and Tool Shed at 320/375/390/430/768/1200 | Pending lifecycle gate |
 | Screenshot review at 320/390/768 | Pending |
 | Seed Packet Intelligence paid requests during navigation QA | Must remain 0 |
 | Live Render assets and 390px mobile navigation | Pending merge |
