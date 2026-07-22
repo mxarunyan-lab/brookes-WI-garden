@@ -32,7 +32,7 @@ No collection name, stable record ID, relationship, backup format, attribution f
 
 The actual committed grow-bag create form carries the approved `Grow bag size` label. The committed lifecycle journey seeds local data once per browser context, preserves records across direct-page navigation and refresh, uses exact field locators, interacts with Hilling stage as a select, and opens completed-task History before Undo. No application control or persistence rule was weakened for testing.
 
-The inherited whole-app audit is migrated to the frozen Phase 4.7.5 information architecture. It navigates the flat Tool Shed directly, opens Shopping List, Vacation Mode, and Garden History from Records & Extras, verifies all three weather cards, follows the printable-to-label handoff, and retains direct-route coverage for the legacy frost calculator.
+The inherited whole-app audit is migrated to the frozen Phase 4.7.5 information architecture. It navigates the flat Tool Shed directly, opens Shopping List, Vacation Mode, and Garden History from Records & Extras, verifies all three weather cards, checks Printable Garden Pack from Tool Shed, verifies Plant Labels through its registered `?page=labels` route, and retains direct-route coverage for the legacy frost calculator.
 
 ## Release gates
 
@@ -42,7 +42,7 @@ The inherited whole-app audit is migrated to the frozen Phase 4.7.5 information 
 | Production build | Passing |
 | Phase 4.7.4 interconnected lifecycle | Passing |
 | Phase 4.7.4 PWA, direct routes, and printables | Passing |
-| Whole-app route and visible-action audit | Passing on migrated Phase 4.7.5 navigation model |
+| Whole-app route and visible-action audit | Final owner-authored rerun in progress |
 | Garden Center and Tool Shed at 320/375/390/430/768/1200 | Passing |
 | Compact secondary headers and preserved Today/My Garden headers | Passing |
 | Three distinct weather destination modes | Passing |
