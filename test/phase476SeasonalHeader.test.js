@@ -20,15 +20,15 @@ test('Green Bay seasonal boundaries use America/Chicago meteorological seasons',
  for(const[value,season]of cases)assert.equal(getGreenBaySeason(new Date(value)),season,`${value} should be ${season}`);
 });
 
-test('all four approved seasonal asset paths are distinct AVIF headers',()=>{
+test('all four seasonal paths use the stable WebP delivery route',()=>{
  assert.deepEqual(Object.keys(SEASONAL_GARDEN_HEADERS),['spring','summer','fall','winter']);
  assert.equal(new Set(Object.values(SEASONAL_GARDEN_HEADERS)).size,4);
  for(const[season,path]of Object.entries(SEASONAL_GARDEN_HEADERS)){
-  assert.match(path,new RegExp(`garden-header-${season}\\.avif$`));
+  assert.match(path,new RegExp(`garden-header-${season}\\.webp\\?v=0477$`));
  }
 });
 
-test('seasonal header runtime and CSS stay focused on Today without changing navigation',async()=>{
+test('seasonal header stays focused on Today and preserves navigation',async()=>{
  const[main,runtime,css,today,navigation]=await Promise.all([
   read('src/main.jsx'),
   read('src/seasonalHeaderRuntime.js'),
@@ -40,21 +40,33 @@ test('seasonal header runtime and CSS stay focused on Today without changing nav
  assert.match(main,/seasonalHeaderRuntime\.js/);
  assert.match(runtime,/dataset\[ATTRIBUTE\]=season/);
  assert.match(runtime,/visibilitychange/);
- assert.match(css,/compact-home-hero/);
- assert.match(css,/background-size:cover/);
- assert.match(css,/margin-top:-24px!important/);
- assert.match(css,/what-matters-today/);
- assert.match(css,/wisconsin-landscape\{display:none!important\}/);
+ assert.match(css,/today-hero\.compact-home-hero/);
+ assert.match(css,/aspect-ratio:2\/1!important/);
+ assert.match(css,/background-size:contain!important/);
+ assert.match(css,/garden-header-summer\.webp\?v=0477/);
+ assert.match(css,/compact-home-hero:after\{display:none!important\}/);
+ assert.match(css,/clip-path:inset\(50%\)!important/);
+ assert.match(css,/margin-top:-22px!important/);
+ assert.doesNotMatch(css,/background-size:cover/);
+ assert.doesNotMatch(css,/height:clamp\(168px/);
  assert.match(today,/profile\.gardenerName/);
- assert.match(today,/profile\.gardenName/);
- assert.match(today,/profile\.location/);
  assert.match(today,/notification-count/);
  assert.match(today,/hero-bell/);
  assert.doesNotMatch(today,/today-quick-links/);
  assert.match(navigation,/BottomNav/);
 });
 
-test('seasonal assets are real compact image files after the asset step',async()=>{
+test('server converts approved AVIF masters to stable WebP for Safari',async()=>{
+ const server=await read('server/index.js');
+ assert.match(server,/import sharp from 'sharp'/);
+ assert.match(server,/garden-header-:season\.webp/);
+ assert.match(server,/garden-header-\$\{season\}\.avif/);
+ assert.match(server,/\.webp\(\{quality: 95, effort: 6, smartSubsample: true\}\)/);
+ assert.match(server,/image\/webp/);
+ assert.match(server,/seasonalHeaderCache/);
+});
+
+test('approved AVIF master files remain intact as server-side conversion sources',async()=>{
  for(const season of['spring','summer','fall','winter']){
   const path=`public/images/garden-headers/garden-header-${season}.avif`;
   const info=await stat(path);

@@ -4,6 +4,7 @@ import {fileURLToPath} from 'node:url';
 import compression from 'compression';
 import express from 'express';
 import helmet from 'helmet';
+import sharp from 'sharp';
 import {analyzeSeedPacket} from './seedPacketVision.js';
 import {configuredResearchProviders, researchExactSeedProduct} from './productResearch.js';
 
@@ -11,6 +12,8 @@ const port = Number(process.env.PORT || 3000);
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..', 'dist');
 const buckets = new Map();
 const cache = new Map();
+const seasonalHeaderCache = new Map();
+const SEASONAL_HEADERS = new Set(['spring', 'summer', 'fall', 'winter']);
 const CACHE_TTL_MS = 30 * 60_000;
 
 const hashPacketPayload = (frontImage, backImage) => crypto.createHash('sha256').update(String(frontImage)).update('\0').update(String(backImage)).digest('hex');
@@ -66,8 +69,30 @@ export function createApp({analyze = analyzeSeedPacket, research = researchExact
     packetVisionConfigured: Boolean(process.env.OPENAI_API_KEY),
     packetVisionModel: process.env.SEED_PACKET_VISION_MODEL || 'gpt-5-mini',
     productResearchProviders: configuredResearchProviders(),
-    version: process.env.APP_VERSION || '0.20.4',
+    version: process.env.APP_VERSION || '0.20.5',
   }));
+
+  app.get('/images/garden-headers/garden-header-:season.webp', async (req, res, next) => {
+    const season = String(req.params.season || '').toLowerCase();
+    if (!SEASONAL_HEADERS.has(season)) return next();
+    try {
+      let image = seasonalHeaderCache.get(season);
+      if (!image) {
+        const source = path.join(root, 'images', 'garden-headers', `garden-header-${season}.avif`);
+        image = await sharp(source, {failOn: 'warning'})
+          .rotate()
+          .webp({quality: 95, effort: 6, smartSubsample: true})
+          .toBuffer();
+        seasonalHeaderCache.set(season, image);
+      }
+      res.type('image/webp');
+      res.set('Cache-Control', 'public, max-age=31536000, immutable');
+      return res.send(image);
+    } catch (error) {
+      console.error('[seasonal-header-conversion]', {season, message: error.message});
+      return next(error);
+    }
+  });
 
   app.post('/api/seed-products/lookup', rateLimit, async (req, res) => {
     const requestId = crypto.randomUUID();
