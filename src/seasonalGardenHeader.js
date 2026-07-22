@@ -1,11 +1,5 @@
 export const GARDEN_TIME_ZONE='America/Chicago';
-
-export const SEASONAL_HEADER_IMAGES={
- spring:'/images/garden-headers/spring.avif',
- summer:'/images/garden-headers/summer.avif',
- fall:'/images/garden-headers/fall.avif',
- winter:'/images/garden-headers/winter.avif',
-};
+export const GARDEN_SEASONS=Object.freeze(['spring','summer','fall','winter']);
 
 export function getGreenBaySeason(date=new Date()){
  const parts=new Intl.DateTimeFormat('en-US',{timeZone:GARDEN_TIME_ZONE,month:'numeric',day:'numeric',year:'numeric'}).formatToParts(date);
@@ -17,7 +11,7 @@ export function getGreenBaySeason(date=new Date()){
 }
 
 export function resolveGardenHeaderSeason(preference='automatic',date=new Date()){
- return Object.hasOwn(SEASONAL_HEADER_IMAGES,preference)?preference:getGreenBaySeason(date);
+ return GARDEN_SEASONS.includes(preference)?preference:getGreenBaySeason(date);
 }
 
 export function possessiveGardenTitle(name){
