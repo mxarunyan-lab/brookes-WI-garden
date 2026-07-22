@@ -32,33 +32,35 @@ const escape=value=>String(value).replace(/[.*+?^${}()|[\]\\]/g,'\\$&');
 async function clickButton(page,name){const item=page.getByRole('button',{name}).first();await item.waitFor({state:'visible',timeout:10000});await item.click();await page.waitForTimeout(40)}
 async function primary(page,label){await clickButton(page,new RegExp(`^${escape(label)}$`,'i'))}
 async function centerCard(page,label){await primary(page,'Center');await clickButton(page,new RegExp(escape(label),'i'))}
-async function toolCard(page,group,label){await primary(page,'Tool Shed');const drawer=page.locator('.tool-shed-drawer').filter({hasText:group});await drawer.locator('summary').click();await clickButton(page,new RegExp(escape(label),'i'))}
+async function toolCard(page,label){await primary(page,'Tool Shed');await clickButton(page,new RegExp(escape(label),'i'))}
+async function directPage(page,id){await page.goto(`${base}/?page=${id}`,{waitUntil:'networkidle',timeout:20000})}
+async function printableLabels(page){await toolCard(page,'Printable Garden Pack & Labels');await clickButton(page,/Open Plant Labels/i)}
 async function moreSetting(page,label){await primary(page,'More');await page.locator('.more-settings-hub>summary').click();await clickButton(page,new RegExp(escape(label),'i'))}
 async function moreCard(page,label){await primary(page,'More');await clickButton(page,new RegExp(escape(label),'i'))}
 
 const routes=[
  route('today','GARDEN STATUS',page=>primary(page,'Today')),
  route('garden','The Runyan Garden',page=>primary(page,'Garden')),
- route('center','Manage and plan the garden',page=>primary(page,'Center')),
+ route('center','Garden Center',page=>primary(page,'Center')),
  route('tools','Tool Shed',page=>primary(page,'Tool Shed')),
  route('more','Garden & Account Settings',page=>primary(page,'More')),
- route('weather-garden','Weather for Your Garden',page=>toolCard(page,'WEATHER TOOLS','Garden Weather')),
- route('weather-rain','Rain and Watering Review',page=>toolCard(page,'WEATHER TOOLS','Rain & Watering Review')),
- route('weather-frost','Frost and Planting Timing',page=>toolCard(page,'WEATHER TOOLS','Frost & Planting Timing')),
+ route('weather-garden','Weather for Your Garden',page=>toolCard(page,'Garden Weather')),
+ route('weather-rain','Rain and Watering Review',page=>toolCard(page,'Rain & Watering Review')),
+ route('weather-frost','Frost and Planting Timing',page=>toolCard(page,'Frost & Planting Dates')),
  route('chores','Chore Board',page=>centerCard(page,'Garden Chore Board')),
  route('plan-plant','Planting Desk',page=>centerCard(page,'Planting Desk')),
- route('vacation','Vacation Mode',page=>centerCard(page,'Vacation Mode')),
- route('shopping-list','Garden Shopping List',page=>centerCard(page,'Shopping List')),
+ route('vacation','Vacation Mode',page=>toolCard(page,'Vacation Mode')),
+ route('shopping-list','Garden Shopping List',page=>toolCard(page,'Shopping List')),
  route('indoor','Indoor Growing',page=>centerCard(page,'Indoor Growing')),
- route('memory','Garden Memory',page=>centerCard(page,'Garden History')),
+ route('memory','Garden History',page=>toolCard(page,'Garden History')),
  route('seed-tools','Seed Department',page=>centerCard(page,'Seed Department')),
- route('spacing-calculator','Spacing Calculator',page=>toolCard(page,'UTILITIES','Spacing Calculator')),
- route('soil-calculator','Soil & Container Calculator',page=>toolCard(page,'UTILITIES','Soil & Container Calculator')),
- route('frost-calculator','Frost & Planting Dates',page=>toolCard(page,'UTILITIES','Frost & Planting Dates')),
- route('seed-quantity-calculator','Seed Quantity Calculator',page=>toolCard(page,'UTILITIES','Seed Quantity Calculator')),
- route('garden-measurements','Garden Measurements',page=>toolCard(page,'UTILITIES','Garden Measurements')),
- route('printable-pack','Printable Garden Pack',page=>toolCard(page,'NOTES & PRINTABLES','Printable Garden Pack')),
- route('labels','Plant Labels',page=>toolCard(page,'NOTES & PRINTABLES','Plant Labels')),
+ route('spacing-calculator','Spacing Calculator',page=>toolCard(page,'Spacing Calculator')),
+ route('soil-calculator','Soil & Container Calculator',page=>toolCard(page,'Soil & Container Calculator')),
+ route('frost-calculator','Frost & Planting Dates',page=>directPage(page,'frost-calculator')),
+ route('seed-quantity-calculator','Seed Quantity Calculator',page=>toolCard(page,'Seed Quantity Calculator')),
+ route('garden-measurements','Garden Measurements',page=>toolCard(page,'Garden Measurements')),
+ route('printable-pack','Printable Garden Pack',page=>toolCard(page,'Printable Garden Pack & Labels')),
+ route('labels','Plant Labels',page=>printableLabels(page)),
  route('admin-profile','Garden Profile',page=>moreSetting(page,'Garden and gardeners')),
  route('admin-location','Location and Frost Dates',page=>moreSetting(page,'Location and frost dates')),
  route('admin-notifications','Notification Settings',page=>moreSetting(page,'Notifications')),
