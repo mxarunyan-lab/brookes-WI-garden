@@ -10,7 +10,7 @@ const draft=emptyPacketDraft({
  fieldMeta:{brand:medium('front'),name:medium('front'),variety:medium('front'),category:medium('front'),designations:medium('front'),seasonalWindow:medium(),fertilizingGuidance:medium(),depth:medium(),spacing:medium(),germinationEstimate:medium(),sunlight:medium()}
 });
 const review=extractionReview(draft);
-assert.equal(review.check.length,0,'Visible medium-confidence packet text should not be forced into manual review.');
+assert.equal(review.check.length,0,`Visible medium-confidence packet text should not be forced into manual review. Still flagged: ${review.check.map(row=>`${row.key}=${Array.isArray(row.value)?row.value.join(', '):row.value} (${row.reason||row.confidence})`).join(' | ')}`);
 assert.equal(review.missing.length,0,'Manufacturer-unstated seed count and days to maturity must not block readiness.');
 assert.ok(review.ready.some(row=>row.key==='seasonalWindow'),'Seasonal guidance should be accepted as ready.');
 assert.ok(review.ready.some(row=>row.key==='fertilizingGuidance'),'Fertilizing guidance should be accepted as ready.');
