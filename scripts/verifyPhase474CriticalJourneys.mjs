@@ -42,7 +42,7 @@ async function createSpace(page,{name,type,container=false,growBag=false,double=
 const page=await context.newPage();
 const pageErrors=[],failed=[];page.on('pageerror',error=>pageErrors.push(String(error?.stack||error)));page.on('response',response=>{if(response.status()>=400&&!/api\/seed-packets\/analyze/.test(response.url()))failed.push({status:response.status(),url:response.url()})});page.on('dialog',dialog=>dialog.accept());
 await page.addInitScript(data=>{if(sessionStorage.getItem('phase474-journey-initialized'))return;localStorage.clear();sessionStorage.clear();localStorage.setItem('runyan-garden-active-profile','archie');localStorage.setItem('brookes-garden-state-v2',JSON.stringify(data));sessionStorage.setItem('phase474-journey-initialized','1')},emptyGarden);
-await context.route('**/api/health',route=>route.fulfill({status:200,contentType:'application/json',body:JSON.stringify({ok:true,version:'0.20.3',packetVisionConfigured:true})}));
+await context.route('**/api/health',route=>route.fulfill({status:200,contentType:'application/json',body:JSON.stringify({ok:true,version:'0.20.4',packetVisionConfigured:true})}));
 await context.route('**/api/seed-packets/analyze',route=>route.fulfill({status:503,contentType:'application/json',body:JSON.stringify({code:'CERTIFICATION_FAILURE',message:'Certification analysis failure. Photos and draft remain saved.'})}));
 try{
  const container=await createSpace(page,{name:'QA Container Planter',type:'container',container:true,double:true});
