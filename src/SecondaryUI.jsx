@@ -2,12 +2,14 @@ import React from'react';
 import{ArrowLeft,ChevronRight}from'lucide-react';
 
 export function SecondaryHero({icon:Icon,eyebrow,title,description,onBack,backLabel='Back',className=''}){
- return <section className={`dark-header secondary-hero ${className}`.trim()}>
+ return <section className={`dark-header secondary-hero compact-secondary-header ${className}`.trim()}>
   {onBack&&<button type="button" className="secondary-back-button" onClick={onBack} aria-label={backLabel}><ArrowLeft/></button>}
   {Icon&&<span className="secondary-hero-icon" aria-hidden="true"><Icon/></span>}
-  {eyebrow&&<span className="secondary-hero-eyebrow">{eyebrow}</span>}
-  <h1>{title}</h1>
-  {description&&<p>{description}</p>}
+  <span className="secondary-hero-copy">
+   {eyebrow&&<span className="secondary-hero-eyebrow">{eyebrow}</span>}
+   <h1>{title}</h1>
+   {description&&<p>{description}</p>}
+  </span>
  </section>;
 }
 
