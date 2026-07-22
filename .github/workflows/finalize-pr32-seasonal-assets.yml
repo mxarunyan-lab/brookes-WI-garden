@@ -1,24 +1,24 @@
-name: Finalize PR 32 Seasonal Assets
+name: Finalize Seasonal Header Assets
 
 on:
   pull_request_target:
-    types: [ready_for_review]
+    types: [opened, reopened, ready_for_review]
 
 permissions:
   contents: write
 
 concurrency:
-  group: finalize-pr32-seasonal-assets
+  group: finalize-seasonal-header-assets
   cancel-in-progress: true
 
 jobs:
   finalize:
-    if: github.event.pull_request.number == 32 && github.event.pull_request.head.repo.full_name == github.repository && github.event.pull_request.head.ref == 'agent/seasonal-mobile-garden-header'
+    if: github.event.pull_request.head.repo.full_name == github.repository && github.event.pull_request.head.ref == 'agent/seasonal-mobile-garden-header-final'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
         with:
-          ref: agent/seasonal-mobile-garden-header
+          ref: agent/seasonal-mobile-garden-header-final
           fetch-depth: 0
 
       - name: Decode and verify approved seasonal headers
@@ -55,5 +55,5 @@ jobs:
           git rm -r .asset-staging
           git rm .github/workflows/finalize-seasonal-header-assets.yml
           git commit -m 'Add approved seasonal garden header assets'
-          git pull --rebase origin agent/seasonal-mobile-garden-header
-          git push origin HEAD:agent/seasonal-mobile-garden-header
+          git pull --rebase origin agent/seasonal-mobile-garden-header-final
+          git push origin HEAD:agent/seasonal-mobile-garden-header-final
