@@ -6,5 +6,5 @@ export const WHATS_NEW=[
  'Tool Shed is a flat one-tap directory with Calculators & Utilities, Weather & Timing, and Records & Extras',
  'Shopping List, Vacation Mode, and Garden History now live under Records & Extras without changing their saved data',
  'Secondary-page headers are compact and consistent while Today and My Garden keep their primary treatments',
- 'Garden Weather, Rain & Watering Review, and Frost & Planting Dates continue to open distinct focused weather modes'
+ 'Garden Weather, Rain & Watering Review, and Frost & Planting Dates continue to open three distinct focused weather modes'
 ];
