@@ -52,4 +52,5 @@ test('seasonal header styling uses a fully opaque live identity surface',()=>{
  const css=readFileSync(new URL('../src/styles/seasonal-home-header.css',import.meta.url),'utf8');
  assert.match(css,/\.seasonal-garden-header__identity\{[\s\S]*background:#fffaf0;/);
  assert.match(css,/width:min\(54%,420px\)/);
+ assert.match(css,/@media\(min-width:700px\)\{[\s\S]*width:min\(420px,calc\(100% - 76px\)\)/);
 });
