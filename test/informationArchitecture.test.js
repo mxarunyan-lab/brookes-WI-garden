@@ -4,14 +4,15 @@ import{readFileSync}from'node:fs';
 
 const src=file=>readFileSync(new URL(`../src/${file}`,import.meta.url),'utf8');
 
-test('Garden Center is a department hub, not a duplicate daily dashboard',()=>{
+test('Garden Center is locked to five core garden-management destinations',()=>{
  const source=src('GardenCenter.jsx');
  assert.equal(source.includes('NEXT BEST MOVE'),false);
  assert.equal(source.includes('garden-center-next-step'),false);
  assert.equal(source.includes('due today'),false);
- assert.match(source,/Manage and plan the garden/);
- assert.match(source,/Seed Department/);
- assert.match(source,/Growing Spaces/);
+ assert.match(source,/title="Garden Center"/);
+ assert.equal((source.match(/<DepartmentTile /g)||[]).length,5);
+ for(const title of['Seed Department','Planting Desk','Growing Spaces','Indoor Growing','Garden Chore Board'])assert.match(source,new RegExp(title));
+ for(const removed of['Shopping List','Vacation Mode','Garden History'])assert.equal(source.includes(`title="${removed}"`),false);
 });
 
 test('Today owns one compact status summary without redundant navigation tiles',()=>{
@@ -24,11 +25,13 @@ test('Today owns one compact status summary without redundant navigation tiles',
  assert.equal(source.includes('seed-readiness-announcement'),false);
 });
 
-test('Tool Shed is tool-focused and More owns consolidated settings and data management',()=>{
+test('Tool Shed is a flat directory and More retains settings and data management',()=>{
  const toolShed=src('ToolShed.jsx'),more=src('MoreHub.jsx');
- assert.match(toolShed,/WEATHER TOOLS/);
- assert.match(toolShed,/NOTES & PRINTABLES/);
- assert.match(toolShed,/UTILITIES/);
+ assert.match(toolShed,/CALCULATORS & UTILITIES/);
+ assert.match(toolShed,/WEATHER & TIMING/);
+ assert.match(toolShed,/RECORDS & EXTRAS/);
+ assert.equal((toolShed.match(/<ToolCard /g)||[]).length,11);
+ assert.doesNotMatch(toolShed,/<details/);
  assert.match(toolShed,/openWeather\('garden'\)/);
  assert.match(toolShed,/openWeather\('rain'\)/);
  assert.match(toolShed,/openWeather\('frost'\)/);
@@ -43,7 +46,7 @@ test('Tool Shed is tool-focused and More owns consolidated settings and data man
  assert.match(more,/title="What's New"/);
 });
 
-test('Weather Tools uses contextual back navigation and focused modes',()=>{
+test('Weather tools use contextual back navigation and focused modes',()=>{
  const source=src('WorkspaceScreens.jsx');
  assert.match(source,/navigate\('back'\)/);
  assert.match(source,/mode==='garden'/);
