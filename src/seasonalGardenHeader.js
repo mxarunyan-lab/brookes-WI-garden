@@ -1,10 +1,10 @@
 export const GARDEN_TIME_ZONE='America/Chicago';
 
 export const SEASONAL_HEADER_IMAGES={
- spring:'/images/garden-headers/spring.webp',
- summer:'/images/garden-headers/summer.webp',
- fall:'/images/garden-headers/fall.webp',
- winter:'/images/garden-headers/winter.webp',
+ spring:'/images/garden-headers/spring.avif',
+ summer:'/images/garden-headers/summer.avif',
+ fall:'/images/garden-headers/fall.avif',
+ winter:'/images/garden-headers/winter.avif',
 };
 
 export function getGreenBaySeason(date=new Date()){
