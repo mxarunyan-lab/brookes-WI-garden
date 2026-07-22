@@ -9,7 +9,7 @@ services:
       - key: NODE_VERSION
         value: 22
       - key: APP_VERSION
-        value: 0.20.4
+        value: 0.20.5
       - key: SEED_PACKET_VISION_MODEL
         value: gpt-5-mini
       - key: SEED_PACKET_VISION_DETAIL
