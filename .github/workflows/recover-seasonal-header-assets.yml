@@ -1,0 +1,81 @@
+name: Recover Seasonal Header Assets
+
+on:
+  push:
+    branches: [agent/seasonal-mobile-garden-header]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: recover-seasonal-header-assets
+  cancel-in-progress: true
+
+jobs:
+  recover-assets:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: agent/seasonal-mobile-garden-header
+          fetch-depth: 0
+
+      - name: Fetch every remote branch
+        run: git fetch origin '+refs/heads/*:refs/remotes/origin/*' --force --prune
+
+      - name: Recover approved seasonal assets from Git history
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p public/images/garden-headers
+          missing=0
+
+          for season in spring summer fall winter; do
+            found_commit=''
+            while read -r commit; do
+              if git ls-tree -r --name-only "$commit" | grep -qE "^\.asset-staging/seasonal-images/${season}-[0-9]+\.b64$"; then
+                found_commit="$commit"
+                break
+              fi
+            done < <(git rev-list --all --date-order)
+
+            if [[ -z "$found_commit" ]]; then
+              echo "::error::No recoverable ${season} asset chunks exist in any fetched branch history."
+              missing=1
+              continue
+            fi
+
+            mapfile -t chunks < <(
+              git ls-tree -r --name-only "$found_commit" |
+                grep -E "^\.asset-staging/seasonal-images/${season}-[0-9]+\.b64$" |
+                sort
+            )
+
+            echo "Recovering ${season} from ${found_commit} using ${#chunks[@]} chunk(s): ${chunks[*]}"
+            : > "/tmp/${season}.b64"
+            for chunk in "${chunks[@]}"; do
+              git show "${found_commit}:${chunk}" >> "/tmp/${season}.b64"
+            done
+
+            tr -d '\r\n\t ' < "/tmp/${season}.b64" | base64 --decode > "public/images/garden-headers/${season}.avif"
+            test -s "public/images/garden-headers/${season}.avif"
+            file "public/images/garden-headers/${season}.avif"
+          done
+
+          if [[ "$missing" -ne 0 ]]; then
+            echo 'Available historical staging paths:'
+            for commit in $(git rev-list --all --date-order); do
+              git ls-tree -r --name-only "$commit" | grep '^\.asset-staging/seasonal-images/' || true
+            done | sort -u
+            exit 1
+          fi
+
+      - name: Commit recovered assets
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add public/images/garden-headers/*.avif
+          git commit -m 'Recover approved seasonal garden header assets'
+          git push origin HEAD:agent/seasonal-mobile-garden-header
