@@ -1,0 +1,156 @@
+/* Focused seasonal Home header and Today dashboard refinement. */
+.today-screen{background:var(--cream,#f8f1df)}
+.seasonal-garden-header{
+ position:relative;
+ z-index:1;
+ width:100%;
+ aspect-ratio:2/1;
+ min-height:148px;
+ max-height:190px;
+ margin-inline:auto;
+ overflow:hidden;
+ border-radius:0 0 22px 22px;
+ background:#dce9d6;
+ isolation:isolate;
+}
+.seasonal-garden-header__image{
+ position:absolute;
+ inset:0;
+ width:100%;
+ height:100%;
+ display:block;
+ object-fit:cover;
+ object-position:center center;
+}
+.seasonal-garden-header__identity{
+ position:absolute;
+ top:12px;
+ left:12px;
+ z-index:2;
+ display:grid;
+ gap:5px;
+ width:max-content;
+ max-width:min(72%,420px);
+ padding:10px 14px;
+ border:1px solid rgba(44,74,47,.14);
+ border-radius:16px;
+ background:rgba(255,250,235,.98);
+ box-shadow:0 6px 16px rgba(43,55,35,.18);
+ color:var(--forest-green,#173d2b);
+}
+.seasonal-garden-header__title{
+ display:-webkit-box;
+ max-width:100%;
+ margin:0;
+ overflow:hidden;
+ color:var(--forest-green,#173d2b);
+ font-family:var(--font-display,'Fraunces',Georgia,serif);
+ font-size:clamp(1.15rem,5vw,2rem);
+ font-weight:800;
+ line-height:1;
+ letter-spacing:-.025em;
+ -webkit-box-orient:vertical;
+ -webkit-line-clamp:2;
+ overflow-wrap:normal;
+ word-break:normal;
+}
+.seasonal-garden-header__subtitle{
+ display:-webkit-box;
+ max-width:100%;
+ margin:0;
+ overflow:hidden;
+ color:var(--forest-green,#173d2b);
+ font-size:clamp(.72rem,3vw,1rem);
+ font-weight:750;
+ line-height:1.15;
+ -webkit-box-orient:vertical;
+ -webkit-line-clamp:2;
+ overflow-wrap:normal;
+ word-break:normal;
+}
+.seasonal-garden-header__notifications{
+ position:absolute;
+ top:12px;
+ right:12px;
+ z-index:3;
+}
+.seasonal-garden-header__notifications .hero-bell{
+ position:relative!important;
+ inset:auto!important;
+ width:44px!important;
+ min-width:44px!important;
+ height:44px!important;
+ min-height:44px!important;
+ margin:0!important;
+ border:1px solid rgba(23,61,43,.18)!important;
+ background:rgba(255,250,235,.98)!important;
+ color:#173d2b!important;
+ box-shadow:0 5px 14px rgba(23,61,43,.18)!important;
+}
+.seasonal-garden-header__notifications .notification-popover{
+ top:50px!important;
+ right:0!important;
+ left:auto!important;
+ width:min(292px,calc(100vw - 32px));
+ max-width:none;
+}
+.today-dashboard-card{
+ position:relative;
+ z-index:2;
+ display:grid;
+ gap:10px;
+ margin:-24px 12px 0;
+ padding:16px;
+ border:1px solid rgba(44,74,47,.12);
+ border-radius:22px;
+ background:var(--cream,#fffaf0);
+ box-shadow:0 10px 24px rgba(35,55,38,.16);
+ color:#173d2b;
+}
+.today-dashboard-card__heading{
+ margin:0;
+ color:#173d2b;
+ font-family:var(--font-display,'Fraunces',Georgia,serif);
+ font-size:1.35rem;
+ font-weight:850;
+ line-height:1.05;
+}
+.today-dashboard-card .what-matters-today{
+ margin:0!important;
+ padding:0!important;
+ border:0!important;
+ border-radius:0!important;
+ background:transparent!important;
+ box-shadow:none!important;
+}
+.today-dashboard-card .what-matters-heading{margin:0 0 8px!important}
+.today-dashboard-card .what-matters-heading>span>small{display:none!important}
+.today-dashboard-card .what-matters-heading strong{font-size:1rem!important;line-height:1.25!important}
+.today-dashboard-card .what-matters-list{gap:6px!important}
+.today-dashboard-card .what-matters-list>button{
+ min-height:44px;
+ padding:9px 8px!important;
+ border-radius:12px!important;
+}
+.today-dashboard-card .today-clear-message{margin:0!important;padding:8px 0!important}
+.today-dashboard-card .home-primary-route{min-height:44px;margin-top:8px!important}
+.today-screen .compact-today-body{
+ position:relative;
+ z-index:1;
+ padding-top:14px!important;
+}
+/* The seasonal image replaces the old inline landscape without changing the remaining Home layout. */
+.today-screen .compact-home-hero,.today-screen .wisconsin-landscape,.today-screen .compact-hero-title{display:none!important}
+@media(max-width:350px){
+ .seasonal-garden-header{min-height:148px;border-radius:0 0 18px 18px}
+ .seasonal-garden-header__identity{top:9px;left:9px;max-width:76%;padding:8px 10px;border-radius:13px}
+ .seasonal-garden-header__subtitle{margin-top:0}
+ .seasonal-garden-header__notifications{top:9px;right:9px}
+ .today-dashboard-card{margin:-18px 9px 0;padding:14px;border-radius:18px}
+ .today-dashboard-card__heading{font-size:1.25rem}
+}
+@media(min-width:700px){
+ .seasonal-garden-header{max-width:1100px;border-radius:22px}
+ .today-dashboard-card{width:min(620px,calc(100% - 24px));margin:-24px auto 0}
+}
+@media(prefers-reduced-motion:reduce){.seasonal-garden-header__image{transition:none}}
