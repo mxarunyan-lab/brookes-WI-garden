@@ -1,6 +1,7 @@
 /* Phase 4.7.6: compact Green Bay seasonal Today header and dashboard overlap. */
 .compact-home-hero{
  position:relative;
+ box-sizing:border-box!important;
  height:clamp(168px,46vw,190px)!important;
  min-height:clamp(168px,46vw,190px)!important;
  padding:0!important;
