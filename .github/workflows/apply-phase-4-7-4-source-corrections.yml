@@ -3,10 +3,16 @@ name: Apply Phase 4.7.4 Source Corrections
 on:
   push:
     branches: [agent/phase-4-7-4-certification]
+  pull_request:
+    branches: [main]
   workflow_dispatch:
 
 permissions:
   contents: write
+
+concurrency:
+  group: phase-4-7-4-source-corrections
+  cancel-in-progress: true
 
 jobs:
   apply-guarded-corrections:
