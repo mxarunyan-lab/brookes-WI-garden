@@ -9,6 +9,16 @@ const replaceOnce=(source,oldValue,newValue,label)=>{
 };
 
 {
+ const path='server/index.js';
+ let source=await readFile(path,'utf8');
+ source=replaceOnce(source,
+  "version: process.env.APP_VERSION || '0.20.4'",
+  "version: process.env.APP_VERSION || '0.20.3'",
+  'current release version');
+ await writeFile(path,source);
+}
+
+{
  const path='server/seedPacketVision.js';
  let source=await readFile(path,'utf8');
  source=replaceOnce(source,
