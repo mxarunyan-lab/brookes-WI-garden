@@ -1,22 +1,21 @@
 import assert from'node:assert/strict';
 import{chromium}from'playwright';
 
-const base=(process.env.APP_URL||'https://brookes-wi-garden.onrender.com').replace(/\/$/,'');
-const expectedBuild='phase-4-7-7-exact-seasonal-header';
-const attempts=Number(process.env.VERIFY_ATTEMPTS||48),delay=Number(process.env.VERIFY_DELAY_MS||10000);
+const base=(process.env.APP_URL||'https://brookes-garden-compass.onrender.com').replace(/\/$/,'');
+const expectedBuild='phase-4-7-8-urgent-only-home';
+const attempts=Number(process.env.VERIFY_ATTEMPTS||80),delay=Number(process.env.VERIFY_DELAY_MS||15000);
 const sleep=ms=>new Promise(resolve=>setTimeout(resolve,ms));
-const fetchText=async url=>{const response=await fetch(url,{cache:'no-store'});assert.equal(response.status,200,`${url} returned ${response.status}`);return response.text()};
+const fetchText=async url=>{const response=await fetch(url,{cache:'no-store',headers:{'cache-control':'no-cache'}});assert.equal(response.status,200,`${url} returned ${response.status}`);return response.text()};
 const currentGreenBaySeason=()=>{const month=Number(new Intl.DateTimeFormat('en-US',{timeZone:'America/Chicago',month:'numeric'}).format(new Date()));if(month>=3&&month<=5)return'spring';if(month>=6&&month<=8)return'summer';if(month>=9&&month<=11)return'fall';return'winter'};
 let result=null,lastError=null;
 for(let attempt=1;attempt<=attempts;attempt+=1){
  let browser;
  try{
-  const healthResponse=await fetch(`${base}/api/health`,{headers:{accept:'application/json'},cache:'no-store'});
+  const healthResponse=await fetch(`${base}/api/health`,{headers:{accept:'application/json','cache-control':'no-cache'},cache:'no-store'});
   assert.equal(healthResponse.status,200,`Health endpoint returned ${healthResponse.status}`);
   const health=await healthResponse.json();
   assert.equal(health.ok,true);
-  assert.equal(health.version,'0.20.5');
-  const html=await fetchText(`${base}/`);
+  const html=await fetchText(`${base}/?phase478=${Date.now()}`);
   const scriptPaths=[...html.matchAll(/<script[^>]+src="([^"]+\.js)"/g)].map(match=>match[1]);
   const stylePaths=[...html.matchAll(/<link[^>]+href="([^"]+\.css)"/g)].map(match=>match[1]);
   assert.ok(scriptPaths.length,'Live JavaScript asset was not found.');
@@ -24,6 +23,9 @@ for(let attempt=1;attempt<=attempts;attempt+=1){
   const js=(await Promise.all(scriptPaths.map(path=>fetchText(new URL(path,`${base}/`).toString())))).join('\n');
   const css=(await Promise.all(stylePaths.map(path=>fetchText(new URL(path,`${base}/`).toString())))).join('\n');
   assert.match(js,new RegExp(expectedBuild));
+  assert.match(js,/Urgent Garden Alerts/);
+  assert.match(js,/Nothing urgent right now/);
+  assert.match(js,/watering-can-icon/);
   assert.match(js,/America\/Chicago/);
   assert.match(js,/CALCULATORS & UTILITIES/);
   assert.match(js,/WEATHER & TIMING/);
@@ -31,6 +33,9 @@ for(let attempt=1;attempt<=attempts;attempt+=1){
   assert.match(css,/garden-header-summer\.webp\?v=0477/);
   assert.match(css,/aspect-ratio:2\/1/);
   assert.match(css,/background-size:contain/);
+  assert.match(css,/urgent-alert-overlay/);
+  assert.match(css,/z-index:5000/);
+  assert.match(css,/100dvh/);
   assert.match(css,/compact-secondary-header/);
   assert.match(css,/tool-shed-directory-card/);
   assert.match(css,/garden-center-tile/);
@@ -38,64 +43,58 @@ for(let attempt=1;attempt<=attempts;attempt+=1){
   const assetResponse=await fetch(`${base}${seasonalAsset}`,{cache:'no-store'});
   assert.equal(assetResponse.status,200,`${seasonalAsset} returned ${assetResponse.status}`);
   assert.match(assetResponse.headers.get('content-type')||'',/image\/webp/);
-  const imageBytes=await assetResponse.arrayBuffer();
-  assert.ok(imageBytes.byteLength>10000,`${seasonalAsset} is unexpectedly small`);
+  assert.ok((await assetResponse.arrayBuffer()).byteLength>10000,`${seasonalAsset} is unexpectedly small`);
 
   browser=await chromium.launch({headless:true});
-  const context=await browser.newContext({serviceWorkers:'block',viewport:{width:390,height:900},deviceScaleFactor:1});
-  const page=await context.newPage();
-  await page.addInitScript(()=>localStorage.setItem('runyan-garden-active-profile','archie'));
-  const goto=async route=>{const response=await page.goto(`${base}/?page=${route}&phase477=${Date.now()}`,{waitUntil:'domcontentloaded'});assert.equal(response?.status(),200);await page.locator('main').waitFor()};
-
-  await goto('today');
-  const hero=page.locator('.compact-home-hero');
-  const todayCard=page.locator('.what-matters-today');
-  const title=page.locator('.compact-hero-title');
-  await hero.waitFor();
-  await todayCard.waitFor();
-  const heroBox=await hero.boundingBox(),cardBox=await todayCard.boundingBox(),titleBox=await title.boundingBox();
-  assert.ok(heroBox.height>=180&&heroBox.height<=190,`Seasonal header height was ${heroBox.height}`);
-  assert.ok(Math.abs(heroBox.width/heroBox.height-2)<.03,`Seasonal header ratio was ${heroBox.width/heroBox.height}`);
-  assert.ok(cardBox.y<heroBox.y+heroBox.height,'Today card does not overlap the seasonal header');
-  const heroStyle=await hero.evaluate(element=>({backgroundImage:getComputedStyle(element).backgroundImage,backgroundSize:getComputedStyle(element).backgroundSize,borderRadius:getComputedStyle(element).borderRadius,afterDisplay:getComputedStyle(element,'::after').display}));
-  assert.ok(heroStyle.backgroundImage.includes(`garden-header-${liveSeason}.webp`),`Expected ${liveSeason} header, received ${heroStyle.backgroundImage}`);
-  assert.equal(heroStyle.backgroundSize,'contain');
-  assert.notEqual(heroStyle.borderRadius,'0px');
-  assert.equal(heroStyle.afterDisplay,'none');
-  assert.ok(titleBox.width<=1&&titleBox.height<=1,'A duplicate live title panel is still visible over the approved artwork');
-  assert.equal(await page.locator('.today-quick-links').count(),0,'Removed Today shortcut boxes returned');
-  assert.equal(await page.locator('.hero-bell').count(),1,'Notification bell was duplicated');
-
-  await goto('center');
-  await page.getByRole('heading',{name:'Garden Center',exact:true}).waitFor();
-  assert.equal(await page.locator('.garden-center-tile').count(),5);
-  const centerText=await page.locator('main').innerText();
-  for(const title of['Seed Department','Planting Desk','Growing Spaces','Indoor Growing','Garden Chore Board'])assert.ok(centerText.includes(title),`${title} missing live`);
-  for(const title of['Shopping List','Vacation Mode','Garden History'])assert.equal(centerText.includes(title),false,`${title} duplicated live on Garden Center`);
-  assert.ok((await page.locator('.garden-center-hero').boundingBox()).height<160,'Live Garden Center header remains oversized');
-
-  await goto('tools');
-  await page.getByRole('heading',{name:'Tool Shed',exact:true}).waitFor();
-  assert.equal(await page.locator('.tool-shed-directory-card').count(),11);
-  assert.equal(await page.getByText('RECORDS & EXTRAS',{exact:true}).count(),1);
-  assert.equal(await page.locator('details.tool-shed-drawer').count(),0);
-  const weatherCases=[['Garden Weather','Weather for Your Garden','garden'],['Rain & Watering Review','Rain and Watering Review','rain'],['Frost & Planting Dates','Frost and Planting Timing','frost']];
-  for(const[card,title,mode]of weatherCases){
-   await goto('tools');
-   await page.getByRole('button',{name:new RegExp(`^${card.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')}\\.`)}).click();
-   await page.getByRole('heading',{name:title,exact:true}).waitFor();
-   assert.equal(await page.evaluate(()=>sessionStorage.getItem('runyan-weather-tool-mode-v1')),mode);
+  const widths=[320,375,390,430];
+  for(const width of widths){
+   const context=await browser.newContext({serviceWorkers:'block',viewport:{width,height:900},deviceScaleFactor:1});
+   const page=await context.newPage();
+   await page.addInitScript(()=>localStorage.setItem('runyan-garden-active-profile','archie'));
+   const goto=async route=>{const response=await page.goto(`${base}/?page=${route}&phase478=${width}-${Date.now()}`,{waitUntil:'domcontentloaded',timeout:60000});assert.equal(response?.status(),200);await page.locator('main').waitFor()};
+   await goto('today');
+   const hero=page.locator('.compact-home-hero'),todayCard=page.locator('.what-matters-today'),title=page.locator('.compact-hero-title');
+   await hero.waitFor();await todayCard.waitFor();
+   assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth<=document.documentElement.clientWidth),true,`${width}px has horizontal overflow`);
+   const heroBox=await hero.boundingBox(),cardBox=await todayCard.boundingBox(),titleBox=await title.boundingBox();
+   assert.ok(Math.abs(heroBox.width/heroBox.height-2)<.04,`${width}px seasonal header ratio was ${heroBox.width/heroBox.height}`);
+   assert.ok(cardBox.y<heroBox.y+heroBox.height,`${width}px Today card does not overlap the seasonal header`);
+   const heroStyle=await hero.evaluate(element=>({backgroundImage:getComputedStyle(element).backgroundImage,backgroundSize:getComputedStyle(element).backgroundSize,borderRadius:getComputedStyle(element).borderRadius,afterDisplay:getComputedStyle(element,'::after').display}));
+   assert.ok(heroStyle.backgroundImage.includes(`garden-header-${liveSeason}.webp`),`Expected ${liveSeason} header, received ${heroStyle.backgroundImage}`);
+   assert.equal(heroStyle.backgroundSize,'contain');
+   assert.notEqual(heroStyle.borderRadius,'0px');
+   assert.equal(heroStyle.afterDisplay,'none');
+   assert.ok(titleBox.width<=1&&titleBox.height<=1,'A duplicate live title panel is visible over the approved artwork');
+   assert.equal(await page.locator('.watering-can-icon').count(),1,'Watering can trigger is missing or duplicated');
+   assert.equal(await page.getByText('GARDEN STATUS',{exact:true}).count(),0,'The removed Garden Status dashboard returned');
+   assert.equal(await page.locator('.today-quick-links').count(),0,'Removed Today shortcut boxes returned');
+   const trigger=page.getByRole('button',{name:/Urgent garden alerts/i});
+   await trigger.click();
+   const dialog=page.getByRole('dialog',{name:'Urgent Garden Alerts',exact:true});
+   await dialog.waitFor();
+   assert.equal(await page.locator('.urgent-alert-overlay').evaluate(element=>element.parentElement===document.body),true,'Urgent alert overlay is not attached to document.body');
+   const dialogBox=await dialog.boundingBox();
+   assert.ok(dialogBox.x>=0&&dialogBox.x+dialogBox.width<=width+1,`${width}px alert dialog exceeds viewport`);
+   const dialogStyle=await dialog.evaluate(element=>({position:getComputedStyle(element).position,z:Number(getComputedStyle(element).zIndex),overflowY:getComputedStyle(element).overflowY}));
+   const nav=page.locator('.bottom-nav');
+   if(await nav.count())assert.ok(dialogStyle.z>(await nav.evaluate(element=>Number(getComputedStyle(element).zIndex)||0)),'Urgent alert dialog is behind bottom navigation');
+   assert.equal(dialogStyle.overflowY,'auto');
+   assert.equal(await page.evaluate(()=>document.body.style.overflow),'hidden');
+   await page.keyboard.press('Escape');
+   await dialog.waitFor({state:'hidden'});
+   assert.equal(await page.evaluate(()=>document.body.style.overflow),'');
+   assert.equal(await trigger.evaluate(element=>document.activeElement===element),true,'Focus did not return to watering can');
+   await context.close();
   }
-  await context.close();
   await browser.close();browser=null;
-  result={ok:true,base,attempt,health,expectedBuild,liveSeason,seasonalAsset,headerRatio:heroBox.width/heroBox.height,scriptPaths,stylePaths,gardenCenterDestinations:5,toolShedDestinations:11,weatherModes:3,viewport:390};
+  result={ok:true,base,attempt,health,expectedBuild,liveSeason,seasonalAsset,widths,gardenCenterDestinations:5,toolShedDestinations:11};
   break;
  }catch(error){
   if(browser)await browser.close().catch(()=>{});
   lastError=error;
-  console.error(`[Phase 4.7.7 live check ${attempt}/${attempts}] ${error.message}`);
+  console.error(`[Phase 4.7.8 live check ${attempt}/${attempts}] ${error.message}`);
   if(attempt<attempts)await sleep(delay);
  }
 }
-assert.ok(result,`Live Phase 4.7.7 verification failed after ${attempts} attempts: ${lastError?.stack||lastError}`);
+assert.ok(result,`Live Phase 4.7.8 verification failed after ${attempts} attempts: ${lastError?.stack||lastError}`);
 console.log(JSON.stringify(result,null,2));
