@@ -1,4 +1,4 @@
-const CACHE = 'brookes-garden-v0477-exact-seasonal-header-20260722';
+const CACHE = 'brookes-garden-v0478-urgent-only-home-20260723';
 const CORE = ['/', '/manifest.webmanifest', '/icon.svg'];
 self.addEventListener('install', (event) => { event.waitUntil(caches.open(CACHE).then((cache) => cache.addAll(CORE))); self.skipWaiting(); });
 self.addEventListener('activate', (event) => { event.waitUntil(caches.keys().then((keys) => Promise.all(keys.filter((key) => key !== CACHE).map((key) => caches.delete(key))))); self.clients.claim(); });
