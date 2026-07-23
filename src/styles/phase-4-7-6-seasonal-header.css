@@ -1,4 +1,4 @@
-/* Phase 4.7.9: exact approved seasonal artwork, static Safari-safe assets, dynamic identity, no crop. */
+/* Phase 4.8.0: exact approved seasonal artwork, static Safari-safe assets, dynamic identity panel, no crop. */
 .today-screen .today-hero.compact-home-hero{
  position:relative!important;
  box-sizing:border-box!important;
@@ -17,54 +17,58 @@
  border-radius:22px!important;
  isolation:isolate;
 }
-html[data-garden-season="spring"] .today-screen .today-hero.compact-home-hero{background-image:image-set(url('/images/garden-headers/garden-header-spring.webp?v=0479') type('image/webp'),url('/images/garden-headers/garden-header-spring.avif?v=0479') type('image/avif'))!important}
-html[data-garden-season="summer"] .today-screen .today-hero.compact-home-hero{background-image:image-set(url('/images/garden-headers/garden-header-summer.webp?v=0479') type('image/webp'),url('/images/garden-headers/garden-header-summer.avif?v=0479') type('image/avif'))!important}
-html[data-garden-season="fall"] .today-screen .today-hero.compact-home-hero{background-image:image-set(url('/images/garden-headers/garden-header-fall.webp?v=0479') type('image/webp'),url('/images/garden-headers/garden-header-fall.avif?v=0479') type('image/avif'))!important}
-html[data-garden-season="winter"] .today-screen .today-hero.compact-home-hero{background-image:image-set(url('/images/garden-headers/garden-header-winter.webp?v=0479') type('image/webp'),url('/images/garden-headers/garden-header-winter.avif?v=0479') type('image/avif'))!important}
+html[data-garden-season="spring"] .today-screen .today-hero.compact-home-hero{background-image:url('/images/garden-headers/garden-header-spring.webp?v=0480')!important}
+html[data-garden-season="summer"] .today-screen .today-hero.compact-home-hero{background-image:url('/images/garden-headers/garden-header-summer.webp?v=0480')!important}
+html[data-garden-season="fall"] .today-screen .today-hero.compact-home-hero{background-image:url('/images/garden-headers/garden-header-fall.webp?v=0480')!important}
+html[data-garden-season="winter"] .today-screen .today-hero.compact-home-hero{background-image:url('/images/garden-headers/garden-header-winter.webp?v=0480')!important}
 .compact-home-hero .wisconsin-landscape{display:none!important}
 .compact-home-hero:after{display:none!important}
 
-/* The artwork remains exact. This opaque live panel sits precisely over the artwork's sample panel so gardener, garden, and location stay dynamic. */
+/* Fully cover the faint removed sample badge with one opaque live identity panel. */
 .compact-home-hero .compact-hero-title{
  position:absolute!important;
- left:3.55%!important;
- top:12.4%!important;
+ left:3.45%!important;
+ top:11.8%!important;
  z-index:8!important;
  display:flex!important;
  align-items:center!important;
- width:34.4%!important;
+ width:47.5%!important;
  min-width:0!important;
- height:17.2%!important;
+ height:23.5%!important;
  min-height:0!important;
  margin:0!important;
- padding:1.15% 1.75%!important;
+ padding:1.5% 2.1%!important;
  overflow:hidden!important;
  clip:auto!important;
  clip-path:none!important;
  white-space:normal!important;
- border:1px solid rgba(55,70,54,.2)!important;
- border-radius:clamp(8px,1.2vw,18px)!important;
+ border:1px solid rgba(55,70,54,.24)!important;
+ border-radius:clamp(10px,1.35vw,20px)!important;
  background:#fffaf0!important;
- box-shadow:0 3px 8px rgba(34,53,42,.18)!important;
+ box-shadow:0 4px 12px rgba(34,53,42,.2)!important;
  box-sizing:border-box!important;
  color:#0d513d!important;
+ opacity:1!important;
+ backdrop-filter:none!important;
 }
 .compact-home-hero .compact-hero-title>svg{display:none!important}
 .compact-home-hero .compact-hero-title>div{min-width:0;width:100%}
 .compact-home-hero .compact-hero-title h1{
  margin:0!important;
  color:#0d513d!important;
- font-size:clamp(9px,2.65vw,46px)!important;
- line-height:1!important;
+ font-size:clamp(16px,4.1vw,44px)!important;
+ font-family:Georgia,'Times New Roman',serif!important;
+ font-weight:700!important;
+ line-height:.98!important;
  letter-spacing:-.025em!important;
  white-space:nowrap!important;
  overflow:hidden!important;
  text-overflow:ellipsis!important;
 }
 .compact-home-hero .compact-hero-title p{
- margin:.35em 0 0!important;
- color:#0d513d!important;
- font-size:clamp(5px,1.26vw,23px)!important;
+ margin:.38em 0 0!important;
+ color:#174c3c!important;
+ font-size:clamp(8px,1.9vw,21px)!important;
  font-weight:700!important;
  line-height:1.05!important;
  white-space:nowrap!important;
@@ -77,7 +81,7 @@ html[data-garden-season="winter"] .today-screen .today-hero.compact-home-hero{ba
  z-index:12!important;
  min-width:44px;
  min-height:44px;
- background:rgba(255,250,240,.96)!important;
+ background:rgba(255,250,240,.98)!important;
  box-shadow:0 5px 14px rgba(23,61,43,.18)!important;
 }
 .compact-home-hero .notification-popover{z-index:20!important}
@@ -110,6 +114,15 @@ html[data-garden-season="winter"] .today-screen .today-hero.compact-home-hero{ba
   margin:8px 8px 0!important;
   border-radius:18px!important;
  }
+ .compact-home-hero .compact-hero-title{
+  left:3.3%!important;
+  top:11.2%!important;
+  width:49%!important;
+  height:25%!important;
+  padding:1.5% 2%!important;
+ }
+ .compact-home-hero .compact-hero-title h1{font-size:clamp(14px,4.3vw,18px)!important}
+ .compact-home-hero .compact-hero-title p{font-size:clamp(7px,2vw,9px)!important}
  .compact-home-hero .hero-bell{top:8px!important;right:8px!important}
  .compact-today-body{margin-top:-18px!important}
  .compact-today-body>.what-matters-today{border-radius:18px!important}
@@ -121,6 +134,7 @@ html[data-garden-season="winter"] .today-screen .today-hero.compact-home-hero{ba
   margin:14px auto 0!important;
   border-radius:24px!important;
  }
+ .compact-home-hero .compact-hero-title{width:43%!important;height:22%!important}
  .compact-home-hero .hero-bell{top:14px!important;right:14px!important}
  .compact-today-body{margin-top:-26px!important}
 }
