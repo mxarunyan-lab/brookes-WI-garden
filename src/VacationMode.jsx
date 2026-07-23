@@ -155,7 +155,7 @@ export default function VacationMode({garden,weather,navigate,onSavePlan,onRefre
  const[editing,setEditing]=useState(false),needsReview=active&&vacationPlanNeedsReview(active,weather);
  const groups=active?['before','during','after'].map(section=>({section,tasks:(active.tasks||[]).filter(task=>task.section===section&&!task.deletedAt)})):[];
  return <main className="screen secondary-screen vacation-mode-screen">
-  <SecondaryHero icon={CalendarRange} eyebrow="RECORDS & EXTRAS" title="Vacation Mode" description="A garden-specific before, during, and after plan built from actual plants, spaces, stages, care history, and weather." onBack={()=>navigate('tools')} backLabel="Back to Tool Shed" className="center-department-hero vacation-mode-hero"/>
+  <SecondaryHero icon={CalendarRange} eyebrow="RECORDS & EXTRAS" title="Vacation Mode" description="A garden-specific before, during, and after plan built from actual plants, spaces, stages, care history, and weather." onBack={()=>navigate('center')} backLabel="Back to Plan" className="center-department-hero vacation-mode-hero"/>
   <section className="screen-pad secondary-screen-content vacation-mode-content">
    {!active||editing?<TripSetup garden={garden} weather={weather} existing={editing?active:null} onSave={plan=>{onSavePlan(plan);setEditing(false)}} onCancel={editing?()=>setEditing(false):null}/>:<>
     <section className="vacation-plan-summary">
