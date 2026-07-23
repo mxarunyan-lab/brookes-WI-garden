@@ -55,26 +55,46 @@ BUILD_STATUS=0
 1685:  name: 'AssertionError'
 1686:  expected: '0.20.5'
 1687:  actual: '0.20.7'
+--- MATCHING TEST SOURCE LOCATIONS ---
+test/seedPacketBackend.test.js:106:test('health and analysis routes are served by the Node web service',async()=>{
+test/preSyncUsabilityCleanup.test.js:54:test('release metadata identifies the exact seasonal header while preserving the navigation lock',()=>{
+test/informationArchitecture.test.js:31:test('Tool Shed is a flat directory and More retains settings and data management',()=>{
+test/phase476SeasonalHeader.test.js:31:test('seasonal header stays focused on Today and preserves navigation',async()=>{
+test/phase476SeasonalHeader.test.js:67:test('production build creates static lossless WebP headers before Vite',async()=>{
+test/phase473LiveWorkflow.test.js:9:test('permanent Render workflow uses the current exact seasonal-header verifier and established status names',async()=>{
+test/phase473Smoothing.test.js:15:test('Tool Shed weather cards choose distinct weather modes',()=>{
+test/phase475NavigationLock.test.js:18:test('Tool Shed is a flat eleven-destination directory',async()=>{
+test/phase475NavigationLock.test.js:65:test('current build marker preserves the Phase 4.7.5 navigation lock',async()=>{
+./.github/workflows/phase-4-8-1-transform.yml:38:            grep -RInE "Tool Shed is a flat directory|permanent Render workflow uses|Tool Shed weather cards choose|flat eleven-destination directory|current build marker preserves|seasonal header stays focused|production build creates static|release metadata identifies|health and analysis routes" test tests . --exclude-dir=node_modules --exclude=phase481-diagnostics.txt 2>/dev/null || true
+./test/seedPacketBackend.test.js:106:test('health and analysis routes are served by the Node web service',async()=>{
+./test/preSyncUsabilityCleanup.test.js:54:test('release metadata identifies the exact seasonal header while preserving the navigation lock',()=>{
+./test/informationArchitecture.test.js:31:test('Tool Shed is a flat directory and More retains settings and data management',()=>{
+./test/phase476SeasonalHeader.test.js:31:test('seasonal header stays focused on Today and preserves navigation',async()=>{
+./test/phase476SeasonalHeader.test.js:67:test('production build creates static lossless WebP headers before Vite',async()=>{
+./test/phase473LiveWorkflow.test.js:9:test('permanent Render workflow uses the current exact seasonal-header verifier and established status names',async()=>{
+./test/phase473Smoothing.test.js:15:test('Tool Shed weather cards choose distinct weather modes',()=>{
+./test/phase475NavigationLock.test.js:18:test('Tool Shed is a flat eleven-destination directory',async()=>{
+./test/phase475NavigationLock.test.js:65:test('current build marker preserves the Phase 4.7.5 navigation lock',async()=>{
 --- TEST SUMMARY ---
-  duration_ms: 1.086815
+  duration_ms: 2.177889
   type: 'test'
   ...
 # Subtest: protected greenhouse receives no outdoor rain watering credit
 ok 295 - protected greenhouse receives no outdoor rain watering credit
   ---
-  duration_ms: 1.198985
+  duration_ms: 2.439616
   type: 'test'
   ...
 # Subtest: weather task ids remain stable and duplicate-free
 ok 296 - weather task ids remain stable and duplicate-free
   ---
-  duration_ms: 1.218177
+  duration_ms: 2.579827
   type: 'test'
   ...
 # Subtest: migration is idempotent and preserves environmental sync fields
 ok 297 - migration is idempotent and preserves environmental sync fields
   ---
-  duration_ms: 0.337935
+  duration_ms: 0.568367
   type: 'test'
   ...
 1..297
@@ -85,7 +105,7 @@ ok 297 - migration is idempotent and preserves environmental sync fields
 # cancelled 0
 # skipped 0
 # todo 0
-# duration_ms 5556.829614
+# duration_ms 5908.490762
 --- BUILD SUMMARY ---
 
 > brookes-wi-garden@0.20.9 build
@@ -107,7 +127,7 @@ dist/assets/index.es-eEGCOIoI.js       151.32 kB │ gzip:  48.88 kB
 dist/assets/html2canvas-BysGUT3I.js    199.55 kB │ gzip:  46.77 kB
 dist/assets/index-TOT9i4To.js        1,264.29 kB │ gzip: 383.03 kB
 
-[32m✓ built in 629ms[39m
+[32m✓ built in 719ms[39m
 [33m[plugin builtin:vite-reporter] 
 (!) Some chunks are larger than 500 kB after minification. Consider:
 - Using dynamic import() to code-split the application
