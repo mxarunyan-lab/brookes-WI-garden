@@ -1,0 +1,47 @@
+name: Phase 4.8.1 Finalize
+on:
+  push:
+    branches: [phase-4-8-1-mobile-continuity]
+    paths:
+      - .github/workflows/phase481-finalize.yml
+permissions:
+  contents: write
+jobs:
+  finalize:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: phase-4-8-1-mobile-continuity
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - name: Finish Garden Buddy copy and warning accessibility
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          app=Path('src/App.jsx')
+          text=app.read_text()
+          text=text.replace('Manual caretaker edits were preserved.','Manual Garden Buddy edits were preserved.')
+          text=text.replace('Caretaker instruction saved.','Garden Buddy instruction saved.')
+          app.write_text(text)
+
+          modal=Path('src/ClearDetailModal.jsx')
+          text=modal.read_text()
+          text=text.replace("import React,{useMemo,useRef,useState}from'react';","import React,{useEffect,useMemo,useRef,useState}from'react';")
+          old='''function GrowingSpaceRequired({close,onSetUp,onCancel}){return <div className="overlay modal-overlay" onMouseDown={onCancel}><section className="detail-modal growing-space-required-modal" role="dialog" aria-modal="true" aria-labelledby="growing-space-required-title" onMouseDown={event=>event.stopPropagation()}><button className="modal-close" onClick={onCancel} aria-label="Close dialog"><X/></button><AlertTriangle/><span className="modal-kicker">GROWING SPACE REQUIRED</span><h2 id="growing-space-required-title">Add a Growing Space first</h2><p>Every planting needs a location. Create a bed, container, grow bag, greenhouse area, or indoor Growing Space before adding a plant.</p><div className="modal-action-row"><button className="primary-button" onClick={onSetUp}>Set Up a Growing Space</button><button className="secondary-button" onClick={onCancel}>Not Now</button></div></section></div>}'''
+          new='''function GrowingSpaceRequired({onSetUp,onCancel}){const dialogRef=useRef(null),previousFocus=useRef(null);useEffect(()=>{previousFocus.current=document.activeElement;const dialog=dialogRef.current,focusable=()=>[...dialog.querySelectorAll('button,[href],input,select,textarea,[tabindex]:not([tabindex="-1"])')].filter(element=>!element.disabled),onKey=event=>{if(event.key==='Escape'){event.preventDefault();onCancel();return}if(event.key!=='Tab')return;const items=focusable();if(!items.length)return;const first=items[0],last=items[items.length-1];if(event.shiftKey&&document.activeElement===first){event.preventDefault();last.focus()}else if(!event.shiftKey&&document.activeElement===last){event.preventDefault();first.focus()}};document.addEventListener('keydown',onKey);requestAnimationFrame(()=>focusable()[0]?.focus());return()=>{document.removeEventListener('keydown',onKey);previousFocus.current?.focus?.()}},[onCancel]);return <div className="overlay modal-overlay" onMouseDown={onCancel}><section ref={dialogRef} className="detail-modal growing-space-required-modal" role="dialog" aria-modal="true" aria-labelledby="growing-space-required-title" onMouseDown={event=>event.stopPropagation()}><button className="modal-close" onClick={onCancel} aria-label="Close dialog"><X/></button><AlertTriangle/><span className="modal-kicker">GROWING SPACE REQUIRED</span><h2 id="growing-space-required-title">Add a Growing Space first</h2><p>Every planting needs a location. Create a bed, container, grow bag, greenhouse area, or indoor Growing Space before adding a plant.</p><div className="modal-action-row"><button className="primary-button" onClick={onSetUp}>Set Up a Growing Space</button><button className="secondary-button" onClick={onCancel}>Not Now</button></div></section></div>}'''
+          if old not in text: raise SystemExit('GrowingSpaceRequired source did not match')
+          modal.write_text(text.replace(old,new))
+          PY
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add src/App.jsx src/ClearDetailModal.jsx
+          git commit -m "Complete Phase 4.8.1 Garden Buddy and dialog accessibility"
+          git push origin HEAD:phase-4-8-1-mobile-continuity
+      - run: npm ci
+      - run: npm test
+      - run: npm run build
