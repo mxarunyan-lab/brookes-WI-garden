@@ -1,11 +1,11 @@
 import React from 'react';
-import { MoreHorizontal, Store, Sprout, Sun, Wrench } from 'lucide-react';
+import { ClipboardList, MoreHorizontal, Sprout, Sun, Wrench } from 'lucide-react';
 
 export default function BottomNav({page,navigate}){
  const items=[
   {id:'today',label:'Today',icon:Sun},
   {id:'garden',label:'Garden',icon:Sprout},
-  {id:'center',label:'Center',icon:Store},
+  {id:'center',label:'Plan',icon:ClipboardList},
   {id:'tools',label:'Tool Shed',icon:Wrench},
   {id:'more',label:'More',icon:MoreHorizontal}
  ];
