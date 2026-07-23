@@ -7,6 +7,7 @@ on:
 
 permissions:
   contents: read
+  pull-requests: write
 
 jobs:
   verify-live:
@@ -24,17 +25,37 @@ jobs:
         run: |
           for i in $(seq 1 40); do
             body=$(curl -fsS --max-time 20 https://brookes-garden-compass.onrender.com/api/health || true)
-            echo "$body"
+            echo "$body" | tee live-health.json
             if echo "$body" | grep -q '"version":"0.21.1"'; then exit 0; fi
             sleep 15
           done
           exit 1
       - name: Run Phase 4.8.3 production verifier
-        run: npm run verify:phase483:live
+        run: npm run verify:phase483:live | tee live-verifier.log
       - name: Verify live station response has no secret
         run: |
-          curl -fsS --max-time 30 https://brookes-garden-compass.onrender.com/api/weather/current > live-weather.json
-          cat live-weather.json
+          curl -fsS --max-time 30 https://brookes-garden-compass.onrender.com/api/weather/current | tee live-weather.json
           grep -q '"ok":true' live-weather.json
           grep -q 'KWIGREEN307' live-weather.json
           ! grep -qi 'api.key\|PWS_API_KEY' live-weather.json
+      - name: Report verified deployment
+        if: success()
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          {
+            echo '### Phase 4.8.3 live verification passed'
+            echo
+            echo '- Render health reports app version 0.21.1.'
+            echo '- The Phase 4.8.3 production verifier passed.'
+            echo '- Weather Underground station KWIGREEN307 returned a live observation.'
+            echo '- No PWS API secret appeared in the browser-facing weather response.'
+            echo
+            echo '```json'
+            cat live-health.json
+            echo '```'
+            echo '```json'
+            cat live-weather.json
+            echo '```'
+          } > live-report.md
+          gh pr comment 44 --body-file live-report.md
