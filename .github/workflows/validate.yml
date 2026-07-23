@@ -6,7 +6,7 @@ on:
   pull_request:
 
 permissions:
-  contents: write
+  contents: read
 
 jobs:
   test-and-build:
@@ -15,8 +15,6 @@ jobs:
     steps:
       - name: Check out repository
         uses: actions/checkout@v4
-        with:
-          ref: phase-4-8-2-weather-truth
       - name: Set up Node
         uses: actions/setup-node@v4
         with:
@@ -27,15 +25,13 @@ jobs:
         id: tests
         continue-on-error: true
         run: npm test > test.log 2>&1
-      - name: Capture Phase 4.8.2 test output
+      - name: Upload test log
         if: always()
-        run: |
-          cp test.log phase482-test.log
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add phase482-test.log
-          git commit -m "Capture Phase 4.8.2 failing test output" || true
-          git push origin HEAD:phase-4-8-2-weather-truth
+        uses: actions/upload-artifact@v4
+        with:
+          name: garden-test-log
+          path: test.log
+          retention-days: 2
       - name: Stop when tests failed
         if: steps.tests.outcome == 'failure'
         run: exit 1
@@ -43,6 +39,20 @@ jobs:
         id: production_build
         continue-on-error: true
         run: npm run build > build.log 2>&1
+      - name: Upload build log
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: production-build-log
+          path: build.log
+          retention-days: 2
+      - name: Upload compiled app
+        if: steps.production_build.outcome == 'success'
+        uses: actions/upload-artifact@v4
+        with:
+          name: compiled-garden-app
+          path: dist
+          retention-days: 2
       - name: Fail when production build failed
         if: steps.production_build.outcome == 'failure'
         run: exit 1
