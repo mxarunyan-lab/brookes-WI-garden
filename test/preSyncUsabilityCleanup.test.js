@@ -53,12 +53,14 @@ test('Phase 4.7.5 navigation styles load globally and retain More, weather, and 
 
 test('release metadata identifies the exact seasonal header while preserving the navigation lock',()=>{
  const source=src('version.js');
- assert.match(source,/APP_VERSION='0\.20\.6'/);
- assert.match(source,/phase-4-7-8-urgent-only-home/);
- assert.match(source,/exact 2:1 composition without cropping or stretching/);
- assert.match(source,/iPhone Safari no longer displays AVIF corruption/);
- assert.match(source,/watering can/);
- assert.match(source,/top-level accessible overlay/);
- assert.match(source,/Garden Center remains locked to the five core garden-management destinations/);
- assert.match(source,/Tool Shed remains a flat one-tap directory/);
+ assert.match(source,/APP_VERSION='0\.20\.7'/);
+ assert.match(source,/phase-4-7-9-seasonal-header-static-repair/);
+ assert.match(source,/exact approved Spring, Summer, Fall, and Winter garden artwork/);
+ assert.match(source,/automatically changes by Green Bay season/);
+ assert.match(source,/Gardener name, garden name, and location remain live app text/);
+ assert.match(source,/watering-can urgent-alert control/);
+ assert.match(source,/Only genuinely urgent garden conditions create alert badges/);
+ assert.match(source,/simplified Today card/);
+ assert.match(source,/Garden Center/);
+ assert.match(source,/Tool Shed/);
 });
