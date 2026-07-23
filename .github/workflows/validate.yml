@@ -29,11 +29,13 @@ jobs:
         id: tests
         continue-on-error: true
         run: npm test > test.log 2>&1
-      - name: Post failing test output to PR
+      - name: Post failing test tail to PR
         if: steps.tests.outcome == 'failure'
         env:
           GH_TOKEN: ${{ github.token }}
-        run: gh pr comment 43 --body-file test.log
+        run: |
+          tail -n 120 test.log > test-tail.log
+          gh pr comment 43 --body-file test-tail.log
       - name: Stop when tests failed
         if: steps.tests.outcome == 'failure'
         run: exit 1
