@@ -1,4 +1,4 @@
-/* Phase 4.7.7: exact approved seasonal artwork, stable iPhone rendering, no crop or duplicate title panel. */
+/* Phase 4.7.9: exact approved seasonal artwork, static Safari-safe assets, dynamic identity, no crop. */
 .today-screen .today-hero.compact-home-hero{
  position:relative!important;
  box-sizing:border-box!important;
@@ -17,25 +17,59 @@
  border-radius:22px!important;
  isolation:isolate;
 }
-html[data-garden-season="spring"] .today-screen .today-hero.compact-home-hero{background-image:url('/images/garden-headers/garden-header-spring.webp?v=0477')!important}
-html[data-garden-season="summer"] .today-screen .today-hero.compact-home-hero{background-image:url('/images/garden-headers/garden-header-summer.webp?v=0477')!important}
-html[data-garden-season="fall"] .today-screen .today-hero.compact-home-hero{background-image:url('/images/garden-headers/garden-header-fall.webp?v=0477')!important}
-html[data-garden-season="winter"] .today-screen .today-hero.compact-home-hero{background-image:url('/images/garden-headers/garden-header-winter.webp?v=0477')!important}
+html[data-garden-season="spring"] .today-screen .today-hero.compact-home-hero{background-image:image-set(url('/images/garden-headers/garden-header-spring.webp?v=0479') type('image/webp'),url('/images/garden-headers/garden-header-spring.avif?v=0479') type('image/avif'))!important}
+html[data-garden-season="summer"] .today-screen .today-hero.compact-home-hero{background-image:image-set(url('/images/garden-headers/garden-header-summer.webp?v=0479') type('image/webp'),url('/images/garden-headers/garden-header-summer.avif?v=0479') type('image/avif'))!important}
+html[data-garden-season="fall"] .today-screen .today-hero.compact-home-hero{background-image:image-set(url('/images/garden-headers/garden-header-fall.webp?v=0479') type('image/webp'),url('/images/garden-headers/garden-header-fall.avif?v=0479') type('image/avif'))!important}
+html[data-garden-season="winter"] .today-screen .today-hero.compact-home-hero{background-image:image-set(url('/images/garden-headers/garden-header-winter.webp?v=0479') type('image/webp'),url('/images/garden-headers/garden-header-winter.avif?v=0479') type('image/avif'))!important}
 .compact-home-hero .wisconsin-landscape{display:none!important}
 .compact-home-hero:after{display:none!important}
 
-/* The approved artwork already contains the exact title panel. Keep the live heading accessible without drawing a second panel over it. */
+/* The artwork remains exact. This opaque live panel sits precisely over the artwork's sample panel so gardener, garden, and location stay dynamic. */
 .compact-home-hero .compact-hero-title{
  position:absolute!important;
- width:1px!important;
- height:1px!important;
- margin:-1px!important;
- padding:0!important;
+ left:3.55%!important;
+ top:12.4%!important;
+ z-index:8!important;
+ display:flex!important;
+ align-items:center!important;
+ width:34.4%!important;
+ min-width:0!important;
+ height:17.2%!important;
+ min-height:0!important;
+ margin:0!important;
+ padding:1.15% 1.75%!important;
  overflow:hidden!important;
- clip:rect(0 0 0 0)!important;
- clip-path:inset(50%)!important;
+ clip:auto!important;
+ clip-path:none!important;
+ white-space:normal!important;
+ border:1px solid rgba(55,70,54,.2)!important;
+ border-radius:clamp(8px,1.2vw,18px)!important;
+ background:#fffaf0!important;
+ box-shadow:0 3px 8px rgba(34,53,42,.18)!important;
+ box-sizing:border-box!important;
+ color:#0d513d!important;
+}
+.compact-home-hero .compact-hero-title>svg{display:none!important}
+.compact-home-hero .compact-hero-title>div{min-width:0;width:100%}
+.compact-home-hero .compact-hero-title h1{
+ margin:0!important;
+ color:#0d513d!important;
+ font-size:clamp(9px,2.65vw,46px)!important;
+ line-height:1!important;
+ letter-spacing:-.025em!important;
  white-space:nowrap!important;
- border:0!important;
+ overflow:hidden!important;
+ text-overflow:ellipsis!important;
+}
+.compact-home-hero .compact-hero-title p{
+ margin:.35em 0 0!important;
+ color:#0d513d!important;
+ font-size:clamp(5px,1.26vw,23px)!important;
+ font-weight:700!important;
+ line-height:1.05!important;
+ white-space:nowrap!important;
+ overflow:hidden!important;
+ text-overflow:ellipsis!important;
 }
 .compact-home-hero .hero-bell{
  top:10px!important;
