@@ -8,7 +8,7 @@ const today=()=>new Date().toISOString().slice(0,10);
 const plusDays=days=>{const d=new Date();d.setDate(d.getDate()+days);return d.toISOString().slice(0,10)};
 const sectionInfo={
  before:{title:'Before leaving',description:'Work that reduces avoidable risk before the trip.'},
- during:{title:'During the trip',description:'Specific helper checks and weather exceptions.'},
+ during:{title:'During the trip',description:'Specific Garden Buddy checks and weather exceptions.'},
  after:{title:'After returning',description:'Inspection and history reconciliation.'}
 };
 
@@ -39,8 +39,8 @@ function TripSetup({garden,weather,onSave,existing=null,onCancel}){
    <label>Departure date<input type="date" min={today()} value={d.departureDate} onChange={event=>setD({...d,departureDate:event.target.value})} required/></label>
    <label>Return date<input type="date" min={d.departureDate||today()} value={d.returnDate} onChange={event=>setD({...d,returnDate:event.target.value})} required/></label>
   </div>
-  <label className="vacation-checkbox"><input type="checkbox" checked={d.caretakerAvailable} onChange={event=>setD({...d,caretakerAvailable:event.target.checked})}/> Someone local can check the garden</label>
-  {d.caretakerAvailable&&<label>Helper name<input value={d.caretakerName} onChange={event=>setD({...d,caretakerName:event.target.value})} placeholder="Optional name"/></label>}
+  <label className="vacation-checkbox"><input type="checkbox" checked={d.caretakerAvailable} onChange={event=>setD({...d,caretakerAvailable:event.target.checked})}/> A Garden Buddy can check the garden</label>
+  {d.caretakerAvailable&&<label>Garden Buddy name<input value={d.caretakerName} onChange={event=>setD({...d,caretakerName:event.target.value})} placeholder="Optional name"/></label>}
   <label>Handoff note<textarea rows="3" value={d.caretakerNotes} onChange={event=>setD({...d,caretakerNotes:event.target.value})} placeholder="Gate access, hose location, plants not to touch, or emergency contact details"/></label>
   {error&&<p className="vacation-error" role="alert">{error}</p>}
   <button className="primary-button" type="submit"><CalendarRange/>{existing?'Rebuild around new dates':'Build trip plan'}</button>
@@ -122,7 +122,7 @@ function BeforeYouLeave({items=[]}){
 function HelperGuide({guide}){
  if(!guide)return null;
  return <section className="vacation-helper-guide">
-  <div className="vacation-helper-heading"><ClipboardCheck/><span><small>LOCAL HELPER VIEW</small><h2>{guide.title}</h2><p>{guide.dates} - printable on this device only.</p></span></div>
+  <div className="vacation-helper-heading"><ClipboardCheck/><span><small>GARDEN BUDDY GUIDE</small><h2>{guide.title}</h2><p>{guide.dates} - printable on this device only.</p></span></div>
   <div className="vacation-helper-columns">
    <div><h3>Daily checks</h3>{(guide.dailyChecks||[]).map(item=><label key={item.id}><input type="checkbox" readOnly/> <span><strong>{item.label}</strong><small>{item.instruction}</small></span></label>)}</div>
    <div><h3>Do not</h3>{(guide.doNot||[]).map(item=><p key={item}>{item}</p>)}</div>
@@ -143,9 +143,9 @@ function ReturnHomeReview({review}){
 
 function printCaretaker(plan){
  const popup=window.open('','_blank','width=760,height=900');
- if(!popup)return window.alert('Allow pop-ups to print the local garden helper guide.');
+ if(!popup)return window.alert('Allow pop-ups to print the Garden Buddy guide.');
  const guide=plan.intelligence?.helperGuide,tasks=(plan.tasks||[]).filter(task=>task.section==='during'&&task.status!=='completed'),escape=value=>String(value||'').replace(/[&<>"']/g,char=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[char]));
- popup.document.write(`<!doctype html><html><head><title>Runyan Garden Vacation Guide</title><style>body{font-family:Arial,sans-serif;color:#173d2b;margin:36px}h1{font-family:Georgia,serif}article{border:1px solid #9aa79e;border-radius:12px;padding:14px;margin:12px 0;page-break-inside:avoid}small{display:block;margin:5px 0;color:#40594b}.box{font-size:22px;margin-right:8px}.avoid{background:#fff4df}</style></head><body><h1>${escape(guide?.title||'Runyan Garden Vacation Guide')}</h1><p>${escape(formatGardenDate(plan.departureDate))} through ${escape(formatGardenDate(plan.returnDate))}${plan.caretakerName?` - For ${escape(plan.caretakerName)}`:''}</p>${plan.caretakerNotes?`<p><strong>Household note:</strong> ${escape(plan.caretakerNotes)}</p>`:''}<h2>Daily Checks</h2>${(guide?.dailyChecks||[]).map(item=>`<article><h3><span class="box">&#9744;</span>${escape(item.label)}</h3><p>${escape(item.instruction)}</p><small>${escape(item.reason)}</small><p>Notes: ______________________________________________</p></article>`).join('')||'<p>No daily checks are required for this plan.</p>'}<h2>Do Not</h2>${(guide?.doNot||[]).map(item=>`<article class="avoid"><p>${escape(item)}</p></article>`).join('')}<h2>Scheduled Helper Tasks</h2>${tasks.map(task=>`<article><h3><span class="box">&#9744;</span>${escape(task.targetName)}</h3><p><strong>${escape(formatGardenDate(task.dueDate))}:</strong> ${escape(task.instruction)}</p>${task.whatToCheck?`<small><b>Check first:</b> ${escape(task.whatToCheck)}</small>`:''}${task.whatNotToDo?`<small><b>Do not:</b> ${escape(task.whatNotToDo)}</small>`:''}${task.weatherException?`<small><b>Weather exception:</b> ${escape(task.weatherException)}</small>`:''}<p>Notes: ______________________________________________</p></article>`).join('')||'<p>No additional helper tasks are required for this plan.</p>'}<script>window.onload=()=>window.print()</script></body></html>`);
+ popup.document.write(`<!doctype html><html><head><title>Runyan Garden Buddy Guide</title><style>body{font-family:Arial,sans-serif;color:#173d2b;margin:36px}h1{font-family:Georgia,serif}article{border:1px solid #9aa79e;border-radius:12px;padding:14px;margin:12px 0;page-break-inside:avoid}small{display:block;margin:5px 0;color:#40594b}.box{font-size:22px;margin-right:8px}.avoid{background:#fff4df}</style></head><body><h1>${escape(guide?.title||'Runyan Garden Buddy Guide')}</h1><p>${escape(formatGardenDate(plan.departureDate))} through ${escape(formatGardenDate(plan.returnDate))}${plan.caretakerName?` - For ${escape(plan.caretakerName)}`:''}</p>${plan.caretakerNotes?`<p><strong>Household note:</strong> ${escape(plan.caretakerNotes)}</p>`:''}<h2>Daily Checks</h2>${(guide?.dailyChecks||[]).map(item=>`<article><h3><span class="box">&#9744;</span>${escape(item.label)}</h3><p>${escape(item.instruction)}</p><small>${escape(item.reason)}</small><p>Notes: ______________________________________________</p></article>`).join('')||'<p>No daily checks are required for this plan.</p>'}<h2>Do Not</h2>${(guide?.doNot||[]).map(item=>`<article class="avoid"><p>${escape(item)}</p></article>`).join('')}<h2>Scheduled Garden Buddy Tasks</h2>${tasks.map(task=>`<article><h3><span class="box">&#9744;</span>${escape(task.targetName)}</h3><p><strong>${escape(formatGardenDate(task.dueDate))}:</strong> ${escape(task.instruction)}</p>${task.whatToCheck?`<small><b>Check first:</b> ${escape(task.whatToCheck)}</small>`:''}${task.whatNotToDo?`<small><b>Do not:</b> ${escape(task.whatNotToDo)}</small>`:''}${task.weatherException?`<small><b>Weather exception:</b> ${escape(task.weatherException)}</small>`:''}<p>Notes: ______________________________________________</p></article>`).join('')||'<p>No additional helper tasks are required for this plan.</p>'}<script>window.onload=()=>window.print()</script></body></html>`);
  popup.document.close();
 }
 
@@ -159,14 +159,14 @@ export default function VacationMode({garden,weather,navigate,onSavePlan,onRefre
   <section className="screen-pad secondary-screen-content vacation-mode-content">
    {!active||editing?<TripSetup garden={garden} weather={weather} existing={editing?active:null} onSave={plan=>{onSavePlan(plan);setEditing(false)}} onCancel={editing?()=>setEditing(false):null}/>:<>
     <section className="vacation-plan-summary">
-     <div><small>ACTIVE TRIP PLAN</small><h2>{formatGardenDate(active.departureDate)}-{formatGardenDate(active.returnDate)}</h2><p>{active.duration} days - {active.caretakerAvailable?`${active.caretakerName||'Local helper'} guide included`:'No helper available'}</p></div>
+     <div><small>ACTIVE TRIP PLAN</small><h2>{formatGardenDate(active.departureDate)}-{formatGardenDate(active.returnDate)}</h2><p>{active.duration} days - {active.caretakerAvailable?`${active.caretakerName||'Garden Buddy'} guide included`:'No Garden Buddy available'}</p></div>
      <span><CloudSun/><strong>{active.weatherSummary?.high!==null?`${Math.round(active.weatherSummary.high)} degrees expected high`:'Forecast incomplete'}</strong><small>{active.weatherSummary?.meaningfulRain?'Meaningful rain is possible; it is not counted until observed.':'No dependable rain credit is assumed.'}</small></span>
     </section>
     <VacationRisk intelligence={active.intelligence}/>
     <BeforeYouLeave items={active.intelligence?.beforeYouLeave||[]}/>
     <HelperGuide guide={active.intelligence?.helperGuide}/>
     {needsReview&&<section className="vacation-change-alert">
-     <AlertTriangle/><span><strong>The forecast changed meaningfully.</strong><small>Re-evaluate only the affected instructions. Manually edited helper text will be preserved.</small></span><button onClick={()=>onRefreshPlan(active)}><RefreshCw/>Review changes</button>
+     <AlertTriangle/><span><strong>The forecast changed meaningfully.</strong><small>Re-evaluate only the affected instructions. Manually edited Garden Buddy text will be preserved.</small></span><button onClick={()=>onRefreshPlan(active)}><RefreshCw/>Review changes</button>
     </section>}
     <div className="vacation-plan-actions">
      <button onClick={()=>setEditing(true)}><Edit3/>Change trip details</button>

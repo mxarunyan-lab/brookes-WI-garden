@@ -9,6 +9,7 @@ import './styles/phase-4-7-5-navigation-lock.css';
 import './styles/phase-4-7-5-card-layout-lock.css';
 import './styles/phase-4-7-6-seasonal-header.css';
 import './styles/phase-4-7-8-urgent-home.css';
+import './styles/phase-4-8-1-mobile-continuity.css';
 import './seasonalHeaderRuntime.js';
 import './legacyQrFocus.js';
 
