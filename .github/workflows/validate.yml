@@ -35,7 +35,7 @@ jobs:
           name: garden-test-log
           path: test.log
           retention-days: 2
-      - name: Report test failure details
+      - name: Report concise test failure summary
         if: steps.tests.outcome == 'failure' && github.event_name == 'pull_request'
         env:
           GH_TOKEN: ${{ github.token }}
@@ -45,13 +45,23 @@ jobs:
           const fs=require('fs');
           const {execFileSync}=require('child_process');
           const text=fs.readFileSync('test.log','utf8');
-          const blocks=[...text.matchAll(/^not ok .*?(?=^# Subtest:|^1\.\.|\Z)/gms)].map(match=>match[0].trim());
-          blocks.forEach((block,index)=>{
-            const body=`### Validation failure ${index+1} of ${blocks.length}\n\n\`\`\`text\n${block.slice(0,7500)}\n\`\`\``;
-            const file=`validation-failure-${index+1}.md`;
-            fs.writeFileSync(file,body);
-            execFileSync('gh',['pr','comment',process.env.PR_NUMBER,'--body-file',file],{stdio:'inherit'});
-          });
+          const blocks=[...text.matchAll(/^not ok .*?(?=^# Subtest:|^1\.\.|\Z)/gms)].map(match=>match[0]);
+          const lines=['### Concise validation failure summary',''];
+          for(const block of blocks){
+            const title=block.match(/^not ok\s+\d+\s+-\s+(.+)$/m)?.[1]||'Unknown failing test';
+            const location=block.match(/^\s*location:\s*'([^']+)'/m)?.[1]||'Location unavailable';
+            const errorStart=block.indexOf('  error: |-');
+            let error='Assertion failed';
+            if(errorStart>=0){
+              const tail=block.slice(errorStart+'  error: |-'.length).split('\n').map(line=>line.trim()).filter(Boolean);
+              error=tail.find(line=>!line.startsWith('code:')&&!line.startsWith('name:')&&!line.startsWith('expected:')&&!line.startsWith('actual:'))||error;
+            }
+            lines.push(`- **${title}**`, `  - ${location}`, `  - ${error.slice(0,500)}`);
+          }
+          const totals=text.match(/^# tests .*?$|^# pass .*?$|^# fail .*?$/gm)||[];
+          lines.push('',...totals.map(line=>`- ${line.replace(/^# /,'')}`));
+          fs.writeFileSync('validation-summary.md',lines.join('\n'));
+          execFileSync('gh',['pr','comment',process.env.PR_NUMBER,'--body-file','validation-summary.md'],{stdio:'inherit'});
           NODE
       - name: Stop when tests failed
         if: steps.tests.outcome == 'failure'
