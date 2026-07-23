@@ -7,8 +7,6 @@ on:
 
 permissions:
   contents: read
-  pull-requests: write
-  issues: write
 
 jobs:
   test-and-build:
@@ -29,14 +27,13 @@ jobs:
         id: tests
         continue-on-error: true
         run: npm test > test.log 2>&1
-      - name: Update diagnostic comment with failing tests
-        if: steps.tests.outcome == 'failure'
-        env:
-          GH_TOKEN: ${{ github.token }}
-        run: |
-          grep -n -A 18 -B 4 -E '^not ok|failureType:|error:|expected:|actual:' test.log > test-failures.log || true
-          body=$(cat test-failures.log)
-          gh api --method PATCH repos/mxarunyan-lab/brookes-WI-garden/issues/comments/5062236369 -f body="$body"
+      - name: Upload test log
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: garden-test-log
+          path: test.log
+          retention-days: 2
       - name: Stop when tests failed
         if: steps.tests.outcome == 'failure'
         run: exit 1
@@ -44,6 +41,20 @@ jobs:
         id: production_build
         continue-on-error: true
         run: npm run build > build.log 2>&1
+      - name: Upload build log
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: production-build-log
+          path: build.log
+          retention-days: 2
+      - name: Upload compiled app
+        if: steps.production_build.outcome == 'success'
+        uses: actions/upload-artifact@v4
+        with:
+          name: compiled-garden-app
+          path: dist
+          retention-days: 2
       - name: Fail when production build failed
         if: steps.production_build.outcome == 'failure'
         run: exit 1
