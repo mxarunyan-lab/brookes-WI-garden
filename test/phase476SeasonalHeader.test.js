@@ -24,19 +24,21 @@ test('all four seasonal paths use the stable WebP delivery route',()=>{
  assert.deepEqual(Object.keys(SEASONAL_GARDEN_HEADERS),['spring','summer','fall','winter']);
  assert.equal(new Set(Object.values(SEASONAL_GARDEN_HEADERS)).size,4);
  for(const[season,path]of Object.entries(SEASONAL_GARDEN_HEADERS)){
-  assert.match(path,new RegExp(`garden-header-${season}\\.webp\\?v=0477$`));
+  assert.match(path,new RegExp(`garden-header-${season}\.webp\?v=0477$`));
  }
 });
 
 test('seasonal header stays focused on Today and preserves navigation',async()=>{
- const[main,runtime,css,today,navigation]=await Promise.all([
+ const[main,runtime,css,today,urgentHome,navigation]=await Promise.all([
   read('src/main.jsx'),
   read('src/seasonalHeaderRuntime.js'),
   read('src/styles/phase-4-7-6-seasonal-header.css'),
   read('src/WorkspaceScreens.jsx'),
+  read('src/UrgentHome.jsx'),
   read('src/Navigation.jsx')
  ]);
  assert.match(main,/phase-4-7-6-seasonal-header\.css/);
+ assert.match(main,/phase-4-7-8-urgent-home\.css/);
  assert.match(main,/seasonalHeaderRuntime\.js/);
  assert.match(runtime,/dataset\[ATTRIBUTE\]=season/);
  assert.match(runtime,/visibilitychange/);
@@ -50,8 +52,10 @@ test('seasonal header stays focused on Today and preserves navigation',async()=>
  assert.doesNotMatch(css,/background-size:cover/);
  assert.doesNotMatch(css,/height:clamp\(168px/);
  assert.match(today,/profile\.gardenerName/);
- assert.match(today,/notification-count/);
- assert.match(today,/hero-bell/);
+ assert.match(today,/UrgentAlertControl/);
+ assert.match(urgentHome,/notification-count/);
+ assert.match(urgentHome,/hero-bell/);
+ assert.match(urgentHome,/WateringCanIcon/);
  assert.doesNotMatch(today,/today-quick-links/);
  assert.match(navigation,/BottomNav/);
 });
