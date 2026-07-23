@@ -10,7 +10,7 @@ try{
   const page=await context.newPage();
   const errors=[];page.on('console',message=>{if(message.type()==='error')errors.push(message.text())});page.on('requestfailed',request=>errors.push(`${request.url()} ${request.failure()?.errorText||'failed'}`));
   await page.goto(`${base}/?verify=${Date.now()}`,{waitUntil:'networkidle'});
-  await page.evaluate(()=>{const key='brookes-garden-state-v2',garden=JSON.parse(localStorage.getItem(key)||'{}');garden.profile={...(garden.profile||{})};for(const field of['setupDetailsConfirmedAt','setupGardenConfirmedAt','setupCompletedAt','setupGardenStartedAt','setupGardenNeedsExplicitReview','setupComplete'])delete garden.profile[field];localStorage.setItem(key,JSON.stringify(garden));localStorage.setItem('brookes-garden-page-v2','today')});
+  await page.evaluate(()=>{const key='brookes-garden-state-v2',garden=JSON.parse(localStorage.getItem(key)||'{}');garden.profile={...(garden.profile||{}),setupDetailsConfirmedAt:null,setupGardenConfirmedAt:null,setupCompletedAt:null,setupGardenStartedAt:'browser-layout-check',setupGardenNeedsExplicitReview:true,setupComplete:false};localStorage.setItem(key,JSON.stringify(garden));localStorage.setItem('brookes-garden-page-v2','today')});
   await page.reload({waitUntil:'networkidle'});
   const row=page.locator('.garden-setup-steps li>button').first();
   await row.waitFor({state:'visible',timeout:15000});
