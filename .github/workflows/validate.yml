@@ -29,13 +29,14 @@ jobs:
         id: tests
         continue-on-error: true
         run: npm test > test.log 2>&1
-      - name: Post failing test tail to PR
+      - name: Update diagnostic comment with failing test tail
         if: steps.tests.outcome == 'failure'
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
           tail -n 120 test.log > test-tail.log
-          gh pr comment 43 --body-file test-tail.log
+          body=$(cat test-tail.log)
+          gh api --method PATCH repos/mxarunyan-lab/brookes-WI-garden/issues/comments/5062236369 -f body="$body"
       - name: Stop when tests failed
         if: steps.tests.outcome == 'failure'
         run: exit 1
