@@ -22,9 +22,6 @@ jobs:
           node-version: 22
           cache: npm
       - run: node scripts/applyPhase481.mjs
-      - run: npm ci
-      - run: npm test
-      - run: npm run build
       - name: Commit transformed source
         run: |
           git config user.name "github-actions[bot]"
@@ -36,3 +33,6 @@ jobs:
             git commit -m "Phase 4.8.1: central plant guard and Garden Buddy continuity"
             git push origin HEAD:phase-4-8-1-mobile-continuity
           fi
+      - run: npm ci
+      - run: npm test
+      - run: npm run build
