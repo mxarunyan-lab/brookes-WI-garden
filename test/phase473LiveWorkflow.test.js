@@ -19,8 +19,8 @@ test('permanent Render workflow uses the current exact seasonal-header verifier 
  assert.doesNotMatch(workflow,/render\/phase-4-7-3|phase473-live-verification/);
  assert.equal(pkg.scripts['verify:phase475:live'],'node scripts/verifyPhase475Live.mjs');
  assert.match(verifier,/phase-4-7-9-seasonal-header-static-repair/);
- assert.match(verifier,/garden-header-.*\.webp\?v=0479/);
- assert.match(verifier,/garden-header-.*\.avif\?v=0479/);
+ assert.match(verifier,/garden-header-summer\.webp\?v=0479/);
+ assert.match(verifier,/garden-header-summer\.avif\?v=0479/);
  assert.match(verifier,/aspect-ratio:2/);
  assert.match(verifier,/background-size:contain/);
  assert.match(verifier,/garden-center-tile/);
