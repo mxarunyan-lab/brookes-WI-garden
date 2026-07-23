@@ -7,6 +7,9 @@ on:
       - .github/workflows/phase-4-8-1-apply.yml
 permissions:
   contents: write
+concurrency:
+  group: phase-4-8-1-apply
+  cancel-in-progress: false
 jobs:
   apply-and-verify:
     runs-on: ubuntu-latest
