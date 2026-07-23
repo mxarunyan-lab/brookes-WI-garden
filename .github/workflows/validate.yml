@@ -35,25 +35,24 @@ jobs:
           name: garden-test-log
           path: test.log
           retention-days: 2
-      - name: Report test failure summary
+      - name: Report test failure details
         if: steps.tests.outcome == 'failure' && github.event_name == 'pull_request'
         env:
           GH_TOKEN: ${{ github.token }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
         run: |
-          {
-            echo '### Validation test failure'
-            echo '```text'
-            awk '
-              /^not ok / {show=1; remaining=34}
-              show {print; remaining--}
-              show && remaining<=0 {show=0}
-            ' test.log
-            echo
-            echo '--- TEST TOTALS ---'
-            grep -E '^# (tests|pass|fail|cancelled|skipped|todo|duration_ms)' test.log || true
-            echo '```'
-          } > validation-comment.md
-          gh pr comment "${{ github.event.pull_request.number }}" --body-file validation-comment.md
+          node <<'NODE'
+          const fs=require('fs');
+          const {execFileSync}=require('child_process');
+          const text=fs.readFileSync('test.log','utf8');
+          const blocks=[...text.matchAll(/^not ok .*?(?=^# Subtest:|^1\.\.|\Z)/gms)].map(match=>match[0].trim());
+          blocks.forEach((block,index)=>{
+            const body=`### Validation failure ${index+1} of ${blocks.length}\n\n\`\`\`text\n${block.slice(0,7500)}\n\`\`\``;
+            const file=`validation-failure-${index+1}.md`;
+            fs.writeFileSync(file,body);
+            execFileSync('gh',['pr','comment',process.env.PR_NUMBER,'--body-file',file],{stdio:'inherit'});
+          });
+          NODE
       - name: Stop when tests failed
         if: steps.tests.outcome == 'failure'
         run: exit 1
