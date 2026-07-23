@@ -7,6 +7,7 @@ on:
 
 permissions:
   contents: read
+  pull-requests: write
 
 jobs:
   test-and-build:
@@ -23,7 +24,7 @@ jobs:
           node-version: 22
       - name: Install dependencies
         run: npm install
-      - name: Run environmental, weather, and seed-packet tests
+      - name: Run complete test suite
         id: tests
         continue-on-error: true
         run: npm test > test.log 2>&1
@@ -34,6 +35,18 @@ jobs:
           name: garden-test-log
           path: test.log
           retention-days: 2
+      - name: Report test failure summary
+        if: steps.tests.outcome == 'failure' && github.event_name == 'pull_request'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          {
+            echo '### Validation test failure'
+            echo '```text'
+            tail -n 120 test.log
+            echo '```'
+          } > validation-comment.md
+          gh pr comment "${{ github.event.pull_request.number }}" --body-file validation-comment.md
       - name: Stop when tests failed
         if: steps.tests.outcome == 'failure'
         run: exit 1
@@ -48,6 +61,18 @@ jobs:
           name: production-build-log
           path: build.log
           retention-days: 2
+      - name: Report build failure summary
+        if: steps.production_build.outcome == 'failure' && github.event_name == 'pull_request'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          {
+            echo '### Production build failure'
+            echo '```text'
+            tail -n 120 build.log
+            echo '```'
+          } > validation-comment.md
+          gh pr comment "${{ github.event.pull_request.number }}" --body-file validation-comment.md
       - name: Upload compiled app
         if: steps.production_build.outcome == 'success'
         uses: actions/upload-artifact@v4
