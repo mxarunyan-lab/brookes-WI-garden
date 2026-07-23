@@ -54,6 +54,7 @@ test('secondary pages share the compact header system without changing Today or 
  assert.match(main,/phase-4-7-5-card-layout-lock\.css/);
  assert.match(main,/phase-4-8-1-mobile-continuity\.css/);
  assert.match(main,/phase-4-8-3-first-time-clarity\.css/);
+ assert.match(main,/phase-4-8-3b-garden-history\.css/);
  assert.match(css,/secondary-hero\.compact-secondary-header/);
  assert.match(layout,/-webkit-line-clamp:1!important/);
  assert.match(today,/compact-home-hero/);
@@ -62,14 +63,14 @@ test('secondary pages share the compact header system without changing Today or 
 });
 
 test('release CSS files have balanced braces',async()=>{
- for(const path of['src/styles/phase-4-7-5-navigation-lock.css','src/styles/phase-4-7-5-card-layout-lock.css','src/styles/phase-4-8-1-mobile-continuity.css','src/styles/phase-4-8-3-first-time-clarity.css']){
+ for(const path of['src/styles/phase-4-7-5-navigation-lock.css','src/styles/phase-4-7-5-card-layout-lock.css','src/styles/phase-4-8-1-mobile-continuity.css','src/styles/phase-4-8-3-first-time-clarity.css','src/styles/phase-4-8-3b-garden-history.css']){
   const source=await read(path),opens=(source.match(/\{/g)||[]).length,closes=(source.match(/\}/g)||[]).length;
   assert.equal(opens,closes,`${path} has unbalanced braces`);
  }
 });
 
-test('current build marker identifies Phase 4.8.3 first-time clarity',async()=>{
+test('current build marker identifies Phase 4.8.3b Garden History entry',async()=>{
  const version=await read('src/version.js');
  assert.match(version,/APP_VERSION='0\.21\.1'/);
- assert.match(version,/BUILD_ID='phase-4-8-3-first-time-clarity'/);
+ assert.match(version,/BUILD_ID='phase-4-8-3b-garden-history-entry'/);
 });
