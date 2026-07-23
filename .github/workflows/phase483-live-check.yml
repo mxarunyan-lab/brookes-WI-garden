@@ -1,0 +1,40 @@
+name: Phase 4.8.3 Live Verification
+
+on:
+  push:
+    branches: [phase-4-8-3-first-time-clarity]
+    paths: [.github/workflows/phase483-live-check.yml]
+
+permissions:
+  contents: read
+
+jobs:
+  verify-live:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: phase-4-8-3-first-time-clarity
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: npm install
+      - name: Wait for Render 0.21.1
+        run: |
+          for i in $(seq 1 40); do
+            body=$(curl -fsS --max-time 20 https://brookes-garden-compass.onrender.com/api/health || true)
+            echo "$body"
+            if echo "$body" | grep -q '"version":"0.21.1"'; then exit 0; fi
+            sleep 15
+          done
+          exit 1
+      - name: Run Phase 4.8.3 production verifier
+        run: npm run verify:phase483:live
+      - name: Verify live station response has no secret
+        run: |
+          curl -fsS --max-time 30 https://brookes-garden-compass.onrender.com/api/weather/current > live-weather.json
+          cat live-weather.json
+          grep -q '"ok":true' live-weather.json
+          grep -q 'KWIGREEN307' live-weather.json
+          ! grep -qi 'api.key\|PWS_API_KEY' live-weather.json
