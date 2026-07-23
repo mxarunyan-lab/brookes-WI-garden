@@ -1,0 +1,26 @@
+name: Verify Seasonal Render Build
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [fix/render-corrupt-seasonal-assets]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - name: Run exact Render production build
+        run: npm run build
+      - name: Verify all seasonal production assets
+        run: |
+          test -s dist/images/garden-headers/garden-header-spring.webp
+          test -s dist/images/garden-headers/garden-header-summer.webp
+          test -s dist/images/garden-headers/garden-header-fall.webp
+          test -s dist/images/garden-headers/garden-header-winter.webp
