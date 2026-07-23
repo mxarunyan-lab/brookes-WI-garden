@@ -1,0 +1,34 @@
+name: Phase 4.7.1 Live Probe
+
+on:
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  probe-live:
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+      - name: Use Node.js 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Probe live Render deployment
+        run: |
+          mkdir -p diagnostics
+          node scripts/probePhase471Live.mjs | tee diagnostics/live-probe.json
+        env:
+          APP_URL: https://brookes-garden-compass.onrender.com
+      - name: Upload live probe
+        uses: actions/upload-artifact@v4
+        with:
+          name: phase-4-7-1-live-probe
+          path: diagnostics/live-probe.json
+          if-no-files-found: error
+          retention-days: 2
