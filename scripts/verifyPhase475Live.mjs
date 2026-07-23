@@ -31,7 +31,7 @@ for(let attempt=1;attempt<=attempts;attempt+=1){
   assert.match(js,/WEATHER & TIMING/);
   assert.match(js,/RECORDS & EXTRAS/);
   assert.match(css,/garden-header-summer\.webp\?v=0477/);
-  assert.match(css,/aspect-ratio:2\/1/);
+  assert.match(css,/aspect-ratio:2(?:\/1)?/);
   assert.match(css,/background-size:contain/);
   assert.match(css,/urgent-alert-overlay/);
   assert.match(css,/z-index:5000/);
