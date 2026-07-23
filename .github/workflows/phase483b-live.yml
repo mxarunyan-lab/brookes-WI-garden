@@ -1,0 +1,32 @@
+name: Phase 4.8.3b Live Verification
+
+on:
+  push:
+    branches: [phase-4-8-3b-restore-garden-history]
+    paths: [.github/workflows/phase483b-live.yml]
+
+permissions:
+  contents: read
+
+jobs:
+  verify-live:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - name: Wait for Render Phase 4.8.3b
+        run: |
+          for i in $(seq 1 60); do
+            body=$(curl -fsS --max-time 20 -H 'Cache-Control: no-cache' "https://brookes-garden-compass.onrender.com/api/health?verify=$(date +%s)" || true)
+            echo "$body"
+            if echo "$body" | grep -q '"version":"0.21.1"' && echo "$body" | grep -q '"phase":"4.8.3b"' && echo "$body" | grep -q '"buildId":"phase-4-8-3b-garden-history-entry"'; then exit 0; fi
+            sleep 15
+          done
+          exit 1
+      - name: Run production verifier
+        run: npm run verify:phase483:live
