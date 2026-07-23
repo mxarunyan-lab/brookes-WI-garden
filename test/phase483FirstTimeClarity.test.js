@@ -4,68 +4,10 @@ import fs from'node:fs';
 
 const read=path=>fs.readFileSync(path,'utf8');
 
-test('primary navigation presents Plan while preserving center route',()=>{
- const nav=read('src/Navigation.jsx'),routing=read('src/pageRouting.js');
- assert.match(nav,/label:'Plan'/);
- assert.doesNotMatch(nav,/label:'Center'/);
- assert.match(nav,/id:'center'/);
- assert.match(routing,/'center'/);
-});
-
-test('Plan and Care owns six clear destinations',()=>{
- const source=read('src/GardenCenter.jsx');
- for(const title of ['Plan & Care','Planting Planner','Garden Tasks','My Seeds','Indoor Growing','Garden Shopping List','Vacation Mode'])assert.match(source,new RegExp(title.replace(/[&]/g,'&')));
- assert.doesNotMatch(source,/title="Growing Spaces"/);
- assert.doesNotMatch(source,/Garden Center/);
-});
-
-test('Tool Shed contains only utilities weather and Print and Labels',()=>{
- const source=read('src/ToolShed.jsx');
- for(const title of ['Calculators & Utilities','Weather & Timing','Print & Labels'])assert.match(source,new RegExp(title.replace(/[&]/g,'&')));
- for(const removed of ['Records & Extras','Shopping List','Vacation Mode','Garden History'])assert.doesNotMatch(source,new RegExp(removed.replace(/[&]/g,'&')));
-});
-
-test('first-time setup follows details space planting order',()=>{
- const source=read('src/UrgentHome.jsx');
- assert.match(source,/Let’s set up your garden/);
- const details=source.indexOf('Confirm garden details'),space=source.indexOf('Add a Growing Space'),plant=source.indexOf('Add what is growing');
- assert.ok(details>=0&&details<space&&space<plant);
- assert.match(source,/Your garden is caught up/);
- assert.doesNotMatch(source,/Welcome to .*’s Garden/);
-});
-
-test('planting and Growing Space forms keep advanced details closed',()=>{
- const source=read('src/ClearDetailModal.jsx');
- assert.match(source,/Name for this planting — optional/);
- assert.match(source,/Garden Compass creates a name automatically/);
- assert.match(source,/Crop List/);
- assert.match(source,/Add Growing Space/);
- assert.ok((source.match(/entry-more-details/g)||[]).length>=2);
- assert.doesNotMatch(source,/Planting or batch name/);
- assert.doesNotMatch(source,/EXACT PACKET/);
-});
-
-test('weather truth implementation remains direct source code',()=>{
- const environment=read('src/environmentalIntelligence.js'),weather=read('src/weather.js'),workspace=read('src/WorkspaceScreens.jsx');
- assert.match(environment,/weather_code/);
- assert.match(environment,/is_day/);
- assert.match(environment,/todayForecast/);
- assert.match(weather,/fetchPersonal/);
- assert.match(weather,/National Weather Service/);
- assert.match(weather,/Open-Meteo/);
- assert.match(workspace,/weatherConditionPresentation/);
- assert.doesNotMatch(workspace,/return <CloudRain size=\{size\}\/?>;?\s*}$/);
-});
-
-test('release metadata and build pipeline are clean',()=>{
- const pkg=JSON.parse(read('package.json')),version=read('src/version.js'),health=read('server/index.js'),main=read('src/main.jsx');
- assert.equal(pkg.version,'0.21.1');
- assert.equal(pkg.pretest,undefined);
- assert.equal(pkg.prebuild,undefined);
- assert.match(version,/APP_VERSION='0.21.1'/);
- assert.match(version,/phase-4-8-3-first-time-clarity/);
- assert.match(health,/version:process\.env\.APP_VERSION \|\| '0\.21\.1'/);
- assert.match(main,/phase-4-8-3-first-time-clarity\.css/);
- assert.equal(fs.existsSync('scripts/runPhase482Finalizer.mjs'),false);
- assert.equal(fs.existsSync('scripts/finalizePhase482.py'),false);
-});
+test('primary navigation presents Plan while preserving center route',()=>{const nav=read('src/Navigation.jsx'),routing=read('src/pageRouting.js');assert.match(nav,/label:'Plan'/);assert.doesNotMatch(nav,/label:'Center'/);assert.match(nav,/id:'center'/);assert.match(routing,/'center'/)});
+test('Plan and Care owns six clear destinations',()=>{const source=read('src/GardenCenter.jsx');for(const title of ['Plan & Care','Planting Planner','Garden Tasks','My Seeds','Indoor Growing','Garden Shopping List','Vacation Mode'])assert.match(source,new RegExp(title.replace(/[&]/g,'&')));assert.doesNotMatch(source,/title="Growing Spaces"/);assert.doesNotMatch(source,/Garden Center/)});
+test('Tool Shed contains only utilities weather and Print and Labels',()=>{const source=read('src/ToolShed.jsx');for(const title of ['Calculators & Utilities','Weather & Timing','Print & Labels'])assert.match(source,new RegExp(title.replace(/[&]/g,'&')));for(const removed of ['Records & Extras','Shopping List','Vacation Mode','Garden History'])assert.doesNotMatch(source,new RegExp(removed.replace(/[&]/g,'&')))});
+test('first-time setup uses a shrinking two-item checklist',()=>{const source=read('src/UrgentHome.jsx');assert.match(source,/Let’s set up your garden/);assert.match(source,/Confirm Garden Details/);assert.match(source,/Add a Growing Space & Plants/);assert.doesNotMatch(source,/SetupStep|STEP \{number\}|Add what is growing/);assert.match(source,/Your garden is caught up/);assert.doesNotMatch(source,/Welcome to .*’s Garden/)});
+test('planting and Growing Space forms keep advanced details closed',()=>{const source=read('src/ClearDetailModal.jsx');assert.match(source,/Name for this planting — optional/);assert.match(source,/Garden Compass creates a name automatically/);assert.match(source,/Crop List/);assert.match(source,/Add Growing Space/);assert.ok((source.match(/entry-more-details/g)||[]).length>=2);assert.doesNotMatch(source,/Planting or batch name/);assert.doesNotMatch(source,/EXACT PACKET/)});
+test('weather truth implementation remains direct source code',()=>{const environment=read('src/environmentalIntelligence.js'),weather=read('src/weather.js'),workspace=read('src/WorkspaceScreens.jsx');assert.match(environment,/weather_code/);assert.match(environment,/is_day/);assert.match(environment,/todayForecast/);assert.match(weather,/fetchPersonal/);assert.match(weather,/National Weather Service/);assert.match(weather,/Open-Meteo/);assert.match(workspace,/weatherConditionPresentation/);assert.doesNotMatch(workspace,/return <CloudRain size=\{size\}\/?>;?\s*}$/)});
+test('release metadata and build pipeline are clean',()=>{const pkg=JSON.parse(read('package.json')),version=read('src/version.js'),health=read('server/index.js'),main=read('src/main.jsx');assert.equal(pkg.version,'0.21.1');assert.equal(pkg.pretest,undefined);assert.equal(pkg.prebuild,undefined);assert.match(version,/APP_VERSION='0.21.1'/);assert.match(version,/phase-4-8-3b-garden-history-entry/);assert.match(health,/version:process\.env\.APP_VERSION \|\| '0\.21\.1'/);assert.match(main,/phase-4-8-3-first-time-clarity\.css/);assert.match(main,/phase-4-8-3b-garden-history\.css/);assert.equal(fs.existsSync('scripts/runPhase482Finalizer.mjs'),false);assert.equal(fs.existsSync('scripts/finalizePhase482.py'),false)});
