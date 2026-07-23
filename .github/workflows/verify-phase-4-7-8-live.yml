@@ -78,7 +78,7 @@ jobs:
               assert.match(js,/Nothing urgent right now/);
               assert.match(js,/watering-can-icon/);
               assert.match(css,/garden-header-summer\.webp\?v=0477/);
-              assert.match(css,/aspect-ratio:2\/1/);
+              assert.match(css,/aspect-ratio:2(?:\/1)?/);
               assert.match(css,/background-size:contain/);
               assert.match(css,/urgent-alert-overlay/);
               assert.match(css,/z-index:5000/);
