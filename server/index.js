@@ -6,6 +6,7 @@ import express from 'express';
 import helmet from 'helmet';
 import {analyzeSeedPacket} from './seedPacketVision.js';
 import {configuredResearchProviders, researchExactSeedProduct} from './productResearch.js';
+import {fetchPersonalWeatherStation} from './personalWeatherStation.js';
 
 const port = Number(process.env.PORT || 3000);
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..', 'dist');
@@ -47,7 +48,7 @@ const cleanLookupIdentity = (input = {}) => ({
   rawVisibleText: String(input.rawText || input.rawVisibleText || '').slice(0, 4000),
 });
 
-export function createApp({analyze = analyzeSeedPacket, research = researchExactSeedProduct} = {}) {
+export function createApp({analyze = analyzeSeedPacket, research = researchExactSeedProduct, fetchStation = fetchPersonalWeatherStation} = {}) {
   const app = express();
   app.disable('x-powered-by');
   app.set('trust proxy', 1);
@@ -66,8 +67,17 @@ export function createApp({analyze = analyzeSeedPacket, research = researchExact
     packetVisionConfigured: Boolean(process.env.OPENAI_API_KEY),
     packetVisionModel: process.env.SEED_PACKET_VISION_MODEL || 'gpt-5-mini',
     productResearchProviders: configuredResearchProviders(),
-    version: process.env.APP_VERSION || '0.20.9',
+    personalWeatherStationConfigured: Boolean(process.env.PWS_PROVIDER && process.env.PWS_STATION_ID && process.env.PWS_API_KEY),
+    personalWeatherStationProvider: process.env.PWS_PROVIDER || null,
+    personalWeatherStationId: process.env.PWS_STATION_ID || null,
+    version: process.env.APP_VERSION || '0.21.0',
   }));
+
+  app.get('/api/weather/current', async (req, res) => {
+    const result = await fetchStation({env: process.env});
+    if (!result.ok) return res.status(result.configured ? 503 : 200).json({ok:false, configured:Boolean(result.configured), provider:result.provider||null, stationId:result.stationId||null, reason:result.reason||'unavailable'});
+    return res.json({ok:true, configured:true, provider:result.provider, stationId:result.stationId, observation:result.observation});
+  });
 
   app.post('/api/seed-products/lookup', rateLimit, async (req, res) => {
     const requestId = crypto.randomUUID();
@@ -99,16 +109,7 @@ export function createApp({analyze = analyzeSeedPacket, research = researchExact
       return res.json({...result, cacheHit: false});
     } catch (error) {
       const status = Number(error.status) || (error.code === 'VISION_NOT_CONFIGURED' ? 503 : 502);
-      console.error('[seed-packet-vision]', {
-        requestId,
-        code: error.code || 'ANALYSIS_FAILED',
-        message: error.message,
-        upstreamStatus: error.upstreamStatus || null,
-        upstreamCode: error.upstreamCode || null,
-        upstreamType: error.upstreamType || null,
-        upstreamMessage: error.upstreamMessage || null,
-        validationErrors: error.validationErrors || null,
-      });
+      console.error('[seed-packet-vision]', {requestId, code: error.code || 'ANALYSIS_FAILED', message: error.message, upstreamStatus: error.upstreamStatus || null, upstreamCode: error.upstreamCode || null, upstreamType: error.upstreamType || null, upstreamMessage: error.upstreamMessage || null, validationErrors: error.validationErrors || null});
       return res.status(status).json({code: error.code || 'ANALYSIS_FAILED', message: publicMessage(error.code, status), requestId});
     }
   });
