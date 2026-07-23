@@ -1,4 +1,4 @@
-const CACHE = 'brookes-garden-v0479-seasonal-header-static-repair-20260723';
+const CACHE = 'brookes-garden-v0480-dynamic-seasonal-identity-panel-20260723';
 const CORE = ['/', '/manifest.webmanifest', '/icon.svg'];
 self.addEventListener('install', (event) => { event.waitUntil(caches.open(CACHE).then((cache) => cache.addAll(CORE))); self.skipWaiting(); });
 self.addEventListener('activate', (event) => { event.waitUntil(caches.keys().then((keys) => Promise.all(keys.filter((key) => key !== CACHE).map((key) => caches.delete(key))))); self.clients.claim(); });
