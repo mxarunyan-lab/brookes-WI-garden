@@ -1,0 +1,38 @@
+name: Phase 4.8.1 Transform
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - scripts/applyPhase481.mjs
+      - .github/workflows/phase-4-8-1-transform.yml
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  transform:
+    if: github.head_ref == 'phase-4-8-1-mobile-continuity'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: phase-4-8-1-mobile-continuity
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: node scripts/applyPhase481.mjs
+      - run: npm ci
+      - run: npm test
+      - run: npm run build
+      - name: Commit transformed source
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add src/App.jsx src/ClearDetailModal.jsx src/VacationMode.jsx src/vacationPlanner.js src/main.jsx
+          if git diff --cached --quiet; then
+            echo "No generated changes to commit"
+          else
+            git commit -m "Phase 4.8.1: central plant guard and Garden Buddy continuity"
+            git push origin HEAD:phase-4-8-1-mobile-continuity
+          fi
