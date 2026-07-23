@@ -24,7 +24,7 @@ test('all four seasonal paths use the stable WebP delivery route',()=>{
  assert.deepEqual(Object.keys(SEASONAL_GARDEN_HEADERS),['spring','summer','fall','winter']);
  assert.equal(new Set(Object.values(SEASONAL_GARDEN_HEADERS)).size,4);
  for(const[season,path]of Object.entries(SEASONAL_GARDEN_HEADERS)){
-  assert.match(path,new RegExp(`garden-header-${season}\.webp\?v=0477$`));
+  assert.equal(path,`/images/garden-headers/garden-header-${season}.webp?v=0477`);
  }
 });
 
