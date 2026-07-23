@@ -12,6 +12,7 @@ import './styles/phase-4-7-8-urgent-home.css';
 import './styles/phase-4-8-1-mobile-continuity.css';
 import './styles/phase-4-8-2-weather-truth.css';
 import './styles/phase-4-8-3-first-time-clarity.css';
+import './styles/phase-4-8-3b-garden-history.css';
 import './seasonalHeaderRuntime.js';
 import './legacyQrFocus.js';
 
