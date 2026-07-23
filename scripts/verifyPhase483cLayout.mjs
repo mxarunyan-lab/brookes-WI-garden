@@ -10,7 +10,7 @@ try{
   const page=await context.newPage();
   const errors=[];page.on('console',message=>{if(message.type()==='error')errors.push(message.text())});page.on('requestfailed',request=>errors.push(`${request.url()} ${request.failure()?.errorText||'failed'}`));
   await page.goto(`${base}/?verify=${Date.now()}`,{waitUntil:'networkidle'});
-  await page.evaluate(()=>{const key='brookes-garden-state-v2',garden=JSON.parse(localStorage.getItem(key)||'{}');garden.profile={...(garden.profile||{}),setupDetailsConfirmedAt:null,setupGardenConfirmedAt:null,setupCompletedAt:null,setupGardenStartedAt:'browser-layout-check',setupGardenNeedsExplicitReview:true,setupComplete:false};localStorage.setItem(key,JSON.stringify(garden));localStorage.setItem('brookes-garden-page-v2','today')});
+  await page.evaluate(()=>{const key='brookes-garden-state-v2',garden=JSON.parse(localStorage.getItem(key)||'{}');garden.spaces=[];garden.plants=[];garden.profile={...(garden.profile||{}),setupDetailsConfirmedAt:null,setupGardenConfirmedAt:null,setupCompletedAt:null,setupGardenStartedAt:'browser-layout-check',setupGardenNeedsExplicitReview:false,setupComplete:false};localStorage.setItem(key,JSON.stringify(garden));localStorage.setItem('brookes-garden-page-v2','today')});
   await page.reload({waitUntil:'networkidle'});
   const row=page.locator('.garden-setup-steps li>button').first();
   await row.waitFor({state:'visible',timeout:15000});
@@ -18,14 +18,14 @@ try{
   results.push({width,...result,consoleOrRequestErrors:errors});
   assert.equal(result.liDisplay,'block',`${width}px list item must be block`);
   assert.notEqual(result.liColumns,'34px 1fr',`${width}px list item retained obsolete grid`);
-  assert.ok(result.buttonWidth>34,`${width}px button remained trapped in 34px column`);
-  assert.ok(result.contentWidth>80,`${width}px content column was unusable`);
-  assert.ok(result.titleWidth>60,`${width}px title rendered character-by-character`);
+  assert.ok(result.buttonWidth>200,`${width}px button remained too narrow: ${result.buttonWidth}`);
+  assert.ok(result.contentWidth>100,`${width}px content column was unusable`);
+  assert.ok(result.titleWidth>80,`${width}px title rendered character-by-character`);
   assert.ok(result.titleHeight<100,`${width}px title was excessively tall`);
   assert.ok(result.buttonHeight>=44,`${width}px tap target too short`);
   assert.ok(result.scrollWidth<=result.clientWidth+1,`${width}px horizontal overflow`);
   assert.equal(result.whiteSpace,'normal');assert.notEqual(result.wordBreak,'break-all');
   await context.close();
  }
- console.log(JSON.stringify({ok:true,widths:[320,375,390,430],realTodayChecklist:true,results},null,2));
+ console.log(JSON.stringify({ok:true,widths:[320,375,390,430],realTodayChecklist:true,isolatedGarden:true,results},null,2));
 }finally{await browser.close()}
