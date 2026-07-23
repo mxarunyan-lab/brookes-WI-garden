@@ -1,0 +1,140 @@
+name: Verify Phase 4.7.8 Live Production
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - .github/workflows/verify-phase-4-7-8-live.yml
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  verify-live:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run complete test suite
+        run: npm test
+
+      - name: Build production app
+        run: npm run build
+
+      - name: Install Playwright Chromium
+        run: npx playwright install --with-deps chromium
+
+      - name: Verify deployed Phase 4.7.8
+        env:
+          APP_URL: https://brookes-garden-compass.onrender.com
+        run: |
+          node --input-type=module <<'NODE'
+          import assert from 'node:assert/strict';
+          import {chromium} from 'playwright';
+
+          const base=process.env.APP_URL.replace(/\/$/,'');
+          const expectedBuild='phase-4-7-8-urgent-only-home';
+          const sleep=ms=>new Promise(resolve=>setTimeout(resolve,ms));
+          const currentSeason=()=>{
+            const month=Number(new Intl.DateTimeFormat('en-US',{timeZone:'America/Chicago',month:'numeric'}).format(new Date()));
+            if(month>=3&&month<=5)return'spring';
+            if(month>=6&&month<=8)return'summer';
+            if(month>=9&&month<=11)return'fall';
+            return'winter';
+          };
+          const fetchText=async url=>{
+            const response=await fetch(url,{cache:'no-store',headers:{'cache-control':'no-cache'}});
+            assert.equal(response.status,200,`${url} returned ${response.status}`);
+            return response.text();
+          };
+
+          let deployed=null,lastError=null;
+          for(let attempt=1;attempt<=80;attempt+=1){
+            try{
+              const healthResponse=await fetch(`${base}/api/health`,{cache:'no-store',headers:{'cache-control':'no-cache'}});
+              assert.equal(healthResponse.status,200,'Health endpoint is not ready');
+              const health=await healthResponse.json();
+              assert.equal(health.ok,true);
+              const html=await fetchText(`${base}/?phase478=${Date.now()}`);
+              const scripts=[...html.matchAll(/<script[^>]+src="([^"]+\.js)"/g)].map(match=>new URL(match[1],`${base}/`).toString());
+              const styles=[...html.matchAll(/<link[^>]+href="([^"]+\.css)"/g)].map(match=>new URL(match[1],`${base}/`).toString());
+              assert.ok(scripts.length,'No deployed JavaScript bundle found');
+              assert.ok(styles.length,'No deployed CSS bundle found');
+              const js=(await Promise.all(scripts.map(fetchText))).join('\n');
+              const css=(await Promise.all(styles.map(fetchText))).join('\n');
+              assert.match(js,new RegExp(expectedBuild));
+              assert.match(js,/Urgent Garden Alerts/);
+              assert.match(js,/Nothing urgent right now/);
+              assert.match(js,/watering-can-icon/);
+              assert.match(css,/garden-header-summer\.webp\?v=0477/);
+              assert.match(css,/aspect-ratio:2\/1/);
+              assert.match(css,/background-size:contain/);
+              assert.match(css,/urgent-alert-overlay/);
+              assert.match(css,/z-index:5000/);
+              deployed={attempt,health,scripts,styles};
+              break;
+            }catch(error){
+              lastError=error;
+              console.log(`[live deploy ${attempt}/80] ${error.message}`);
+              if(attempt<80)await sleep(15000);
+            }
+          }
+          assert.ok(deployed,`Phase 4.7.8 never appeared live: ${lastError?.stack||lastError}`);
+
+          const browser=await chromium.launch({headless:true});
+          try{
+            const season=currentSeason();
+            const widths=[320,375,390,430];
+            for(const width of widths){
+              const context=await browser.newContext({serviceWorkers:'block',viewport:{width,height:900},deviceScaleFactor:1});
+              const page=await context.newPage();
+              await page.addInitScript(()=>localStorage.setItem('runyan-garden-active-profile','archie'));
+              const response=await page.goto(`${base}/?page=today&phase478=${width}-${Date.now()}`,{waitUntil:'domcontentloaded',timeout:60000});
+              assert.equal(response?.status(),200);
+              const hero=page.locator('.compact-home-hero');
+              const today=page.locator('.what-matters-today');
+              await hero.waitFor();
+              await today.waitFor();
+              assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth<=document.documentElement.clientWidth),true,`${width}px has horizontal overflow`);
+              const heroBox=await hero.boundingBox();
+              assert.ok(Math.abs(heroBox.width/heroBox.height-2)<.04,`${width}px header ratio is ${heroBox.width/heroBox.height}`);
+              const heroStyle=await hero.evaluate(element=>({backgroundImage:getComputedStyle(element).backgroundImage,backgroundSize:getComputedStyle(element).backgroundSize}));
+              assert.ok(heroStyle.backgroundImage.includes(`garden-header-${season}.webp`),`${width}px is not showing ${season}`);
+              assert.equal(heroStyle.backgroundSize,'contain');
+              assert.equal(await page.locator('.watering-can-icon').count(),1,`${width}px watering can missing or duplicated`);
+              assert.equal(await page.getByText('GARDEN STATUS',{exact:true}).count(),0,`${width}px old Garden Status dashboard returned`);
+              assert.equal(await page.locator('.today-quick-links').count(),0,`${width}px shortcut boxes returned`);
+              const trigger=page.getByRole('button',{name:/Urgent garden alerts/i});
+              await trigger.click();
+              const dialog=page.getByRole('dialog',{name:'Urgent Garden Alerts',exact:true});
+              await dialog.waitFor();
+              assert.equal(await page.locator('.urgent-alert-overlay').evaluate(element=>element.parentElement===document.body),true,`${width}px overlay is not portaled to body`);
+              const panelBox=await dialog.boundingBox();
+              assert.ok(panelBox.x>=0&&panelBox.x+panelBox.width<=width+1,`${width}px dialog exceeds viewport`);
+              const panelStyle=await dialog.evaluate(element=>({z:Number(getComputedStyle(element).zIndex),maxHeight:getComputedStyle(element).maxHeight,overflowY:getComputedStyle(element).overflowY}));
+              const nav=page.locator('.bottom-nav');
+              if(await nav.count())assert.ok(panelStyle.z>(await nav.evaluate(element=>Number(getComputedStyle(element).zIndex)||0)),`${width}px dialog is behind bottom navigation`);
+              assert.equal(panelStyle.overflowY,'auto');
+              assert.equal(await page.evaluate(()=>document.body.style.overflow),'hidden');
+              await page.keyboard.press('Escape');
+              await dialog.waitFor({state:'hidden'});
+              assert.equal(await page.evaluate(()=>document.body.style.overflow),'');
+              assert.equal(await trigger.evaluate(element=>document.activeElement===element),true,`${width}px focus did not return to watering can`);
+              await context.close();
+            }
+            console.log(JSON.stringify({ok:true,base,expectedBuild,season,widths,deployed},null,2));
+          }finally{
+            await browser.close();
+          }
+          NODE
