@@ -1,73 +1,61 @@
 TEST_STATUS=1
 BUILD_STATUS=0
 --- FAILED TEST DETAILS ---
-367:not ok 61 - permanent Render workflow uses the current exact seasonal-header verifier and established status names
-372:  failureType: 'testCodeFailure'
-494:  code: 'ERR_ASSERTION'
-495:  name: 'AssertionError'
-496:  expected:
-497:  actual: |-
-839:not ok 98 - seasonal header stays focused on Today and Phase 4.8.1 connects it to the dashboard
-844:  failureType: 'testCodeFailure'
-989:  code: 'ERR_ASSERTION'
-990:  name: 'AssertionError'
-991:  expected:
-992:  actual: |-
-1267:not ok 120 - release metadata identifies the exact seasonal header while preserving the navigation lock
-1272:  failureType: 'testCodeFailure'
-1288:  code: 'ERR_ASSERTION'
-1289:  name: 'AssertionError'
-1290:  expected:
-1291:  actual: |-
-1351:not ok 127 - health and analysis routes are served by the Node web service
-1356:  failureType: 'testCodeFailure'
-1362:  code: 'ERR_ASSERTION'
-1363:  name: 'AssertionError'
-1364:  expected: '0.20.5'
-1365:  actual: '0.20.7'
+589:not ok 98 - seasonal header stays focused on Today and Phase 4.8.1 connects it to the dashboard
+594:  failureType: 'testCodeFailure'
+739:  code: 'ERR_ASSERTION'
+740:  name: 'AssertionError'
+741:  expected:
+742:  actual: |-
+1059:not ok 127 - health and analysis routes are served by the Node web service
+1064:  failureType: 'testCodeFailure'
+1070:  code: 'ERR_ASSERTION'
+1071:  name: 'AssertionError'
+1072:  expected: '0.20.5'
+1073:  actual: '0.20.7'
 --- MATCHING TEST SOURCE LOCATIONS ---
 test/seedPacketBackend.test.js:106:test('health and analysis routes are served by the Node web service',async()=>{
-test/preSyncUsabilityCleanup.test.js:54:test('release metadata identifies the exact seasonal header while preserving the navigation lock',()=>{
+test/preSyncUsabilityCleanup.test.js:33:test('release metadata identifies Phase 4.8.1 user-facing continuity improvements',()=>{
 test/phase476SeasonalHeader.test.js:24:test('seasonal header stays focused on Today and Phase 4.8.1 connects it to the dashboard',async()=>{
 test/phase476SeasonalHeader.test.js:53:test('production build creates static WebP headers before Vite',async()=>{
-test/phase473LiveWorkflow.test.js:9:test('permanent Render workflow uses the current exact seasonal-header verifier and established status names',async()=>{
+test/phase473LiveWorkflow.test.js:9:test('permanent Render workflow uses the Phase 4.8.1 live mobile verifier and established status names',async()=>{
 ./.github/workflows/phase-4-8-1-transform.yml:38:            grep -RInE "Tool Shed is a flat directory|permanent Render workflow uses|Tool Shed weather cards choose|flat eleven-destination directory|current build marker preserves|seasonal header stays focused|production build creates static|release metadata identifies|health and analysis routes" test tests . --exclude-dir=node_modules --exclude=phase481-diagnostics.txt 2>/dev/null || true
 ./test/seedPacketBackend.test.js:106:test('health and analysis routes are served by the Node web service',async()=>{
-./test/preSyncUsabilityCleanup.test.js:54:test('release metadata identifies the exact seasonal header while preserving the navigation lock',()=>{
+./test/preSyncUsabilityCleanup.test.js:33:test('release metadata identifies Phase 4.8.1 user-facing continuity improvements',()=>{
 ./test/phase476SeasonalHeader.test.js:24:test('seasonal header stays focused on Today and Phase 4.8.1 connects it to the dashboard',async()=>{
 ./test/phase476SeasonalHeader.test.js:53:test('production build creates static WebP headers before Vite',async()=>{
-./test/phase473LiveWorkflow.test.js:9:test('permanent Render workflow uses the current exact seasonal-header verifier and established status names',async()=>{
+./test/phase473LiveWorkflow.test.js:9:test('permanent Render workflow uses the Phase 4.8.1 live mobile verifier and established status names',async()=>{
 --- TEST SUMMARY ---
-  duration_ms: 2.066377
+  duration_ms: 1.247219
   type: 'test'
   ...
 # Subtest: protected greenhouse receives no outdoor rain watering credit
 ok 295 - protected greenhouse receives no outdoor rain watering credit
   ---
-  duration_ms: 2.286536
+  duration_ms: 1.379001
   type: 'test'
   ...
 # Subtest: weather task ids remain stable and duplicate-free
 ok 296 - weather task ids remain stable and duplicate-free
   ---
-  duration_ms: 2.324713
+  duration_ms: 1.549096
   type: 'test'
   ...
 # Subtest: migration is idempotent and preserves environmental sync fields
 ok 297 - migration is idempotent and preserves environmental sync fields
   ---
-  duration_ms: 0.542582
+  duration_ms: 0.365327
   type: 'test'
   ...
 1..297
 # tests 297
 # suites 0
-# pass 293
-# fail 4
+# pass 295
+# fail 2
 # cancelled 0
 # skipped 0
 # todo 0
-# duration_ms 4862.219093
+# duration_ms 5343.724106
 --- BUILD SUMMARY ---
 
 > brookes-wi-garden@0.20.9 build
@@ -89,7 +77,7 @@ dist/assets/index.es-eEGCOIoI.js       151.32 kB │ gzip:  48.88 kB
 dist/assets/html2canvas-BysGUT3I.js    199.55 kB │ gzip:  46.77 kB
 dist/assets/index-TOT9i4To.js        1,264.29 kB │ gzip: 383.03 kB
 
-[32m✓ built in 631ms[39m
+[32m✓ built in 658ms[39m
 [33m[plugin builtin:vite-reporter] 
 (!) Some chunks are larger than 500 kB after minification. Consider:
 - Using dynamic import() to code-split the application
