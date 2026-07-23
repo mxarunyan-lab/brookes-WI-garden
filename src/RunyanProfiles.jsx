@@ -11,9 +11,9 @@ export function ProfileChooser({ profiles = DEFAULT_PROFILES, onChoose }) {
     <div className="profile-gate-mark"><Sprout /></div>
     <span className="section-kicker">THE RUNYAN GARDEN</span>
     <h1>Who’s in the garden?</h1>
-    <p>One shared garden. Choose who is using this device so completed work lands in the right name.</p>
+    <p>Choose who is using Garden Compass so completed work is recorded under the right name.</p>
     <div className="profile-choice-list">{profiles.map((profile) => <button key={profile.id} onClick={() => onChoose(profile.id)}><ProfileAvatar profile={profile} /><span><strong>{profile.name}</strong><small>{profile.role}</small><em>{profile.description}</em></span><ChevronRight /></button>)}</div>
-    <small className="profile-local-note">Both profiles share this device’s garden records. Cross-phone synchronization is the next infrastructure step.</small>
+    <small className="profile-local-note">Both gardeners use the same garden records saved on this device.</small>
   </div></div>;
 }
 
