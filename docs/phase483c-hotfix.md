@@ -1,0 +1,1 @@
+Phase 4.8.3c fixes only the Today setup checklist mobile layout regression. Onboarding state logic, Garden records, Garden History, IDs, timestamps, and semantic version 0.21.1 remain unchanged.

@@ -1,0 +1,39 @@
+name: Phase 4.8.3c Live Verification
+
+on:
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  verify-live:
+    if: github.head_ref == 'phase-4-8-3c-checklist-layout-hotfix'
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - name: Wait for Render Phase 4.8.3c
+        run: |
+          for i in $(seq 1 60); do
+            body=$(curl -fsS --max-time 20 -H 'Cache-Control: no-cache' "https://brookes-garden-compass.onrender.com/api/health?verify=$(date +%s)" || true)
+            echo "$body"
+            if echo "$body" | grep -q '"version":"0.21.1"' && echo "$body" | grep -q '"phase":"4.8.3c"' && echo "$body" | grep -q '"buildId":"phase-4-8-3c-checklist-layout-hotfix"'; then exit 0; fi
+            sleep 15
+          done
+          exit 1
+      - run: npm run verify:phase483:live
+      - name: Install browser test runtime
+        run: |
+          npm install --no-save playwright@1.55.0
+          npx playwright install --with-deps chromium
+      - name: Verify live mobile checklist
+        env:
+          GARDEN_URL: https://brookes-garden-compass.onrender.com
+        run: node scripts/verifyPhase483cLayout.mjs
