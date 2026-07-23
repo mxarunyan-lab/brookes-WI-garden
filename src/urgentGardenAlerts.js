@@ -40,5 +40,5 @@ export function getUrgentGardenAlerts(items=[],options={}){
 
 export function formatUrgentBadge(count){const value=Math.max(0,Number(count)||0);return value===0?null:value>9?'9+':String(value)}
 export function isGardenSetupIncomplete(garden){return!(garden?.plants||[]).some(plant=>!plant?.deletedAt&&!plant?.archived&&!['finished','removed','failed'].includes(String(plant?.stage||'').toLowerCase()))}
-export function getSetupTask(items=[]){return(items||[]).find(item=>['setup','setupPlant'].includes(item?.kind)||NON_URGENT_IDS.test(String(item?.id||'')))||null}
+export function getSetupTask(items=[]){return(items||[]).find(item=>['setup','setupPlant'].includes(item?.kind)||/^setup-/i.test(String(item?.id||'')))||null}
 export function getSeasonalIdea(items=[]){return(items||[]).find(item=>item?.kind==='seasonalGuide'||item?.kind==='navigate'&&/(season|plant|seed|garlic|fall|winter)/i.test([item.title,item.subtitle,item.reason].filter(Boolean).join(' ')))||null}
