@@ -9,7 +9,7 @@ export function normalizeWeatherUndergroundObservation(payload,{expectedStationI
  if(!raw)return{ok:false,reason:'no-observation'};
  const stationId=String(raw.stationID||raw.stationId||'').trim();
  if(expectedStationId&&stationId.toUpperCase()!==String(expectedStationId).toUpperCase())return{ok:false,reason:'station-mismatch'};
- const observedAt=raw.obsTimeUtc||raw.obsTimeLocal||raw.epoch&&new Date(Number(raw.epoch)*1000).toISOString();
+ const observedAt=raw.obsTimeUtc||raw.obsTimeLocal||(raw.epoch?new Date(Number(raw.epoch)*1000).toISOString():null);
  const observedMs=observedAt?new Date(observedAt).getTime():NaN;
  if(!Number.isFinite(observedMs))return{ok:false,reason:'invalid-timestamp'};
  if(now-observedMs>MAX_STATION_AGE_MS)return{ok:false,reason:'stale-observation',observedAt:new Date(observedMs).toISOString()};
@@ -38,6 +38,10 @@ export async function fetchPersonalWeatherStation({fetchImpl=fetch,env=process.e
   if(!response.ok)return{ok:false,configured:true,provider,stationId,reason:`provider-http-${response.status}`};
   const normalized=normalizeWeatherUndergroundObservation(await response.json(),{expectedStationId:stationId});
   return{...normalized,configured:true,provider,stationId};
- }catch(error){return{ok:false,configured:true,provider,stationId,reason:error?.name==='AbortError'?'timeout':'provider-request-failed'}
- finally{clearTimeout(timer);signal?.removeEventListener?.('abort',abort)}}
+ }catch(error){
+  return{ok:false,configured:true,provider,stationId,reason:error?.name==='AbortError'?'timeout':'provider-request-failed'};
+ }finally{
+  clearTimeout(timer);
+  signal?.removeEventListener?.('abort',abort);
+ }
 }
