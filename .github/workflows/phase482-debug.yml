@@ -22,7 +22,8 @@ jobs:
         run: |
           set +e
           npm test > phase482-debug.log 2>&1
-          echo "EXIT_CODE=$?" >> phase482-debug.log
+          code=$?
+          echo "EXIT_CODE=$code" >> phase482-debug.log
           git config user.name garden-compass-agent
           git config user.email garden-compass-agent@users.noreply.github.com
           git add phase482-debug.log
