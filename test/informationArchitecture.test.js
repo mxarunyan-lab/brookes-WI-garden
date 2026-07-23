@@ -28,22 +28,25 @@ test('Today owns one calm compact summary without the duplicated Garden Status d
  assert.equal(workspace.includes('seed-readiness-announcement'),false);
 });
 
-test('Tool Shed is a flat directory and More retains settings and data management',()=>{
- const toolShed=src('ToolShed.jsx'),more=src('MoreHub.jsx');
- assert.match(toolShed,/CALCULATORS & UTILITIES/);
- assert.match(toolShed,/WEATHER & TIMING/);
- assert.match(toolShed,/RECORDS & EXTRAS/);
- assert.equal((toolShed.match(/<ToolCard /g)||[]).length,11);
- assert.doesNotMatch(toolShed,/<details/);
- assert.match(toolShed,/openWeather\('garden'\)/);
- assert.match(toolShed,/openWeather\('rain'\)/);
- assert.match(toolShed,/openWeather\('frost'\)/);
- assert.equal(toolShed.includes('title="Settings"'),false);
- assert.equal(toolShed.includes('title="Data Management"'),false);
+test('Tool Shed uses three closed controlled categories and More retains settings and data management',()=>{
+ const toolShed=src('ToolShed.jsx'),more=src('MoreHub.jsx'),css=src('styles/phase-4-8-1-mobile-continuity.css');
+ assert.match(toolShed,/useState\(null\)/);
+ assert.equal((toolShed.match(/<ToolCategory /g)||[]).length,3);
+ assert.equal((toolShed.match(/<ToolCard /g)||[]).length,9);
+ assert.match(toolShed,/title="Calculators & Utilities"[^>]+count=\{4\}/);
+ assert.match(toolShed,/title="Weather & Timing"[^>]+count=\{1\}/);
+ assert.match(toolShed,/title="Records & Extras"[^>]+count=\{4\}/);
+ assert.match(toolShed,/title="Garden Weather & Timing"/);
+ assert.doesNotMatch(toolShed,/title="Rain & Watering Review"/);
+ assert.doesNotMatch(toolShed,/title="Frost & Planting Dates"/);
+ assert.match(toolShed,/aria-expanded=\{open\}/);
+ assert.match(toolShed,/aria-controls=/);
  assert.match(more,/<details className="more-settings-hub">/);
  assert.match(more,/Garden and gardeners/);
  assert.match(more,/Location and frost dates/);
  assert.match(more,/Notifications/);
+ assert.match(css,/more-settings-hub:not\(\[open\]\)>div\{display:none!important\}/);
+ assert.match(css,/more-settings-hub\[open\]>div\{display:grid!important\}/);
  assert.match(more,/title="Data Management"/);
  assert.match(more,/title="Quick Help"/);
  assert.match(more,/title="What's New"/);
@@ -51,11 +54,13 @@ test('Tool Shed is a flat directory and More retains settings and data managemen
 
 test('Weather tools use contextual back navigation and focused modes',()=>{
  const source=src('WorkspaceScreens.jsx');
- assert.match(source,/navigate\('back'\)/);
+ assert.match(source,/onBack=\{\(\)=>navigate\('back'\)\}/);
  assert.match(source,/mode==='garden'/);
  assert.match(source,/mode==='rain'/);
  assert.match(source,/mode==='frost'/);
- assert.equal(source.includes('defaultOpen/>'),false);
+ assert.match(source,/role="tab"/);
+ assert.match(source,/aria-selected=\{mode===id\}/);
+ assert.equal((source.match(/<WeatherDetails/g)||[]).length,1);
  assert.equal(source.includes('Back to Today'),false);
 });
 

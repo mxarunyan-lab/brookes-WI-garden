@@ -15,18 +15,21 @@ test('Garden Center is locked to five core destinations',async()=>{
  assert.match(source,/navigation-directory-card/);
 });
 
-test('Tool Shed is a flat eleven-destination directory',async()=>{
+test('Tool Shed is a three-category controlled accordion with nine destinations',async()=>{
  const source=await read('src/ToolShed.jsx');
- const titles=['Spacing Calculator','Soil & Container Calculator','Seed Quantity Calculator','Garden Measurements','Garden Weather','Rain & Watering Review','Frost & Planting Dates','Shopping List','Vacation Mode','Printable Garden Pack & Labels','Garden History'];
- assert.equal((source.match(/<ToolCard /g)||[]).length,11);
- for(const title of titles)assert.equal(source.includes(`title="${title}"`),true,`${title} must be directly visible`);
- for(const heading of['CALCULATORS & UTILITIES','WEATHER & TIMING','RECORDS & EXTRAS'])assert.equal(source.includes(heading),true,`${heading} section missing`);
- assert.doesNotMatch(source,/<details/);
- assert.doesNotMatch(source,/tool-shed-drawer/);
- assert.doesNotMatch(source,/count=/);
- assert.match(source,/openWeather\('garden'\)/);
- assert.match(source,/openWeather\('rain'\)/);
- assert.match(source,/openWeather\('frost'\)/);
+ const titles=['Spacing Calculator','Soil & Container Calculator','Seed Quantity Calculator','Garden Measurements','Garden Weather & Timing','Shopping List','Vacation Mode','Printable Garden Pack & Labels','Garden History'];
+ assert.equal((source.match(/<ToolCategory /g)||[]).length,3);
+ assert.equal((source.match(/<ToolCard /g)||[]).length,9);
+ for(const title of titles)assert.equal(source.includes(`title="${title}"`),true,`${title} must remain available`);
+ for(const heading of['Calculators & Utilities','Weather & Timing','Records & Extras'])assert.equal(source.includes(`title="${heading}"`),true,`${heading} category missing`);
+ assert.match(source,/useState\(null\)/);
+ assert.match(source,/current===id\?null:id/);
+ assert.match(source,/aria-expanded=\{open\}/);
+ assert.match(source,/aria-controls=/);
+ assert.match(source,/count=\{4\}/);
+ assert.match(source,/count=\{1\}/);
+ assert.doesNotMatch(source,/Rain & Watering Review/);
+ assert.doesNotMatch(source,/title="Frost & Planting Dates"/);
 });
 
 test('moved destinations keep existing routes and Tool Shed ownership',async()=>{
@@ -48,6 +51,7 @@ test('secondary pages share the compact header system without changing Today or 
  assert.match(ui,/compact-secondary-header/);
  assert.match(main,/phase-4-7-5-navigation-lock\.css/);
  assert.match(main,/phase-4-7-5-card-layout-lock\.css/);
+ assert.match(main,/phase-4-8-1-mobile-continuity\.css/);
  assert.match(css,/secondary-hero\.compact-secondary-header/);
  assert.match(layout,/-webkit-line-clamp:1!important/);
  assert.match(today,/compact-home-hero/);
@@ -56,14 +60,14 @@ test('secondary pages share the compact header system without changing Today or 
 });
 
 test('Phase 4.7.5 CSS files have balanced braces',async()=>{
- for(const path of['src/styles/phase-4-7-5-navigation-lock.css','src/styles/phase-4-7-5-card-layout-lock.css']){
+ for(const path of['src/styles/phase-4-7-5-navigation-lock.css','src/styles/phase-4-7-5-card-layout-lock.css','src/styles/phase-4-8-1-mobile-continuity.css']){
   const source=await read(path),opens=(source.match(/\{/g)||[]).length,closes=(source.match(/\}/g)||[]).length;
   assert.equal(opens,closes,`${path} has unbalanced braces`);
  }
 });
 
-test('current build marker preserves the Phase 4.7.5 navigation lock',async()=>{
+test('current build marker identifies Phase 4.8.1 mobile continuity',async()=>{
  const version=await read('src/version.js');
- assert.match(version,/APP_VERSION='0\.20\.6'/);
- assert.match(version,/BUILD_ID='phase-4-7-8-urgent-only-home'/);
+ assert.match(version,/APP_VERSION='0\.20\.9'/);
+ assert.match(version,/BUILD_ID='phase-4-8-1-mobile-continuity'/);
 });
