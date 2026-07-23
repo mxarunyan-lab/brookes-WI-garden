@@ -7,70 +7,33 @@ const read=path=>readFile(path,'utf8');
 
 test('Green Bay seasonal boundaries use America/Chicago meteorological seasons',()=>{
  assert.equal(GREEN_BAY_TIME_ZONE,'America/Chicago');
- const cases=[
-  ['2026-02-15T18:00:00Z','winter'],['2026-03-01T18:00:00Z','spring'],['2026-05-31T18:00:00Z','spring'],
-  ['2026-06-01T18:00:00Z','summer'],['2026-08-31T18:00:00Z','summer'],['2026-09-01T18:00:00Z','fall'],
-  ['2026-11-30T18:00:00Z','fall'],['2026-12-01T18:00:00Z','winter']
- ];
+ const cases=[['2026-02-15T18:00:00Z','winter'],['2026-03-01T18:00:00Z','spring'],['2026-05-31T18:00:00Z','spring'],['2026-06-01T18:00:00Z','summer'],['2026-08-31T18:00:00Z','summer'],['2026-09-01T18:00:00Z','fall'],['2026-11-30T18:00:00Z','fall'],['2026-12-01T18:00:00Z','winter']];
  for(const[value,season]of cases)assert.equal(getGreenBaySeason(new Date(value)),season,`${value} should be ${season}`);
 });
 
 test('all four seasonal paths use versioned static WebP assets',()=>{
- assert.deepEqual(Object.keys(SEASONAL_GARDEN_HEADERS),['spring','summer','fall','winter']);
- assert.equal(new Set(Object.values(SEASONAL_GARDEN_HEADERS)).size,4);
+ assert.deepEqual(Object.keys(SEASONAL_GARDEN_HEADERS),['spring','summer','fall','winter']);assert.equal(new Set(Object.values(SEASONAL_GARDEN_HEADERS)).size,4);
  for(const[season,path]of Object.entries(SEASONAL_GARDEN_HEADERS))assert.equal(path,`/images/garden-headers/garden-header-${season}.webp?v=0479`);
 });
 
 test('seasonal header stays focused on Today and Phase 4.8.1 connects it to the dashboard',async()=>{
- const[main,runtime,seasonalCss,continuity,today,urgentHome,navigation]=await Promise.all([
-  read('src/main.jsx'),read('src/seasonalHeaderRuntime.js'),read('src/styles/phase-4-7-6-seasonal-header.css'),
-  read('src/styles/phase-4-8-1-mobile-continuity.css'),read('src/WorkspaceScreens.jsx'),read('src/UrgentHome.jsx'),read('src/Navigation.jsx')
- ]);
- assert.match(main,/phase-4-7-6-seasonal-header\.css/);
- assert.match(main,/phase-4-7-8-urgent-home\.css/);
- assert.match(main,/phase-4-8-1-mobile-continuity\.css/);
- assert.match(main,/seasonalHeaderRuntime\.js/);
- assert.match(runtime,/dataset\[ATTRIBUTE\]=season/);
- assert.match(runtime,/visibilitychange/);
- assert.match(seasonalCss,/today-hero\.compact-home-hero/);
- assert.match(seasonalCss,/aspect-ratio:2\/1!important/);
- assert.match(seasonalCss,/background-size:contain!important/);
- assert.match(seasonalCss,/garden-header-summer\.webp\?v=0479/);
- assert.doesNotMatch(seasonalCss,/background-size:cover/);
- assert.match(continuity,/border-radius:22px 22px 0 0!important/);
- assert.match(continuity,/background:var\(--green-950\)!important/);
- assert.match(continuity,/margin-top:-22px/);
- assert.match(today,/profile\.gardenerName/);
- assert.match(today,/profile\.gardenName/);
- assert.match(today,/profile\.location/);
- assert.match(today,/UrgentAlertControl/);
- assert.match(urgentHome,/notification-count/);
- assert.match(urgentHome,/WateringCanIcon/);
- assert.doesNotMatch(today,/today-quick-links/);
- assert.match(navigation,/BottomNav/);
+ const[main,runtime,seasonalCss,continuity,today,urgentHome,navigation]=await Promise.all([read('src/main.jsx'),read('src/seasonalHeaderRuntime.js'),read('src/styles/phase-4-7-6-seasonal-header.css'),read('src/styles/phase-4-8-1-mobile-continuity.css'),read('src/WorkspaceScreens.jsx'),read('src/UrgentHome.jsx'),read('src/Navigation.jsx')]);
+ assert.match(main,/phase-4-7-6-seasonal-header\.css/);assert.match(main,/phase-4-7-8-urgent-home\.css/);assert.match(main,/phase-4-8-1-mobile-continuity\.css/);assert.match(main,/seasonalHeaderRuntime\.js/);
+ assert.match(runtime,/dataset\[ATTRIBUTE\]=season/);assert.match(runtime,/visibilitychange/);
+ assert.match(seasonalCss,/today-hero\.compact-home-hero/);assert.match(seasonalCss,/aspect-ratio:2\/1!important/);assert.match(seasonalCss,/background-size:contain!important/);assert.match(seasonalCss,/garden-header-summer\.webp\?v=0480/);assert.doesNotMatch(seasonalCss,/background-size:cover/);
+ assert.match(continuity,/border-radius:22px 22px 0 0!important/);assert.match(continuity,/background:var\(--green-950\)!important/);assert.match(continuity,/margin-top:-22px/);
+ assert.match(today,/profile\.gardenerName/);assert.match(today,/profile\.gardenName/);assert.match(today,/profile\.location/);assert.match(today,/UrgentAlertControl/);assert.match(urgentHome,/notification-count/);assert.match(urgentHome,/WateringCanIcon/);assert.doesNotMatch(today,/today-quick-links/);assert.match(navigation,/BottomNav/);
 });
 
 test('production build creates static WebP headers before Vite',async()=>{
  const[packageJson,builder,server]=await Promise.all([read('package.json'),read('scripts/buildSeasonalHeaders.mjs'),read('server/index.js')]);
- assert.match(packageJson,/node scripts\/buildSeasonalHeaders\.mjs && vite build/);
- assert.match(builder,/garden-header-\$\{season\}\.avif/);
- assert.match(builder,/garden-header-\$\{season\}\.webp/);
- assert.match(builder,/\.webp\(/);
- assert.doesNotMatch(server,/garden-header-:season\.webp/);
- assert.match(server,/express\.static\(root/);
+ assert.match(packageJson,/node scripts\/buildSeasonalHeaders\.mjs && vite build/);assert.match(builder,/garden-header-\$\{season\}\.avif/);assert.match(builder,/garden-header-\$\{season\}\.webp/);assert.match(builder,/\.webp\(/);assert.doesNotMatch(server,/garden-header-:season\.webp/);assert.match(server,/express\.static\(root/);
 });
 
 test('approved AVIF master files remain intact as build sources',async()=>{
- for(const season of['spring','summer','fall','winter']){
-  const path=`public/images/garden-headers/garden-header-${season}.avif`,info=await stat(path),bytes=await readFile(path);
-  assert.ok(info.size>10000,`${season} asset is unexpectedly small`);
-  assert.equal(bytes.subarray(4,12).toString('ascii'),'ftypavif',`${season} is not an AVIF file`);
- }
+ for(const season of['spring','summer','fall','winter']){const path=`public/images/garden-headers/garden-header-${season}.avif`,info=await stat(path),bytes=await readFile(path);assert.ok(info.size>10000,`${season} asset is unexpectedly small`);assert.equal(bytes.subarray(4,12).toString('ascii'),'ftypavif',`${season} is not an AVIF file`)}
 });
 
 test('seasonal and continuity CSS are balanced and preserve navigation ownership',async()=>{
- for(const path of['src/styles/phase-4-7-6-seasonal-header.css','src/styles/phase-4-8-1-mobile-continuity.css']){
-  const css=await read(path);assert.equal((css.match(/\{/g)||[]).length,(css.match(/\}/g)||[]).length);
-  assert.doesNotMatch(css,/today-quick-links/);assert.doesNotMatch(css,/bottom-nav/);
- }
+ for(const path of['src/styles/phase-4-7-6-seasonal-header.css','src/styles/phase-4-8-1-mobile-continuity.css']){const css=await read(path);assert.equal((css.match(/\{/g)||[]).length,(css.match(/\}/g)||[]).length);assert.doesNotMatch(css,/today-quick-links/);assert.doesNotMatch(css,/bottom-nav/)}
 });
