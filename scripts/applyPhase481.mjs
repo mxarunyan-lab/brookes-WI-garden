@@ -45,3 +45,4 @@ let main=read('src/main.jsx');
 main=must(main,"import './styles/phase-4-7-8-urgent-home.css';","import './styles/phase-4-7-8-urgent-home.css';\nimport './styles/phase-4-8-1-mobile-continuity.css';",'stylesheet import');write('src/main.jsx',main);
 
 console.log('Phase 4.8.1 source transforms applied');
+// retrigger 2026-07-23
