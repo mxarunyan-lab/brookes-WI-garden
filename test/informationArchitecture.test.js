@@ -20,15 +20,15 @@ test('Plan & Care owns six planning and care destinations while the center route
  assert.match(source,/navigate\('vacation'\)/);
 });
 
-test('Today owns ordered first-time setup and one calm compact summary',()=>{
+test('Today owns shrinking first-time setup and one calm compact summary',()=>{
  const workspace=src('WorkspaceScreens.jsx'),home=src('UrgentHome.jsx');
  assert.doesNotMatch(workspace,/GARDEN STATUS/);
  assert.match(workspace,/SimplifiedTodayCard/);
  assert.equal(workspace.includes('today-quick-links'),false);
  assert.match(home,/Let’s set up your garden/);
- assert.match(home,/Confirm garden details/);
- assert.match(home,/Add a Growing Space/);
- assert.match(home,/Add what is growing/);
+ assert.match(home,/Confirm Garden Details/);
+ assert.match(home,/Add a Growing Space & Plants/);
+ assert.doesNotMatch(home,/STEP \{number\}|SetupStep/);
  assert.match(home,/Your garden is caught up/);
  assert.match(home,/No urgent garden actions right now/);
  assert.equal(workspace.includes("TODAY'S GARDEN BRIEF"),false);
