@@ -1,0 +1,10 @@
+name: Phase 4.8.3b Workflow Smoke
+
+on:
+  pull_request:
+
+jobs:
+  smoke:
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo smoke-ok
