@@ -29,13 +29,13 @@ jobs:
         id: tests
         continue-on-error: true
         run: npm test > test.log 2>&1
-      - name: Update diagnostic comment with failing test tail
+      - name: Update diagnostic comment with failing tests
         if: steps.tests.outcome == 'failure'
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          tail -n 120 test.log > test-tail.log
-          body=$(cat test-tail.log)
+          grep -n -A 18 -B 4 -E '^not ok|failureType:|error:|expected:|actual:' test.log > test-failures.log || true
+          body=$(cat test-failures.log)
           gh api --method PATCH repos/mxarunyan-lab/brookes-WI-garden/issues/comments/5062236369 -f body="$body"
       - name: Stop when tests failed
         if: steps.tests.outcome == 'failure'
