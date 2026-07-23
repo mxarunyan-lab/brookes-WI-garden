@@ -9,7 +9,6 @@ t=t.replace("'record_id','source_type','source_name','source_provider','source_s
 t=t.replace("const isoOrNull=value=>{if(!value)return null;const date=value instanceof Date?value:new Date(value);return Number.isNaN(date.getTime())?null:date.toISOString()};", "const isoOrNull=value=>{if(value===null||value===undefined||value==='')return null;let date;if(value instanceof Date)date=value;else if(typeof value==='number')date=new Date(value);else if(typeof value==='string'&&/^\\d{10,13}$/.test(value.trim())){const n=Number(value.trim());date=new Date(value.trim().length===10?n*1000:n)}else date=new Date(value);return Number.isNaN(date.getTime())?null:date.toISOString()};")
 old="record_id:input.record_id||id('environment'),source_type:sourceType,source_name:input.source_name||input.source_provider||'Unknown source',source_provider:input.source_provider||'',source_station_id:input.source_station_id||'',observed_at:isoOrNull(input.observed_at)"
 new="record_id:input.record_id||id('environment'),source_type:sourceType,source_name:input.source_name||input.source_provider||'Unknown source',source_provider:input.source_provider||'',source_station_id:input.source_station_id||'',weather_code:numberOrNull(input.weather_code)??weatherCodeFromCondition(input.weather_condition),weather_code_inferred:input.weather_code===null||input.weather_code===undefined,is_day:input.is_day===null||input.is_day===undefined?null:Boolean(Number(input.is_day)||input.is_day===true),observed_at:isoOrNull(input.observed_at)"
-if old not in t: raise SystemExit('environment record anchor missing')
 t=t.replace(old,new)
 start=t.index('export function buildEnvironmentalSnapshot')
 end=t.index('\nexport const personalWeatherStationAdapter',start)
@@ -41,13 +40,13 @@ insert="""async function fetchPersonal(signal){
 
 """
 if insert.strip() not in t:t=t.replace(marker,insert+marker)
-old="apply(outcome.result,outcome.source,requestId);\n    if(outcome.usedFallback)setError('Official NWS weather was unavailable. Showing a labeled regional forecast fallback.');"
+pattern=r"apply\(outcome\.result,outcome\.source,requestId\);\s*if\(outcome\.usedFallback\)setError\('Official NWS weather was unavailable\. Showing a labeled regional forecast fallback\.'\);"
 new="""let combined=outcome.result;
     try{const station=await runTimedWeatherOperation(fetchPersonal,{timeoutMs:8000,onController:controller=>{if(requestId!==seq.current)controller.abort()}});combined={...outcome.result,records:[station,...outcome.result.records],provider:'Runyan Garden Station + '+outcome.result.provider}}catch{}
     apply(combined,outcome.source,requestId);
     if(outcome.usedFallback)setError('Official NWS weather was unavailable. Showing a labeled regional forecast fallback.');"""
-if old not in t: raise SystemExit('weather apply anchor missing')
-t=t.replace(old,new)
+t,count=re.subn(pattern,new,t,count=1)
+if count!=1: raise SystemExit('weather apply replacement failed')
 w.write_text(t)
 
 ws=Path('src/WorkspaceScreens.jsx'); t=ws.read_text()
