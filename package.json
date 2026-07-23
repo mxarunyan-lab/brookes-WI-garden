@@ -1,13 +1,15 @@
 {
   "name": "brookes-wi-garden",
   "private": true,
-  "version": "0.20.9",
+  "version": "0.21.0",
   "type": "module",
   "scripts": {
     "dev": "vite",
+    "pretest": "node scripts/runPhase482Finalizer.mjs",
+    "test": "node --test",
+    "prebuild": "node scripts/runPhase482Finalizer.mjs",
     "build": "node scripts/buildSeasonalHeaders.mjs && vite build",
     "preview": "vite preview",
-    "test": "node --test",
     "start": "node server/index.js",
     "analyze:packet:images": "node scripts/analyzePacketImages.mjs",
     "verify:phase46x3:live": "node scripts/verifyLivePhase46x3.mjs",

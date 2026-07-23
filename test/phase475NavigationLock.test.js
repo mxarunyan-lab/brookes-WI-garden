@@ -66,8 +66,8 @@ test('Phase 4.7.5 CSS files have balanced braces',async()=>{
  }
 });
 
-test('current build marker identifies Phase 4.8.1 mobile continuity',async()=>{
+test('current build marker identifies Phase 4.8.2 weather truth',async()=>{
  const version=await read('src/version.js');
- assert.match(version,/APP_VERSION='0\.20\.9'/);
- assert.match(version,/BUILD_ID='phase-4-8-1-mobile-continuity'/);
+ assert.match(version,/APP_VERSION='0\.21\.0'/);
+ assert.match(version,/BUILD_ID='phase-4-8-2-weather-truth'/);
 });
