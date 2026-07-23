@@ -1,235 +1,80 @@
 TEST_STATUS=1
 BUILD_STATUS=0
---- TEST TAIL ---
-  duration_ms: 10.846611
-  type: 'test'
-  ...
-# Subtest: a successful NWS request does not start the fallback request
-ok 260 - a successful NWS request does not start the fallback request
-  ---
-  duration_ms: 0.28468
-  type: 'test'
-  ...
-# Subtest: mild day stays one compact calm group
-ok 261 - mild day stays one compact calm group
-  ---
-  duration_ms: 1.607594
-  type: 'test'
-  ...
-# Subtest: recent observed rain and delayed watering merge into one watering group
-ok 262 - recent observed rain and delayed watering merge into one watering group
-  ---
-  duration_ms: 0.375115
-  type: 'test'
-  ...
-# Subtest: forecast rain remains wording distinct from observed rain
-ok 263 - forecast rain remains wording distinct from observed rain
-  ---
-  duration_ms: 0.193011
-  type: 'test'
-  ...
-# Subtest: heat and overlapping wind merge into heat and drying
-ok 264 - heat and overlapping wind merge into heat and drying
-  ---
-  duration_ms: 0.284028
-  type: 'test'
-  ...
-# Subtest: unrelated wind remains storms and wind
-ok 265 - unrelated wind remains storms and wind
-  ---
-  duration_ms: 6.439473
-  type: 'test'
-  ...
-# Subtest: greenhouse ventilation gets its own group
-ok 266 - greenhouse ventilation gets its own group
-  ---
-  duration_ms: 0.144688
-  type: 'test'
-  ...
-# Subtest: frost recommendations group together
-ok 267 - frost recommendations group together
-  ---
-  duration_ms: 0.239241
-  type: 'test'
-  ...
-# Subtest: storm and heavy rain group together
-ok 268 - storm and heavy rain group together
-  ---
-  duration_ms: 0.189806
-  type: 'test'
-  ...
-# Subtest: damp disease signal stays separate
-ok 269 - damp disease signal stays separate
-  ---
-  duration_ms: 0.319101
-  type: 'test'
-  ...
-# Subtest: top impacts are limited to three
-ok 270 - top impacts are limited to three
-  ---
-  duration_ms: 1.075342
-  type: 'test'
-  ...
-# Subtest: groups remain priority sorted
-ok 271 - groups remain priority sorted
-  ---
-  duration_ms: 0.171719
-  type: 'test'
-  ...
-# Subtest: duplicate action sentences are removed
-ok 272 - duplicate action sentences are removed
-  ---
-  duration_ms: 0.10633
-  type: 'test'
-  ...
-# Subtest: forecast day and night periods combine into one date
-ok 273 - forecast day and night periods combine into one date
-  ---
-  duration_ms: 0.442527
-  type: 'test'
-  ...
-# Subtest: duplicate forecast dates do not render duplicate days
-ok 274 - duplicate forecast dates do not render duplicate days
-  ---
-  duration_ms: 0.111218
-  type: 'test'
-  ...
-# Subtest: missing high is labeled clearly
-ok 275 - missing high is labeled clearly
-  ---
-  duration_ms: 0.07943
-  type: 'test'
-  ...
-# Subtest: missing low is labeled clearly
-ok 276 - missing low is labeled clearly
-  ---
-  duration_ms: 0.120512
-  type: 'test'
-  ...
-# Subtest: missing both temperatures is not shown as a broken dash
-ok 277 - missing both temperatures is not shown as a broken dash
-  ---
-  duration_ms: 0.105449
-  type: 'test'
-  ...
-# Subtest: forecast rain probability uses sensible whole-number rounding
-ok 278 - forecast rain probability uses sensible whole-number rounding
-  ---
-  duration_ms: 0.083656
-  type: 'test'
-  ...
-# Subtest: rain totals combine for the day
-ok 279 - rain totals combine for the day
-  ---
-  duration_ms: 0.090156
-  type: 'test'
-  ...
-# Subtest: forecast output is limited
-ok 280 - forecast output is limited
-  ---
-  duration_ms: 0.18552
-  type: 'test'
-  ...
-# Subtest: temperature rounding removes raw decimals
-ok 281 - temperature rounding removes raw decimals
-  ---
-  duration_ms: 0.096425
-  type: 'test'
-  ...
-# Subtest: humidity rounding removes raw decimals
-ok 282 - humidity rounding removes raw decimals
-  ---
-  duration_ms: 0.054643
-  type: 'test'
-  ...
-# Subtest: small rainfall keeps useful hundredths
-ok 283 - small rainfall keeps useful hundredths
-  ---
-  duration_ms: 0.063416
-  type: 'test'
-  ...
-# Subtest: larger rainfall avoids excessive precision
-ok 284 - larger rainfall avoids excessive precision
-  ---
-  duration_ms: 0.048113
-  type: 'test'
-  ...
-# Subtest: best timestamp prefers observation time
-ok 285 - best timestamp prefers observation time
-  ---
-  duration_ms: 0.100842
-  type: 'test'
-  ...
-# Subtest: best timestamp falls back to forecast update
-ok 286 - best timestamp falls back to forecast update
-  ---
-  duration_ms: 0.069024
-  type: 'test'
-  ...
-# Subtest: best timestamp uses app refresh only when better timestamps are absent
-ok 287 - best timestamp uses app refresh only when better timestamps are absent
-  ---
-  duration_ms: 0.052359
-  type: 'test'
-  ...
-# Subtest: provider failure can still produce an unavailable group
-ok 288 - provider failure can still produce an unavailable group
-  ---
-  duration_ms: 0.07946
-  type: 'test'
-  ...
-# Subtest: more than ten raw recommendations collapse into few categories
-ok 289 - more than ten raw recommendations collapse into few categories
-  ---
-  duration_ms: 0.163817
-  type: 'test'
-  ...
-# Subtest: weather grouping preserves source and freshness
-ok 290 - weather grouping preserves source and freshness
-  ---
-  duration_ms: 0.114172
-  type: 'test'
-  ...
-# Subtest: weather impacts wait for a usable reading or forecast summary
-ok 291 - weather impacts wait for a usable reading or forecast summary
-  ---
-  duration_ms: 0.128574
-  type: 'test'
-  ...
-# Subtest: explicit null weather values remain unavailable instead of becoming zero
-ok 292 - explicit null weather values remain unavailable instead of becoming zero
-  ---
-  duration_ms: 0.134693
-  type: 'test'
-  ...
-# Subtest: meaningful observed rain changes routine watering to Check Soil
-ok 293 - meaningful observed rain changes routine watering to Check Soil
-  ---
-  duration_ms: 17.097038
-  type: 'test'
-  ...
-# Subtest: forecast rain never completes or records watering
-ok 294 - forecast rain never completes or records watering
-  ---
-  duration_ms: 1.215583
+--- FAILED TEST DETAILS ---
+337:not ok 56 - Tool Shed is a flat directory and More retains settings and data management
+342:  failureType: 'testCodeFailure'
+378:  code: 'ERR_ASSERTION'
+379:  name: 'AssertionError'
+380:  expected:
+381:  actual: |-
+449:not ok 61 - permanent Render workflow uses the current exact seasonal-header verifier and established status names
+454:  failureType: 'testCodeFailure'
+576:  code: 'ERR_ASSERTION'
+577:  name: 'AssertionError'
+578:  expected:
+579:  actual: |-
+717:not ok 64 - Tool Shed weather cards choose distinct weather modes
+722:  failureType: 'testCodeFailure'
+758:  code: 'ERR_ASSERTION'
+759:  name: 'AssertionError'
+760:  expected:
+761:  actual: |-
+961:not ok 91 - Tool Shed is a flat eleven-destination directory
+966:  failureType: 'testCodeFailure'
+972:  code: 'ERR_ASSERTION'
+973:  name: 'AssertionError'
+974:  expected: 11
+975:  actual: 9
+1001:not ok 95 - current build marker preserves the Phase 4.7.5 navigation lock
+1006:  failureType: 'testCodeFailure'
+1022:  code: 'ERR_ASSERTION'
+1023:  name: 'AssertionError'
+1024:  expected:
+1025:  actual: |-
+1057:not ok 98 - seasonal header stays focused on Today and preserves navigation
+1062:  failureType: 'testCodeFailure'
+1207:  code: 'ERR_ASSERTION'
+1208:  name: 'AssertionError'
+1209:  expected:
+1210:  actual: |-
+1359:not ok 99 - production build creates static lossless WebP headers before Vite
+1364:  failureType: 'testCodeFailure'
+1413:  code: 'ERR_ASSERTION'
+1414:  name: 'AssertionError'
+1415:  expected:
+1416:  actual: |-
+1589:not ok 120 - release metadata identifies the exact seasonal header while preserving the navigation lock
+1594:  failureType: 'testCodeFailure'
+1610:  code: 'ERR_ASSERTION'
+1611:  name: 'AssertionError'
+1612:  expected:
+1613:  actual: |-
+1673:not ok 127 - health and analysis routes are served by the Node web service
+1678:  failureType: 'testCodeFailure'
+1684:  code: 'ERR_ASSERTION'
+1685:  name: 'AssertionError'
+1686:  expected: '0.20.5'
+1687:  actual: '0.20.7'
+--- TEST SUMMARY ---
+  duration_ms: 1.086815
   type: 'test'
   ...
 # Subtest: protected greenhouse receives no outdoor rain watering credit
 ok 295 - protected greenhouse receives no outdoor rain watering credit
   ---
-  duration_ms: 1.37908
+  duration_ms: 1.198985
   type: 'test'
   ...
 # Subtest: weather task ids remain stable and duplicate-free
 ok 296 - weather task ids remain stable and duplicate-free
   ---
-  duration_ms: 1.433703
+  duration_ms: 1.218177
   type: 'test'
   ...
 # Subtest: migration is idempotent and preserves environmental sync fields
 ok 297 - migration is idempotent and preserves environmental sync fields
   ---
-  duration_ms: 0.360864
+  duration_ms: 0.337935
   type: 'test'
   ...
 1..297
@@ -240,8 +85,8 @@ ok 297 - migration is idempotent and preserves environmental sync fields
 # cancelled 0
 # skipped 0
 # todo 0
-# duration_ms 4581.25682
---- BUILD TAIL ---
+# duration_ms 5556.829614
+--- BUILD SUMMARY ---
 
 > brookes-wi-garden@0.20.9 build
 > node scripts/buildSeasonalHeaders.mjs && vite build
@@ -262,7 +107,7 @@ dist/assets/index.es-eEGCOIoI.js       151.32 kB │ gzip:  48.88 kB
 dist/assets/html2canvas-BysGUT3I.js    199.55 kB │ gzip:  46.77 kB
 dist/assets/index-TOT9i4To.js        1,264.29 kB │ gzip: 383.03 kB
 
-[32m✓ built in 576ms[39m
+[32m✓ built in 629ms[39m
 [33m[plugin builtin:vite-reporter] 
 (!) Some chunks are larger than 500 kB after minification. Consider:
 - Using dynamic import() to code-split the application
