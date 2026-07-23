@@ -22,7 +22,7 @@ jobs:
           node-version: 22
           cache: npm
       - run: npm ci
-      - name: Capture focused test and build diagnostics
+      - name: Capture focused Phase 4.8.1 diagnostics
         run: |
           set +e
           npm test > /tmp/phase481-test.log 2>&1
@@ -34,6 +34,8 @@ jobs:
             echo "BUILD_STATUS=$BUILD_STATUS"
             echo "--- FAILED TEST DETAILS ---"
             grep -nE "not ok|AssertionError|ERR_ASSERTION|failureType|expected:|actual:|Error:" /tmp/phase481-test.log || true
+            echo "--- MATCHING TEST SOURCE LOCATIONS ---"
+            grep -RInE "Tool Shed is a flat directory|permanent Render workflow uses|Tool Shed weather cards choose|flat eleven-destination directory|current build marker preserves|seasonal header stays focused|production build creates static|release metadata identifies|health and analysis routes" test tests . --exclude-dir=node_modules --exclude=phase481-diagnostics.txt 2>/dev/null || true
             echo "--- TEST SUMMARY ---"
             tail -n 30 /tmp/phase481-test.log
             echo "--- BUILD SUMMARY ---"
@@ -42,6 +44,6 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add phase481-diagnostics.txt
-          git commit -m "Refresh Phase 4.8.1 verification diagnostics" || true
+          git commit -m "Locate stale Phase 4.8.1 test expectations" || true
           git push origin HEAD:phase-4-8-1-mobile-continuity
           exit 0
