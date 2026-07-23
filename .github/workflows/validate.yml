@@ -43,7 +43,14 @@ jobs:
           {
             echo '### Validation test failure'
             echo '```text'
-            tail -n 120 test.log
+            awk '
+              /^not ok / {show=1; remaining=34}
+              show {print; remaining--}
+              show && remaining<=0 {show=0}
+            ' test.log
+            echo
+            echo '--- TEST TOTALS ---'
+            grep -E '^# (tests|pass|fail|cancelled|skipped|todo|duration_ms)' test.log || true
             echo '```'
           } > validation-comment.md
           gh pr comment "${{ github.event.pull_request.number }}" --body-file validation-comment.md
@@ -69,7 +76,7 @@ jobs:
           {
             echo '### Production build failure'
             echo '```text'
-            tail -n 120 build.log
+            tail -n 160 build.log
             echo '```'
           } > validation-comment.md
           gh pr comment "${{ github.event.pull_request.number }}" --body-file validation-comment.md
