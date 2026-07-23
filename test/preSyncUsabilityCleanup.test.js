@@ -30,8 +30,8 @@ test('Phase 4.8.1 navigation styles retain More, weather, Indoor, and compact To
  assert.equal((toolShed.match(/<ToolCategory /g)||[]).length,3);assert.match(continuity,/tool-shed-category-summary/);
 });
 
-test('release metadata identifies Phase 4.8.1 user-facing continuity improvements',()=>{
+test('release metadata identifies Phase 4.8.2 weather truth improvements',()=>{
  const source=src('version.js');
- assert.match(source,/APP_VERSION='0\.20\.9'/);assert.match(source,/phase-4-8-1-mobile-continuity/);
- assert.match(source,/Tool Shed categories now stay compact until opened/);assert.match(source,/Weather and timing tools are easier to understand/);assert.match(source,/Add Plant guides you to create a Growing Space first/);assert.match(source,/Vacation Mode now consistently uses Garden Buddy/);assert.match(source,/Home’s seasonal header now connects more cleanly to Today/);assert.match(source,/Garden & Account Settings no longer leaves an empty panel when closed/);
+ assert.match(source,/APP_VERSION='0\.21\.0'/);assert.match(source,/phase-4-8-2-weather-truth/);
+ assert.match(source,/Weather icons now match the reported conditions/);assert.match(source,/Today now uses today’s actual forecast high and low/);assert.match(source,/Weather readings show their source and observation time/);assert.match(source,/Backup and stale readings are clearly identified/);assert.match(source,/Garden Compass can use the Runyan garden weather station when configured/);
 });
