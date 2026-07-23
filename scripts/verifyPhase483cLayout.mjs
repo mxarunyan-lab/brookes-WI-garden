@@ -9,9 +9,11 @@ try{
   const page=await context.newPage();
   const errors=[];page.on('console',message=>{if(message.type()==='error')errors.push(message.text())});page.on('requestfailed',request=>errors.push(`${request.url()} ${request.failure()?.errorText||'failed'}`));
   await page.goto(`${base}/?verify=${Date.now()}`,{waitUntil:'networkidle'});
+  await page.evaluate(()=>{const key='brookes-garden-state-v2',garden=JSON.parse(localStorage.getItem(key)||'{}');garden.profile={...(garden.profile||{})};delete garden.profile.setupDetailsConfirmedAt;delete garden.profile.setupGardenConfirmedAt;delete garden.profile.setupCompletedAt;delete garden.profile.setupGardenStartedAt;delete garden.profile.setupGardenNeedsExplicitReview;delete garden.profile.setupComplete;localStorage.setItem(key,JSON.stringify(garden));localStorage.setItem('brookes-garden-page-v2','today')});
+  await page.reload({waitUntil:'networkidle'});
   const row=page.locator('.garden-setup-steps li>button').first();
-  await row.waitFor({state:'visible'});
-  const result=await row.evaluate(button=>{const li=button.parentElement,content=button.querySelector('span:nth-child(2)'),title=button.querySelector('strong'),card=button.closest('.setup-progress-card');const bs=getComputedStyle(button),ls=getComputedStyle(li),cs=getComputedStyle(content),rect=button.getBoundingClientRect(),cardRect=card.getBoundingClientRect(),titleRect=title.getBoundingClientRect();return{liDisplay:ls.display,liColumns:ls.gridTemplateColumns,buttonWidth:rect.width,cardWidth:cardRect.width,contentWidth:content.getBoundingClientRect().width,titleWidth:titleRect.width,titleHeight:titleRect.height,buttonHeight:rect.height,scrollWidth:button.scrollWidth,clientWidth:button.clientWidth,whiteSpace:bs.whiteSpace,wordBreak:bs.wordBreak,contentMinWidth:cs.minWidth,gridColumns:bs.gridTemplateColumns}});
+  await row.waitFor({state:'visible',timeout:15000});
+  const result=await row.evaluate(button=>{const li=button.parentElement,content=button.querySelector('span:nth-child(2)'),title=button.querySelector('strong'),card=button.closest('.setup-progress-card');const bs=getComputedStyle(button),ls=getComputedStyle(li),rect=button.getBoundingClientRect(),cardRect=card.getBoundingClientRect(),titleRect=title.getBoundingClientRect();return{liDisplay:ls.display,liColumns:ls.gridTemplateColumns,buttonWidth:rect.width,cardWidth:cardRect.width,contentWidth:content.getBoundingClientRect().width,titleWidth:titleRect.width,titleHeight:titleRect.height,buttonHeight:rect.height,scrollWidth:button.scrollWidth,clientWidth:button.clientWidth,whiteSpace:bs.whiteSpace,wordBreak:bs.wordBreak}});
   assert.notEqual(result.liColumns,'34px 1fr',`${width}px list item retained obsolete grid`);
   assert.equal(result.liDisplay,'block',`${width}px list item must be block`);
   assert.ok(result.buttonWidth>200,`${width}px button width was ${result.buttonWidth}`);
@@ -25,5 +27,5 @@ try{
   assert.deepEqual(errors,[],`${width}px console/request errors: ${errors.join('; ')}`);
   await context.close();
  }
- console.log(JSON.stringify({ok:true,widths:[320,375,390,430]},null,2));
+ console.log(JSON.stringify({ok:true,widths:[320,375,390,430],realTodayChecklist:true},null,2));
 }finally{await browser.close()}
