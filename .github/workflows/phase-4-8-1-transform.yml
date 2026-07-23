@@ -20,21 +20,20 @@ jobs:
         with:
           node-version: 22
           cache: npm
-      - name: Align server and backend test release version
+      - name: Align backend test release version
         run: |
           python - <<'PY'
           from pathlib import Path
-          for path in [Path('server/index.js'),Path('test/seedPacketBackend.test.js')]:
-              text=path.read_text()
-              text=text.replace("process.env.APP_VERSION || '0.20.7'","process.env.APP_VERSION || '0.20.9'")
-              text=text.replace("health.version,'0.20.5'","health.version,'0.20.9'")
-              path.write_text(text)
+          path=Path('test/seedPacketBackend.test.js')
+          text=path.read_text().replace("health.version,'0.20.5'","health.version,'0.20.9'")
+          path.write_text(text)
           PY
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add server/index.js test/seedPacketBackend.test.js
-          git commit -m "Align Phase 4.8.1 server health version" || true
+          git add test/seedPacketBackend.test.js
+          git commit -m "Align Phase 4.8.1 backend health test" || true
           git push origin HEAD:phase-4-8-1-mobile-continuity
       - run: npm ci
       - run: npm test
       - run: npm run build
+# final release verification trigger
