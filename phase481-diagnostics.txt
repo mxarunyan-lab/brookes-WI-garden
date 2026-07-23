@@ -1,111 +1,79 @@
 TEST_STATUS=1
 BUILD_STATUS=0
 --- FAILED TEST DETAILS ---
-337:not ok 56 - Tool Shed is a flat directory and More retains settings and data management
-342:  failureType: 'testCodeFailure'
-378:  code: 'ERR_ASSERTION'
-379:  name: 'AssertionError'
-380:  expected:
-381:  actual: |-
-449:not ok 61 - permanent Render workflow uses the current exact seasonal-header verifier and established status names
-454:  failureType: 'testCodeFailure'
-576:  code: 'ERR_ASSERTION'
-577:  name: 'AssertionError'
-578:  expected:
-579:  actual: |-
-717:not ok 64 - Tool Shed weather cards choose distinct weather modes
-722:  failureType: 'testCodeFailure'
-758:  code: 'ERR_ASSERTION'
-759:  name: 'AssertionError'
-760:  expected:
-761:  actual: |-
-961:not ok 91 - Tool Shed is a flat eleven-destination directory
-966:  failureType: 'testCodeFailure'
-972:  code: 'ERR_ASSERTION'
-973:  name: 'AssertionError'
-974:  expected: 11
-975:  actual: 9
-1001:not ok 95 - current build marker preserves the Phase 4.7.5 navigation lock
-1006:  failureType: 'testCodeFailure'
-1022:  code: 'ERR_ASSERTION'
-1023:  name: 'AssertionError'
-1024:  expected:
-1025:  actual: |-
-1057:not ok 98 - seasonal header stays focused on Today and preserves navigation
-1062:  failureType: 'testCodeFailure'
-1207:  code: 'ERR_ASSERTION'
-1208:  name: 'AssertionError'
-1209:  expected:
-1210:  actual: |-
-1359:not ok 99 - production build creates static lossless WebP headers before Vite
-1364:  failureType: 'testCodeFailure'
-1413:  code: 'ERR_ASSERTION'
-1414:  name: 'AssertionError'
-1415:  expected:
-1416:  actual: |-
-1589:not ok 120 - release metadata identifies the exact seasonal header while preserving the navigation lock
-1594:  failureType: 'testCodeFailure'
-1610:  code: 'ERR_ASSERTION'
-1611:  name: 'AssertionError'
-1612:  expected:
-1613:  actual: |-
-1673:not ok 127 - health and analysis routes are served by the Node web service
-1678:  failureType: 'testCodeFailure'
-1684:  code: 'ERR_ASSERTION'
-1685:  name: 'AssertionError'
-1686:  expected: '0.20.5'
-1687:  actual: '0.20.7'
+367:not ok 61 - permanent Render workflow uses the current exact seasonal-header verifier and established status names
+372:  failureType: 'testCodeFailure'
+494:  code: 'ERR_ASSERTION'
+495:  name: 'AssertionError'
+496:  expected:
+497:  actual: |-
+839:not ok 98 - seasonal header stays focused on Today and preserves navigation
+844:  failureType: 'testCodeFailure'
+989:  code: 'ERR_ASSERTION'
+990:  name: 'AssertionError'
+991:  expected:
+992:  actual: |-
+1141:not ok 99 - production build creates static lossless WebP headers before Vite
+1146:  failureType: 'testCodeFailure'
+1195:  code: 'ERR_ASSERTION'
+1196:  name: 'AssertionError'
+1197:  expected:
+1198:  actual: |-
+1371:not ok 120 - release metadata identifies the exact seasonal header while preserving the navigation lock
+1376:  failureType: 'testCodeFailure'
+1392:  code: 'ERR_ASSERTION'
+1393:  name: 'AssertionError'
+1394:  expected:
+1395:  actual: |-
+1455:not ok 127 - health and analysis routes are served by the Node web service
+1460:  failureType: 'testCodeFailure'
+1466:  code: 'ERR_ASSERTION'
+1467:  name: 'AssertionError'
+1468:  expected: '0.20.5'
+1469:  actual: '0.20.7'
 --- MATCHING TEST SOURCE LOCATIONS ---
 test/seedPacketBackend.test.js:106:test('health and analysis routes are served by the Node web service',async()=>{
 test/preSyncUsabilityCleanup.test.js:54:test('release metadata identifies the exact seasonal header while preserving the navigation lock',()=>{
-test/informationArchitecture.test.js:31:test('Tool Shed is a flat directory and More retains settings and data management',()=>{
 test/phase476SeasonalHeader.test.js:31:test('seasonal header stays focused on Today and preserves navigation',async()=>{
 test/phase476SeasonalHeader.test.js:67:test('production build creates static lossless WebP headers before Vite',async()=>{
 test/phase473LiveWorkflow.test.js:9:test('permanent Render workflow uses the current exact seasonal-header verifier and established status names',async()=>{
-test/phase473Smoothing.test.js:15:test('Tool Shed weather cards choose distinct weather modes',()=>{
-test/phase475NavigationLock.test.js:18:test('Tool Shed is a flat eleven-destination directory',async()=>{
-test/phase475NavigationLock.test.js:65:test('current build marker preserves the Phase 4.7.5 navigation lock',async()=>{
 ./.github/workflows/phase-4-8-1-transform.yml:38:            grep -RInE "Tool Shed is a flat directory|permanent Render workflow uses|Tool Shed weather cards choose|flat eleven-destination directory|current build marker preserves|seasonal header stays focused|production build creates static|release metadata identifies|health and analysis routes" test tests . --exclude-dir=node_modules --exclude=phase481-diagnostics.txt 2>/dev/null || true
 ./test/seedPacketBackend.test.js:106:test('health and analysis routes are served by the Node web service',async()=>{
 ./test/preSyncUsabilityCleanup.test.js:54:test('release metadata identifies the exact seasonal header while preserving the navigation lock',()=>{
-./test/informationArchitecture.test.js:31:test('Tool Shed is a flat directory and More retains settings and data management',()=>{
 ./test/phase476SeasonalHeader.test.js:31:test('seasonal header stays focused on Today and preserves navigation',async()=>{
 ./test/phase476SeasonalHeader.test.js:67:test('production build creates static lossless WebP headers before Vite',async()=>{
 ./test/phase473LiveWorkflow.test.js:9:test('permanent Render workflow uses the current exact seasonal-header verifier and established status names',async()=>{
-./test/phase473Smoothing.test.js:15:test('Tool Shed weather cards choose distinct weather modes',()=>{
-./test/phase475NavigationLock.test.js:18:test('Tool Shed is a flat eleven-destination directory',async()=>{
-./test/phase475NavigationLock.test.js:65:test('current build marker preserves the Phase 4.7.5 navigation lock',async()=>{
 --- TEST SUMMARY ---
-  duration_ms: 2.177889
+  duration_ms: 1.977074
   type: 'test'
   ...
 # Subtest: protected greenhouse receives no outdoor rain watering credit
 ok 295 - protected greenhouse receives no outdoor rain watering credit
   ---
-  duration_ms: 2.439616
+  duration_ms: 2.844027
   type: 'test'
   ...
 # Subtest: weather task ids remain stable and duplicate-free
 ok 296 - weather task ids remain stable and duplicate-free
   ---
-  duration_ms: 2.579827
+  duration_ms: 2.879623
   type: 'test'
   ...
 # Subtest: migration is idempotent and preserves environmental sync fields
 ok 297 - migration is idempotent and preserves environmental sync fields
   ---
-  duration_ms: 0.568367
+  duration_ms: 0.656994
   type: 'test'
   ...
 1..297
 # tests 297
 # suites 0
-# pass 288
-# fail 9
+# pass 292
+# fail 5
 # cancelled 0
 # skipped 0
 # todo 0
-# duration_ms 5908.490762
+# duration_ms 5761.879466
 --- BUILD SUMMARY ---
 
 > brookes-wi-garden@0.20.9 build
@@ -127,7 +95,7 @@ dist/assets/index.es-eEGCOIoI.js       151.32 kB │ gzip:  48.88 kB
 dist/assets/html2canvas-BysGUT3I.js    199.55 kB │ gzip:  46.77 kB
 dist/assets/index-TOT9i4To.js        1,264.29 kB │ gzip: 383.03 kB
 
-[32m✓ built in 719ms[39m
+[32m✓ built in 772ms[39m
 [33m[plugin builtin:vite-reporter] 
 (!) Some chunks are larger than 500 kB after minification. Consider:
 - Using dynamic import() to code-split the application
