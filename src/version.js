@@ -1,11 +1,12 @@
-export const APP_VERSION='0.20.9';
-export const BUILD_ID='phase-4-8-1-mobile-continuity';
+export const APP_VERSION='0.21.1';
+export const BUILD_ID='phase-4-8-3-first-time-clarity';
 export const UPDATED_AT='July 23, 2026';
 export const WHATS_NEW=[
- 'Tool Shed categories now stay compact until opened',
- 'Weather and timing tools are easier to understand',
- 'Add Plant guides you to create a Growing Space first',
- 'Vacation Mode now consistently uses Garden Buddy',
- 'Home’s seasonal header now connects more cleanly to Today',
- 'Garden & Account Settings no longer leaves an empty panel when closed'
+ 'Center is now Plan & Care, with clearer places for planting, tasks, seeds, shopping, and trips',
+ 'Tool Shed now contains only utilities, weather, and Print & Labels',
+ 'New gardens are guided through setup in the correct order',
+ 'Add Planting and Add Growing Space now show the essentials first',
+ 'Garden History and Print & Labels are easier to find',
+ 'Calm weather and optional ideas take up less room on Today',
+ 'Technical details remain available without crowding normal screens'
 ];

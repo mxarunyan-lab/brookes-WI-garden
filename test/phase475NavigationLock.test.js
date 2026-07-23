@@ -4,24 +4,25 @@ import{readFile}from'node:fs/promises';
 
 const read=path=>readFile(path,'utf8');
 
-test('Garden Center is locked to five core destinations',async()=>{
+test('Plan & Care is locked to six planning and care destinations',async()=>{
  const source=await read('src/GardenCenter.jsx');
- const titles=['Seed Department','Planting Desk','Growing Spaces','Indoor Growing','Garden Chore Board'];
- assert.equal((source.match(/<DepartmentTile /g)||[]).length,5);
+ const titles=['Planting Planner','Garden Tasks','My Seeds','Indoor Growing','Garden Shopping List','Vacation Mode'];
+ assert.equal((source.match(/<DestinationRow /g)||[]).length,6);
  for(const title of titles)assert.equal(source.split(`title="${title}"`).length-1,1,`${title} must appear once`);
- for(const removed of['Shopping List','Vacation Mode','Garden History','Next Season'])assert.equal(source.includes(`title="${removed}"`),false,`${removed} must not remain in Garden Center`);
- assert.match(source,/title="Garden Center"/);
+ assert.match(source,/title="Plan & Care"/);
+ assert.match(source,/aria-label="Plan and Care destinations"/);
  assert.doesNotMatch(source,/Departments for seeds/);
  assert.match(source,/navigation-directory-card/);
 });
 
-test('Tool Shed is a three-category controlled accordion with nine destinations',async()=>{
+test('Tool Shed is a three-category controlled accordion with six utility destinations',async()=>{
  const source=await read('src/ToolShed.jsx');
- const titles=['Spacing Calculator','Soil & Container Calculator','Seed Quantity Calculator','Garden Measurements','Garden Weather & Timing','Shopping List','Vacation Mode','Printable Garden Pack & Labels','Garden History'];
+ const titles=['Spacing Calculator','Soil & Container Calculator','Seed Quantity Calculator','Garden Measurements','Garden Weather & Timing','Print & Labels'];
  assert.equal((source.match(/<ToolCategory /g)||[]).length,3);
- assert.equal((source.match(/<ToolCard /g)||[]).length,9);
+ assert.equal((source.match(/<ToolCard /g)||[]).length,6);
  for(const title of titles)assert.equal(source.includes(`title="${title}"`),true,`${title} must remain available`);
- for(const heading of['Calculators & Utilities','Weather & Timing','Records & Extras'])assert.equal(source.includes(`title="${heading}"`),true,`${heading} category missing`);
+ for(const heading of['Calculators & Utilities','Weather & Timing','Print & Labels'])assert.equal(source.includes(`title="${heading}"`),true,`${heading} category missing`);
+ for(const moved of['Shopping List','Vacation Mode','Garden History'])assert.equal(source.includes(`title="${moved}"`),false,`${moved} must not remain in Tool Shed`);
  assert.match(source,/useState\(null\)/);
  assert.match(source,/current===id\?null:id/);
  assert.match(source,/aria-expanded=\{open\}/);
@@ -32,15 +33,15 @@ test('Tool Shed is a three-category controlled accordion with nine destinations'
  assert.doesNotMatch(source,/title="Frost & Planting Dates"/);
 });
 
-test('moved destinations keep existing routes and Tool Shed ownership',async()=>{
- const[app,shopping,vacation,memory]=await Promise.all(['src/App.jsx','src/GardenShoppingList.jsx','src/VacationMode.jsx','src/GardenMemory.jsx'].map(read));
- assert.match(app,/vacation:'tools'/);
- assert.match(app,/'shopping-list':'tools'/);
- assert.match(app,/memory:'tools'/);
- assert.match(app,/parentMap=\{weather:'today',chores:'center',vacation:'tools','plan-plant':'center','shopping-list':'tools','seed-tools':'center',indoor:'center',memory:'tools'/);
- assert.match(shopping,/navigate\('tools'\)/);
- assert.match(vacation,/navigate\('tools'\)/);
- assert.match(memory,/navigate\('tools'\)/);
+test('moved destinations keep existing routes and new navigation ownership',async()=>{
+ const[app,shopping,vacation,memory,nav]=await Promise.all(['src/App.jsx','src/GardenShoppingList.jsx','src/VacationMode.jsx','src/GardenMemory.jsx','src/Navigation.jsx'].map(read));
+ assert.match(nav,/'shopping-list':'center'/);
+ assert.match(nav,/vacation:'center'/);
+ assert.match(nav,/memory:'garden'/);
+ assert.match(nav,/weather:'tools'/);
+ assert.match(shopping,/navigate\(/);
+ assert.match(vacation,/navigate\(/);
+ assert.match(memory,/navigate\(/);
  assert.match(app,/page==='shopping-list'/);
  assert.match(app,/page==='vacation'/);
  assert.match(app,/page==='memory'/);
@@ -52,6 +53,7 @@ test('secondary pages share the compact header system without changing Today or 
  assert.match(main,/phase-4-7-5-navigation-lock\.css/);
  assert.match(main,/phase-4-7-5-card-layout-lock\.css/);
  assert.match(main,/phase-4-8-1-mobile-continuity\.css/);
+ assert.match(main,/phase-4-8-3-first-time-clarity\.css/);
  assert.match(css,/secondary-hero\.compact-secondary-header/);
  assert.match(layout,/-webkit-line-clamp:1!important/);
  assert.match(today,/compact-home-hero/);
@@ -59,15 +61,15 @@ test('secondary pages share the compact header system without changing Today or 
  assert.doesNotMatch(css,/compact-home-hero\s*\{/);
 });
 
-test('Phase 4.7.5 CSS files have balanced braces',async()=>{
- for(const path of['src/styles/phase-4-7-5-navigation-lock.css','src/styles/phase-4-7-5-card-layout-lock.css','src/styles/phase-4-8-1-mobile-continuity.css']){
+test('release CSS files have balanced braces',async()=>{
+ for(const path of['src/styles/phase-4-7-5-navigation-lock.css','src/styles/phase-4-7-5-card-layout-lock.css','src/styles/phase-4-8-1-mobile-continuity.css','src/styles/phase-4-8-3-first-time-clarity.css']){
   const source=await read(path),opens=(source.match(/\{/g)||[]).length,closes=(source.match(/\}/g)||[]).length;
   assert.equal(opens,closes,`${path} has unbalanced braces`);
  }
 });
 
-test('current build marker identifies Phase 4.8.2 weather truth',async()=>{
+test('current build marker identifies Phase 4.8.3 first-time clarity',async()=>{
  const version=await read('src/version.js');
- assert.match(version,/APP_VERSION='0\.21\.0'/);
- assert.match(version,/BUILD_ID='phase-4-8-2-weather-truth'/);
+ assert.match(version,/APP_VERSION='0\.21\.1'/);
+ assert.match(version,/BUILD_ID='phase-4-8-3-first-time-clarity'/);
 });

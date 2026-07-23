@@ -13,112 +13,18 @@ const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..', 'd
 const buckets = new Map();
 const cache = new Map();
 const CACHE_TTL_MS = 30 * 60_000;
-
 const hashPacketPayload = (frontImage, backImage) => crypto.createHash('sha256').update(String(frontImage)).update('\0').update(String(backImage)).digest('hex');
-
-function rateLimit(req, res, next) {
-  const key = req.get('x-device-id') || req.ip || 'unknown';
-  const now = Date.now();
-  const rows = (buckets.get(key) || []).filter((timestamp) => now - timestamp < 60_000);
-  if (rows.length >= 4) return res.status(429).json({code: 'RATE_LIMITED', message: 'Packet analysis is busy. Try again shortly.', requestId: crypto.randomUUID()});
-  rows.push(now);
-  buckets.set(key, rows);
-  next();
-}
-
-const publicMessage = (code, status) => {
-  if (code === 'BOTH_IMAGES_REQUIRED') return 'Add both packet photos before analysis.';
-  if (code === 'IMAGE_TOO_LARGE' || code === 'IMAGE_DIMENSIONS_TOO_LARGE') return 'One packet photo is too large. Replace it with a smaller image.';
-  if (code === 'INVALID_IMAGE' || code === 'UNSUPPORTED_IMAGE') return 'One packet photo could not be read. Replace that photo and try again.';
-  if (code === 'MODEL_REFUSAL') return 'The packet analysis could not be completed from these photos. Your photos and draft remain saved.';
-  if (code === 'UPSTREAM_TIMEOUT' || status === 504) return 'Packet analysis did not finish. Your photos and draft remain saved.';
-  if (status === 503) return 'Online packet analysis is temporarily unavailable. Your photos and draft remain saved.';
-  return 'Packet analysis could not finish. Your photos and draft remain saved.';
-};
-
-const cleanLookupIdentity = (input = {}) => ({
-  brand: String(input.brand || '').slice(0, 160),
-  crop: String(input.crop || input.name || '').slice(0, 160),
-  cropId: String(input.cropId || '').slice(0, 120),
-  variety: String(input.variety || '').slice(0, 200),
-  productName: String(input.productName || '').slice(0, 240),
-  barcode: String(input.barcode || '').replace(/\D/g, '').slice(0, 20),
-  sku: String(input.sku || input.officialProductId || '').slice(0, 160),
-  packetYear: String(input.packetYear || '').slice(0, 12),
-  rawVisibleText: String(input.rawText || input.rawVisibleText || '').slice(0, 4000),
-});
+function rateLimit(req, res, next) {const key = req.get('x-device-id') || req.ip || 'unknown',now = Date.now(),rows = (buckets.get(key) || []).filter((timestamp) => now - timestamp < 60_000);if (rows.length >= 4) return res.status(429).json({code: 'RATE_LIMITED', message: 'Packet analysis is busy. Try again shortly.', requestId: crypto.randomUUID()});rows.push(now);buckets.set(key, rows);next();}
+const publicMessage = (code, status) => {if (code === 'BOTH_IMAGES_REQUIRED') return 'Add both packet photos before analysis.';if (code === 'IMAGE_TOO_LARGE' || code === 'IMAGE_DIMENSIONS_TOO_LARGE') return 'One packet photo is too large. Replace it with a smaller image.';if (code === 'INVALID_IMAGE' || code === 'UNSUPPORTED_IMAGE') return 'One packet photo could not be read. Replace that photo and try again.';if (code === 'MODEL_REFUSAL') return 'The packet analysis could not be completed from these photos. Your photos and draft remain saved.';if (code === 'UPSTREAM_TIMEOUT' || status === 504) return 'Packet analysis did not finish. Your photos and draft remain saved.';if (status === 503) return 'Online packet analysis is temporarily unavailable. Your photos and draft remain saved.';return 'Packet analysis could not finish. Your photos and draft remain saved.';};
+const cleanLookupIdentity = (input = {}) => ({brand: String(input.brand || '').slice(0, 160),crop: String(input.crop || input.name || '').slice(0, 160),cropId: String(input.cropId || '').slice(0, 120),variety: String(input.variety || '').slice(0, 200),productName: String(input.productName || '').slice(0, 240),barcode: String(input.barcode || '').replace(/\D/g, '').slice(0, 20),sku: String(input.sku || input.officialProductId || '').slice(0, 160),packetYear: String(input.packetYear || '').slice(0, 12),rawVisibleText: String(input.rawText || input.rawVisibleText || '').slice(0, 4000)});
 
 export function createApp({analyze = analyzeSeedPacket, research = researchExactSeedProduct, fetchStation = fetchPersonalWeatherStation} = {}) {
-  const app = express();
-  app.disable('x-powered-by');
-  app.set('trust proxy', 1);
-  app.use(helmet({contentSecurityPolicy: false, crossOriginEmbedderPolicy: false}));
-  app.use(compression());
-  app.use(express.json({limit: process.env.SEED_PACKET_REQUEST_LIMIT || '24mb'}));
-
-  app.use('/api', (req, res, next) => {
-    res.set('Cache-Control', 'no-store');
-    next();
-  });
-
-  app.get('/api/health', (req, res) => res.json({
-    ok: true,
-    service: 'runyan-garden',
-    packetVisionConfigured: Boolean(process.env.OPENAI_API_KEY),
-    packetVisionModel: process.env.SEED_PACKET_VISION_MODEL || 'gpt-5-mini',
-    productResearchProviders: configuredResearchProviders(),
-    personalWeatherStationConfigured: Boolean(process.env.PWS_PROVIDER && process.env.PWS_STATION_ID && process.env.PWS_API_KEY),
-    personalWeatherStationProvider: process.env.PWS_PROVIDER || null,
-    personalWeatherStationId: process.env.PWS_STATION_ID || null,
-    version: process.env.APP_VERSION || '0.21.0',
-  }));
-
-  app.get('/api/weather/current', async (req, res) => {
-    const result = await fetchStation({env: process.env});
-    if (!result.ok) return res.status(result.configured ? 503 : 200).json({ok:false, configured:Boolean(result.configured), provider:result.provider||null, stationId:result.stationId||null, reason:result.reason||'unavailable'});
-    return res.json({ok:true, configured:true, provider:result.provider, stationId:result.stationId, observation:result.observation});
-  });
-
-  app.post('/api/seed-products/lookup', rateLimit, async (req, res) => {
-    const requestId = crypto.randomUUID();
-    try {
-      const identity = cleanLookupIdentity(req.body?.identity || req.body || {});
-      if (!identity.brand || !identity.crop || !identity.variety) {
-        return res.status(400).json({code: 'IDENTITY_REQUIRED', message: 'Brand, crop, and variety are required for exact product research.', requestId});
-      }
-      const result = await research(identity);
-      return res.json({...result, requestId});
-    } catch (error) {
-      console.error('[seed-product-research]', {requestId, code: error.code || 'RESEARCH_FAILED', message: error.message});
-      return res.status(Number(error.status) || 502).json({code: error.code || 'RESEARCH_FAILED', message: 'Exact-product research could not finish. Packet text remains available.', requestId});
-    }
-  });
-
-  app.post('/api/seed-packets/analyze', rateLimit, async (req, res) => {
-    const requestId = crypto.randomUUID();
-    try {
-      const {frontImage, backImage, draftContext} = req.body || {};
-      if (!frontImage || !backImage) return res.status(400).json({code: 'BOTH_IMAGES_REQUIRED', message: publicMessage('BOTH_IMAGES_REQUIRED', 400), requestId});
-      const cacheKey = `${process.env.SEED_PACKET_VISION_MODEL || 'gpt-5-mini'}:${hashPacketPayload(frontImage, backImage)}`;
-      const cached = cache.get(cacheKey);
-      if (cached && Date.now() - cached.cachedAt < CACHE_TTL_MS) return res.json({...cached.result, cacheHit: true});
-      const result = await analyze({frontImage, backImage, draftContext}, {requestId});
-      cache.set(cacheKey, {result, cachedAt: Date.now()});
-      const timer = setTimeout(() => cache.delete(cacheKey), CACHE_TTL_MS);
-      timer.unref?.();
-      return res.json({...result, cacheHit: false});
-    } catch (error) {
-      const status = Number(error.status) || (error.code === 'VISION_NOT_CONFIGURED' ? 503 : 502);
-      console.error('[seed-packet-vision]', {requestId, code: error.code || 'ANALYSIS_FAILED', message: error.message, upstreamStatus: error.upstreamStatus || null, upstreamCode: error.upstreamCode || null, upstreamType: error.upstreamType || null, upstreamMessage: error.upstreamMessage || null, validationErrors: error.validationErrors || null});
-      return res.status(status).json({code: error.code || 'ANALYSIS_FAILED', message: publicMessage(error.code, status), requestId});
-    }
-  });
-
-  app.use('/api', (req, res) => res.status(404).json({code: 'NOT_FOUND', message: 'API route not found.'}));
-  app.use(express.static(root, {index: false, maxAge: '1h'}));
-  app.use((req, res) => res.sendFile(path.join(root, 'index.html')));
-  return app;
+ const app = express();app.disable('x-powered-by');app.set('trust proxy', 1);app.use(helmet({contentSecurityPolicy: false, crossOriginEmbedderPolicy: false}));app.use(compression());app.use(express.json({limit: process.env.SEED_PACKET_REQUEST_LIMIT || '24mb'}));app.use('/api', (req, res, next) => {res.set('Cache-Control', 'no-store');next();});
+ app.get('/api/health', (req, res) => res.json({ok:true,service:'runyan-garden',phase:'4.8.3',buildId:'phase-4-8-3-first-time-clarity',packetVisionConfigured:Boolean(process.env.OPENAI_API_KEY),packetVisionModel:process.env.SEED_PACKET_VISION_MODEL || 'gpt-5-mini',productResearchProviders:configuredResearchProviders(),personalWeatherStationConfigured:Boolean(process.env.PWS_PROVIDER && process.env.PWS_STATION_ID && process.env.PWS_API_KEY),personalWeatherStationProvider:process.env.PWS_PROVIDER || null,personalWeatherStationId:process.env.PWS_STATION_ID || null,version:process.env.APP_VERSION || '0.21.1'}));
+ app.get('/api/weather/current', async (req, res) => {const result = await fetchStation({env: process.env});if (!result.ok) return res.status(result.configured ? 503 : 200).json({ok:false,configured:Boolean(result.configured),provider:result.provider||null,stationId:result.stationId||null,reason:result.reason||'unavailable'});return res.json({ok:true,configured:true,provider:result.provider,stationId:result.stationId,observation:result.observation});});
+ app.post('/api/seed-products/lookup', rateLimit, async (req, res) => {const requestId = crypto.randomUUID();try {const identity = cleanLookupIdentity(req.body?.identity || req.body || {});if (!identity.brand || !identity.crop || !identity.variety) return res.status(400).json({code:'IDENTITY_REQUIRED',message:'Brand, crop, and variety are required for exact product research.',requestId});const result = await research(identity);return res.json({...result,requestId});} catch (error) {console.error('[seed-product-research]', {requestId, code:error.code || 'RESEARCH_FAILED', message:error.message});return res.status(Number(error.status) || 502).json({code:error.code || 'RESEARCH_FAILED',message:'Exact-product research could not finish. Packet text remains available.',requestId});}});
+ app.post('/api/seed-packets/analyze', rateLimit, async (req, res) => {const requestId = crypto.randomUUID();try {const {frontImage, backImage, draftContext} = req.body || {};if (!frontImage || !backImage) return res.status(400).json({code:'BOTH_IMAGES_REQUIRED',message:publicMessage('BOTH_IMAGES_REQUIRED',400),requestId});const cacheKey = `${process.env.SEED_PACKET_VISION_MODEL || 'gpt-5-mini'}:${hashPacketPayload(frontImage, backImage)}`,cached = cache.get(cacheKey);if (cached && Date.now() - cached.cachedAt < CACHE_TTL_MS) return res.json({...cached.result,cacheHit:true});const result = await analyze({frontImage, backImage, draftContext}, {requestId});cache.set(cacheKey,{result,cachedAt:Date.now()});const timer = setTimeout(() => cache.delete(cacheKey), CACHE_TTL_MS);timer.unref?.();return res.json({...result,cacheHit:false});} catch (error) {const status = Number(error.status) || (error.code === 'VISION_NOT_CONFIGURED' ? 503 : 502);console.error('[seed-packet-vision]', {requestId,code:error.code || 'ANALYSIS_FAILED',message:error.message,upstreamStatus:error.upstreamStatus || null,upstreamCode:error.upstreamCode || null,upstreamType:error.upstreamType || null,upstreamMessage:error.upstreamMessage || null,validationErrors:error.validationErrors || null});return res.status(status).json({code:error.code || 'ANALYSIS_FAILED',message:publicMessage(error.code,status),requestId});}});
+ app.use('/api', (req, res) => res.status(404).json({code:'NOT_FOUND',message:'API route not found.'}));app.use(express.static(root,{index:false,maxAge:'1h'}));app.use((req,res)=>res.sendFile(path.join(root,'index.html')));return app;
 }
-
 const isDirectRun = process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url);
 if (isDirectRun) createApp().listen(port, () => console.log(`Runyan Garden web service listening on ${port}`));

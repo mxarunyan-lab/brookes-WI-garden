@@ -1,13 +1,11 @@
 {
   "name": "brookes-wi-garden",
   "private": true,
-  "version": "0.21.0",
+  "version": "0.21.1",
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "pretest": "node scripts/runPhase482Finalizer.mjs",
     "test": "node --test",
-    "prebuild": "node scripts/runPhase482Finalizer.mjs",
     "build": "node scripts/buildSeasonalHeaders.mjs && vite build",
     "preview": "vite preview",
     "start": "node server/index.js",
@@ -15,7 +13,8 @@
     "verify:phase46x3:live": "node scripts/verifyLivePhase46x3.mjs",
     "verify:phase473:live": "node scripts/verifyPhase472Live.mjs",
     "verify:phase475:live": "node scripts/verifyPhase475Live.mjs",
-    "verify:phase481:live": "node scripts/verifyPhase481Live.mjs"
+    "verify:phase481:live": "node scripts/verifyPhase481Live.mjs",
+    "verify:phase483:live": "node scripts/verifyPhase483Live.mjs"
   },
   "dependencies": {
     "@vitejs/plugin-react": "latest",

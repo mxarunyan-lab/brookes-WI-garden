@@ -16,22 +16,23 @@ test('More consolidates household settings into one collapsed destination with n
  assert.match(source,/Garden and gardeners/);assert.match(source,/Location and frost dates/);assert.match(source,/Notifications/);
  assert.match(css,/more-settings-hub:not\(\[open\]\)>div\{display:none!important\}/);
  assert.equal((source.match(/title="Account"/g)||[]).length,0);assert.equal((source.match(/title="Settings"/g)||[]).length,0);assert.equal((source.match(/title="Garden Preferences"/g)||[]).length,0);
+ assert.match(source,/title="Backup & Data"/);assert.match(source,/title="How Garden Compass Works"/);
 });
 
 test('Today stays useful without repeating primary navigation and weather copy is human-readable',()=>{
  const workspace=src('WorkspaceScreens.jsx'),home=src('UrgentHome.jsx');
- assert.equal(workspace.includes('today-quick-links'),false);assert.match(home,/Everything looks good today/);assert.match(home,/No urgent garden actions right now/);assert.match(home,/Welcome to/);
+ assert.equal(workspace.includes('today-quick-links'),false);assert.match(home,/Your garden is caught up/);assert.match(home,/No urgent garden actions right now/);assert.match(home,/Let’s set up your garden/);
  assert.match(workspace,/impactDisplayTitle/);assert.match(workspace,/Rain changed the watering plan/);assert.match(workspace,/WHAT TO DO/);assert.equal(workspace.includes('WEATHER-ACTION-SUMMARY'),false);
 });
 
-test('Phase 4.8.1 navigation styles retain More, weather, Indoor, and compact Tool Shed protections',()=>{
- const lock=src('styles/phase-4-7-5-navigation-lock.css'),smoothing=src('styles/phase-4-7-3-smoothing.css'),continuity=src('styles/phase-4-8-1-mobile-continuity.css'),toolShed=src('ToolShed.jsx'),main=src('main.jsx');
- assert.match(main,/phase-4-7-5-navigation-lock\.css/);assert.match(main,/phase-4-8-1-mobile-continuity\.css/);assert.match(lock,/compact-secondary-header/);assert.match(smoothing,/more-settings-hub>summary/);assert.match(smoothing,/weather-tool-tabs/);assert.match(smoothing,/indoor-center-content \.control-center-title/);
- assert.equal((toolShed.match(/<ToolCategory /g)||[]).length,3);assert.match(continuity,/tool-shed-category-summary/);
+test('Phase 4.8.3 navigation styles retain More, weather, Indoor, Tool Shed, and setup protections',()=>{
+ const lock=src('styles/phase-4-7-5-navigation-lock.css'),smoothing=src('styles/phase-4-7-3-smoothing.css'),continuity=src('styles/phase-4-8-1-mobile-continuity.css'),clarity=src('styles/phase-4-8-3-first-time-clarity.css'),toolShed=src('ToolShed.jsx'),main=src('main.jsx');
+ assert.match(main,/phase-4-7-5-navigation-lock\.css/);assert.match(main,/phase-4-8-1-mobile-continuity\.css/);assert.match(main,/phase-4-8-3-first-time-clarity\.css/);assert.match(lock,/compact-secondary-header/);assert.match(smoothing,/more-settings-hub>summary/);assert.match(smoothing,/weather-tool-tabs/);assert.match(smoothing,/indoor-center-content \.control-center-title/);
+ assert.equal((toolShed.match(/<ToolCategory /g)||[]).length,3);assert.equal((toolShed.match(/<ToolCard /g)||[]).length,6);assert.match(continuity,/tool-shed-category-summary/);assert.match(clarity,/garden-setup-steps/);
 });
 
-test('release metadata identifies Phase 4.8.2 weather truth improvements',()=>{
+test('release metadata identifies Phase 4.8.3 first-time clarity improvements',()=>{
  const source=src('version.js');
- assert.match(source,/APP_VERSION='0\.21\.0'/);assert.match(source,/phase-4-8-2-weather-truth/);
- assert.match(source,/Weather icons now match the reported conditions/);assert.match(source,/Today now uses today’s actual forecast high and low/);assert.match(source,/Weather readings show their source and observation time/);assert.match(source,/Backup and stale readings are clearly identified/);assert.match(source,/Garden Compass can use the Runyan garden weather station when configured/);
+ assert.match(source,/APP_VERSION='0\.21\.1'/);assert.match(source,/phase-4-8-3-first-time-clarity/);
+ assert.match(source,/Center is now Plan & Care/);assert.match(source,/Tool Shed now contains only utilities, weather, and Print & Labels/);assert.match(source,/New gardens are guided through setup in the correct order/);assert.match(source,/Add Planting and Add Growing Space now show the essentials first/);assert.match(source,/Calm weather and optional ideas take up less room on Today/);
 });
