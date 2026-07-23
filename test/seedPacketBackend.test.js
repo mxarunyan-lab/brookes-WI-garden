@@ -109,7 +109,7 @@ test('health and analysis routes are served by the Node web service',async()=>{
  await withServer(app,async base=>{
   const health=await fetch(`${base}/api/health`).then(res=>res.json());
   assert.equal(health.ok,true);
-  assert.equal(health.version,'0.20.9');
+  assert.equal(health.version,'0.21.0');
   const missing=await fetch(`${base}/api/seed-packets/analyze`,{method:'POST',headers:{'content-type':'application/json','x-device-id':'test-missing'},body:'{}'});
   assert.equal(missing.status,400);
   const analyzed=await fetch(`${base}/api/seed-packets/analyze`,{method:'POST',headers:{'content-type':'application/json','x-device-id':'test-complete'},body:JSON.stringify({frontImage:fixture.frontImage,backImage:fixture.backImage})});
