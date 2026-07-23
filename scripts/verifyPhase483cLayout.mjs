@@ -6,11 +6,17 @@ const browser=await chromium.launch({headless:true});
 const results=[];
 const markup=`<main style="padding:12px"><section class="what-matters-today today-summary-card is-onboarding setup-progress-card" style="max-width:560px;margin:0 auto"><div class="today-summary-copy"><small>TODAY</small><h2>Let’s set up your garden</h2><p>Complete these basics so Garden Compass knows what belongs in your garden.</p></div><ul class="garden-setup-steps"><li class="is-next"><button type="button"><span class="setup-step-marker" aria-label="Not complete">✓</span><span><strong>Confirm Garden Details</strong><p>Review the garden name, gardener, Green Bay location, and frost dates.</p><em>Review Details</em></span><svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path d="m9 18 6-6-6-6" fill="none" stroke="currentColor" stroke-width="2"/></svg></button></li><li><button type="button"><span class="setup-step-marker" aria-label="Not complete">✓</span><span><strong>Add a Growing Space &amp; Plants</strong><p>Set up a bed, container, grow bag, greenhouse area, tray, or indoor setup, then add what is growing there.</p><em>Open Garden</em></span><svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path d="m9 18 6-6-6-6" fill="none" stroke="currentColor" stroke-width="2"/></svg></button></li></ul></section></main>`;
 try{
+ const discovery=await browser.newPage();
+ await discovery.goto(`${base}/?verify=${Date.now()}`,{waitUntil:'networkidle'});
+ const hrefs=await discovery.locator('link[rel="stylesheet"]').evaluateAll(links=>links.map(link=>link.href));
+ assert.ok(hrefs.length,'No production stylesheets were discovered.');
+ await discovery.close();
  for(const width of[320,375,390,430]){
   const context=await browser.newContext({viewport:{width,height:900}});
   const page=await context.newPage();
-  await page.goto(`${base}/?verify=${Date.now()}`,{waitUntil:'domcontentloaded'});
-  await page.evaluate(html=>{const root=document.getElementById('root')||document.body;root.innerHTML=html},markup);
+  const links=hrefs.map(href=>`<link rel="stylesheet" href="${href}">`).join('');
+  await page.setContent(`<!doctype html><html><head>${links}</head><body>${markup}</body></html>`,{waitUntil:'networkidle'});
+  await page.waitForFunction(()=>[...document.styleSheets].some(sheet=>{try{return[...sheet.cssRules].some(rule=>rule.cssText.includes('.garden-setup-steps li'))}catch{return false}}));
   const rows=page.locator('.garden-setup-steps li>button');
   assert.equal(await rows.count(),2);
   for(let index=0;index<2;index++){
