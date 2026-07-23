@@ -1,10 +1,35 @@
-name: Phase 4.8.3b Workflow Smoke
+name: Phase 4.8.3b Failure Evidence
 
 on:
   pull_request:
+    branches: [main]
+
+permissions:
+  contents: write
 
 jobs:
-  smoke:
+  evidence:
+    if: github.head_ref == 'phase-4-8-3b-restore-garden-history'
     runs-on: ubuntu-latest
+    timeout-minutes: 20
     steps:
-      - run: echo smoke-ok
+      - uses: actions/checkout@v4
+        with:
+          ref: phase-4-8-3b-restore-garden-history
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - name: Capture complete test output
+        run: |
+          set +e
+          npm test > phase483b-test-output.txt 2>&1
+          code=$?
+          cat phase483b-test-output.txt
+          git config user.name github-actions[bot]
+          git config user.email 41898282+github-actions[bot]@users.noreply.github.com
+          git add -f phase483b-test-output.txt
+          git commit -m "chore: capture Phase 4.8.3b test output" || true
+          git push origin HEAD:phase-4-8-3b-restore-garden-history
+          exit $code
