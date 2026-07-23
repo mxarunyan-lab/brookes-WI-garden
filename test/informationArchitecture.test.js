@@ -15,14 +15,17 @@ test('Garden Center is locked to five core garden-management destinations',()=>{
  for(const removed of['Shopping List','Vacation Mode','Garden History'])assert.equal(source.includes(`title="${removed}"`),false);
 });
 
-test('Today owns one compact status summary without redundant navigation tiles',()=>{
- const source=src('WorkspaceScreens.jsx');
- assert.match(source,/GARDEN STATUS/);
- assert.equal(source.includes('today-quick-links'),false);
- assert.match(source,/No garden work needs your attention right now/);
- assert.equal(source.includes("TODAY'S GARDEN BRIEF"),false);
- assert.equal(source.includes('GARDEN TASKS</small><strong>'),false);
- assert.equal(source.includes('seed-readiness-announcement'),false);
+test('Today owns one calm compact summary without the duplicated Garden Status dashboard',()=>{
+ const workspace=src('WorkspaceScreens.jsx'),home=src('UrgentHome.jsx');
+ assert.doesNotMatch(workspace,/GARDEN STATUS/);
+ assert.match(workspace,/SimplifiedTodayCard/);
+ assert.equal(workspace.includes('today-quick-links'),false);
+ assert.match(home,/Everything looks good today/);
+ assert.match(home,/No urgent garden actions right now/);
+ assert.match(home,/Add What I’m Growing/);
+ assert.equal(workspace.includes("TODAY'S GARDEN BRIEF"),false);
+ assert.equal(workspace.includes('GARDEN TASKS</small><strong>'),false);
+ assert.equal(workspace.includes('seed-readiness-announcement'),false);
 });
 
 test('Tool Shed is a flat directory and More retains settings and data management',()=>{
@@ -66,12 +69,15 @@ test('Planting Desk separates saved seeds and generic opportunities with collaps
  assert.equal(source.includes('{[defaultGroup]:true}'),false);
 });
 
-test('bell and Today visible actions share the same task board source',()=>{
- const source=src('WorkspaceScreens.jsx');
- assert.match(source,/board=buildTaskBoard/);
- assert.match(source,/active=board\.needsAttention/);
- assert.match(source,/notification-count/);
- assert.match(source,/WhatMattersToday board=\{board\} activeTasks=\{active\}/);
+test('watering can and Today use the same urgent-only task list',()=>{
+ const workspace=src('WorkspaceScreens.jsx'),home=src('UrgentHome.jsx'),classifier=src('urgentGardenAlerts.js');
+ assert.match(workspace,/board=buildTaskBoard/);
+ assert.match(workspace,/urgentAlerts=getUrgentGardenAlerts\(board\.needsAttention\)/);
+ assert.match(workspace,/UrgentAlertControl[^>]+alerts=\{urgentAlerts\}/);
+ assert.match(workspace,/SimplifiedTodayCard[^>]+urgentAlerts=\{urgentAlerts\}/);
+ assert.match(home,/notification-count/);
+ assert.match(home,/WateringCanIcon/);
+ assert.match(classifier,/NON_URGENT_KINDS/);
 });
 
 test('320px mobile layout contains the Wisconsin hero artwork',()=>{
