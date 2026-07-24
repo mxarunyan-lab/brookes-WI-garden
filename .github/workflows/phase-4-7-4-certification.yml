@@ -1,8 +1,6 @@
 name: Phase 4.7.4 Whole-App Certification
 
 on:
-  pull_request:
-    branches: [main]
   workflow_dispatch:
 
 permissions:
