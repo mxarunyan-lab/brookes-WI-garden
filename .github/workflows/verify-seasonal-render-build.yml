@@ -1,10 +1,7 @@
 name: Verify Seasonal Render Build
 
 on:
-  pull_request:
-    branches: [main]
-  push:
-    branches: [fix/render-corrupt-seasonal-assets]
+  workflow_dispatch:
 
 jobs:
   build:
