@@ -12,7 +12,7 @@ permissions:
 jobs:
   test-and-build:
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 20
     steps:
       - name: Check out repository
         uses: actions/checkout@v4
@@ -22,8 +22,9 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 22
+          cache: npm
       - name: Install dependencies
-        run: npm install
+        run: npm ci
       - name: Run complete test suite
         id: tests
         continue-on-error: true
@@ -70,6 +71,13 @@ jobs:
         id: production_build
         continue-on-error: true
         run: npm run build > build.log 2>&1
+      - name: Verify seasonal production assets
+        if: steps.production_build.outcome == 'success'
+        run: |
+          test -s dist/images/garden-headers/garden-header-spring.webp
+          test -s dist/images/garden-headers/garden-header-summer.webp
+          test -s dist/images/garden-headers/garden-header-fall.webp
+          test -s dist/images/garden-headers/garden-header-winter.webp
       - name: Upload build log
         if: always()
         uses: actions/upload-artifact@v4
