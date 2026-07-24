@@ -37,14 +37,25 @@ test('320px layout math leaves a substantial content column without overflow',()
  assert.ok(contentWidth/title.length>6,'title must not collapse to one character per line');
 });
 
-test('Phase 4.8.3c release identifiers and data-neutral onboarding logic remain intact',async()=>{
+test('hiding a Growing Space keeps Garden rendered and exposes a restore path',async()=>{
+ const workspace=await read('src/BedWorkspace.jsx');
+ assert.match(workspace,/const handleManage=\(action,id\)=>/);
+ assert.match(workspace,/action==='hide'\|\|action==='remove'/);
+ assert.match(workspace,/setSelected\(current=>current===id\?null:current\)/);
+ assert.match(workspace,/manage=\{handleManage\}/);
+ assert.match(workspace,/handleManage\('show',s\.id\)/);
+ assert.match(workspace,/All Growing Spaces are hidden/);
+ assert.match(workspace,/Your garden data is still saved/);
+});
+
+test('Phase 4.8.3d release identifiers and data-neutral onboarding logic remain intact',async()=>{
  const[version,server,sw,onboarding,app]=await Promise.all(['src/version.js','server/index.js','public/sw.js','src/setupOnboarding.js','src/App.jsx'].map(read));
  assert.match(version,/APP_VERSION='0\.21\.1'/);
- assert.match(version,/phase-4-8-3c-checklist-layout-hotfix/);
- assert.match(version,/Fixed the first-time setup checklist layout on mobile\./);
- assert.match(server,/phase:'4\.8\.3c'/);
- assert.match(server,/phase-4-8-3c-checklist-layout-hotfix/);
- assert.match(sw,/v0483c-checklist-layout-hotfix-20260723/);
+ assert.match(version,/phase-4-8-3d-operational-cleanup-hide-fix/);
+ assert.match(version,/Hiding a Growing Space now keeps Garden open/);
+ assert.match(server,/phase:'4\.8\.3d'/);
+ assert.match(server,/phase-4-8-3d-operational-cleanup-hide-fix/);
+ assert.match(sw,/v0483d-operational-cleanup-hide-fix-20260724/);
  for(const key of['setupDetailsConfirmedAt','setupGardenConfirmedAt','setupCompletedAt'])assert.match(onboarding,new RegExp(key));
  assert.match(app,/beginGardenSetupReview/);
  assert.match(app,/confirmGardenSetup/);
