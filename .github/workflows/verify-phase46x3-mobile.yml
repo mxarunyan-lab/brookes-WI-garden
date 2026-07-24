@@ -1,9 +1,7 @@
 name: Verify Phase 4.7.5 Mobile and Node Service
 
 on:
-  push:
-    branches: [main]
-  pull_request:
+  workflow_dispatch:
 
 permissions:
   contents: read

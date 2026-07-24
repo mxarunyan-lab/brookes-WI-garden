@@ -1,10 +1,6 @@
 name: Phase 4.7.3 Live Deployment
 
 on:
-  push:
-    branches: [main]
-  pull_request:
-    branches: [main]
   workflow_dispatch:
 
 permissions:
