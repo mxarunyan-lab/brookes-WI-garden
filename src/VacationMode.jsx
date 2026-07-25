@@ -4,13 +4,24 @@ import{SecondaryHero,SecondarySectionHeader}from'./SecondaryUI.jsx';
 import{formatGardenDate}from'./dateFormat.js';
 import{buildVacationIntelligence,buildVacationPlan,vacationPlanNeedsReview}from'./vacationPlanner.js';
 
-const today=()=>new Date().toISOString().slice(0,10);
-const plusDays=days=>{const d=new Date();d.setDate(d.getDate()+days);return d.toISOString().slice(0,10)};
+const localDateValue=date=>{const d=date instanceof Date?date:new Date(date);const year=d.getFullYear(),month=String(d.getMonth()+1).padStart(2,'0'),day=String(d.getDate()).padStart(2,'0');return `${year}-${month}-${day}`};
+const today=()=>localDateValue(new Date());
+const plusDays=days=>{const d=new Date();d.setDate(d.getDate()+days);return localDateValue(d)};
 const sectionInfo={
  before:{title:'Before leaving',description:'Work that reduces avoidable risk before the trip.'},
  during:{title:'During the trip',description:'Specific Garden Buddy checks and weather exceptions.'},
  after:{title:'After returning',description:'Inspection and history reconciliation.'}
 };
+
+export function vacationWeatherSummaryText(plan){
+ const summary=plan?.weatherSummary;
+ const high=Number(summary?.high);
+ const hasHigh=Number.isFinite(high);
+ return {
+  highLabel:hasHigh?`${Math.round(high)} degrees expected high`:'Forecast incomplete',
+  rainLabel:summary?.meaningfulRain?'Meaningful rain is possible; it is not counted until observed.':hasHigh?'No dependable rain credit is assumed.':'Weather details will appear after a forecast is available.'
+ };
+}
 
 function TripSetup({garden,weather,onSave,existing=null,onCancel}){
  const[d,setD]=useState(()=>({
@@ -145,7 +156,7 @@ function printCaretaker(plan){
  const popup=window.open('','_blank','width=760,height=900');
  if(!popup)return window.alert('Allow pop-ups to print the Garden Buddy guide.');
  const guide=plan.intelligence?.helperGuide,tasks=(plan.tasks||[]).filter(task=>task.section==='during'&&task.status!=='completed'),escape=value=>String(value||'').replace(/[&<>"']/g,char=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[char]));
- popup.document.write(`<!doctype html><html><head><title>Runyan Garden Buddy Guide</title><style>body{font-family:Arial,sans-serif;color:#173d2b;margin:36px}h1{font-family:Georgia,serif}article{border:1px solid #9aa79e;border-radius:12px;padding:14px;margin:12px 0;page-break-inside:avoid}small{display:block;margin:5px 0;color:#40594b}.box{font-size:22px;margin-right:8px}.avoid{background:#fff4df}</style></head><body><h1>${escape(guide?.title||'Runyan Garden Buddy Guide')}</h1><p>${escape(formatGardenDate(plan.departureDate))} through ${escape(formatGardenDate(plan.returnDate))}${plan.caretakerName?` - For ${escape(plan.caretakerName)}`:''}</p>${plan.caretakerNotes?`<p><strong>Household note:</strong> ${escape(plan.caretakerNotes)}</p>`:''}<h2>Daily Checks</h2>${(guide?.dailyChecks||[]).map(item=>`<article><h3><span class="box">&#9744;</span>${escape(item.label)}</h3><p>${escape(item.instruction)}</p><small>${escape(item.reason)}</small><p>Notes: ______________________________________________</p></article>`).join('')||'<p>No daily checks are required for this plan.</p>'}<h2>Do Not</h2>${(guide?.doNot||[]).map(item=>`<article class="avoid"><p>${escape(item)}</p></article>`).join('')}<h2>Scheduled Garden Buddy Tasks</h2>${tasks.map(task=>`<article><h3><span class="box">&#9744;</span>${escape(task.targetName)}</h3><p><strong>${escape(formatGardenDate(task.dueDate))}:</strong> ${escape(task.instruction)}</p>${task.whatToCheck?`<small><b>Check first:</b> ${escape(task.whatToCheck)}</small>`:''}${task.whatNotToDo?`<small><b>Do not:</b> ${escape(task.whatNotToDo)}</small>`:''}${task.weatherException?`<small><b>Weather exception:</b> ${escape(task.weatherException)}</small>`:''}<p>Notes: ______________________________________________</p></article>`).join('')||'<p>No additional helper tasks are required for this plan.</p>'}<script>window.onload=()=>window.print()</script></body></html>`);
+ popup.document.write(`<!doctype html><html><head><title>Runyan Garden Buddy Guide</title><style>body{font-family:Arial,sans-serif;color:#173d2b;margin:36px}h1{font-family:Georgia,serif}article{border:1px solid #9aa79e;border-radius:12px;padding:14px;margin:12px 0;page-break-inside:avoid}small{display:block;margin:5px 0;color:#40594b}.box{font-size:22px;margin-right:8px}.avoid{background:#fff4df}</style></head><body><h1>${escape(guide?.title||'Runyan Garden Buddy Guide')}</h1><p>${escape(formatGardenDate(plan.departureDate))} through ${escape(formatGardenDate(plan.returnDate))}${plan.caretakerName?` - For ${escape(plan.caretakerName)}`:''}</p>${plan.caretakerNotes?`<p><strong>Household note:</strong> ${escape(plan.caretakerNotes)}</p>`:''}<h2>Daily Checks</h2>${(guide?.dailyChecks||[]).map(item=>`<article><h3><span class="box">&#9744;</span>${escape(item.label)}</h3><p>${escape(item.instruction)}</p><small>${escape(item.reason)}</small><p>Notes: ______________________________________________</p></article>`).join('')||'<p>No daily checks are required for this plan.</p>'}<h2>Do Not</h2>${(guide?.doNot||[]).map(item=>`<article class="avoid"><p>${escape(item)}</p></article>`).join('')}<h2>Scheduled Garden Buddy Tasks</h2>${tasks.map(task=>`<article><h3><span class="box">&#9744;</span>${escape(task.targetName)}</h3><p><strong>${escape(formatGardenDate(task.dueDate))}:</strong> ${escape(task.instruction)}</p>${task.whatToCheck?`<small><b>Check first:</b> ${escape(task.whatToCheck)}</small>`:''}${task.whatNotToDo?`<small><b>Do not:</b> ${escape(task.whatNotToDo)}</small>`:''}${task.weatherException?`<small><b>Weather exception:</b> ${escape(task.weatherException)}</small>`:''}<p>Notes: ______________________________________________</p></article>`).join('')||'<p>No additional Garden Buddy tasks are required for this plan.</p>'}<script>window.onload=()=>window.print()</script></body></html>`);
  popup.document.close();
 }
 
@@ -154,13 +165,14 @@ export default function VacationMode({garden,weather,navigate,onSavePlan,onRefre
  const active=useMemo(()=>activeSaved?{...activeSaved,intelligence:activeSaved.intelligence||buildVacationIntelligence({garden,weather,plan:activeSaved})}:null,[activeSaved,garden,weather]);
  const[editing,setEditing]=useState(false),needsReview=active&&vacationPlanNeedsReview(active,weather);
  const groups=active?['before','during','after'].map(section=>({section,tasks:(active.tasks||[]).filter(task=>task.section===section&&!task.deletedAt)})):[];
+ const weatherSummary=vacationWeatherSummaryText(active);
  return <main className="screen secondary-screen vacation-mode-screen">
-  <SecondaryHero icon={CalendarRange} eyebrow="RECORDS & EXTRAS" title="Vacation Mode" description="A garden-specific before, during, and after plan built from actual plants, spaces, stages, care history, and weather." onBack={()=>navigate('center')} backLabel="Back to Plan" className="center-department-hero vacation-mode-hero"/>
+  <SecondaryHero icon={CalendarRange} eyebrow="PLAN & CARE" title="Vacation Mode" description="A garden-specific before, during, and after plan built from actual plants, spaces, stages, care history, and weather." onBack={()=>navigate('center')} backLabel="Back to Plan" className="center-department-hero vacation-mode-hero"/>
   <section className="screen-pad secondary-screen-content vacation-mode-content">
    {!active||editing?<TripSetup garden={garden} weather={weather} existing={editing?active:null} onSave={plan=>{onSavePlan(plan);setEditing(false)}} onCancel={editing?()=>setEditing(false):null}/>:<>
     <section className="vacation-plan-summary">
      <div><small>ACTIVE TRIP PLAN</small><h2>{formatGardenDate(active.departureDate)}-{formatGardenDate(active.returnDate)}</h2><p>{active.duration} days - {active.caretakerAvailable?`${active.caretakerName||'Garden Buddy'} guide included`:'No Garden Buddy available'}</p></div>
-     <span><CloudSun/><strong>{active.weatherSummary?.high!==null?`${Math.round(active.weatherSummary.high)} degrees expected high`:'Forecast incomplete'}</strong><small>{active.weatherSummary?.meaningfulRain?'Meaningful rain is possible; it is not counted until observed.':'No dependable rain credit is assumed.'}</small></span>
+     <span><CloudSun/><strong>{weatherSummary.highLabel}</strong><small>{weatherSummary.rainLabel}</small></span>
     </section>
     <VacationRisk intelligence={active.intelligence}/>
     <BeforeYouLeave items={active.intelligence?.beforeYouLeave||[]}/>
@@ -170,7 +182,7 @@ export default function VacationMode({garden,weather,navigate,onSavePlan,onRefre
     </section>}
     <div className="vacation-plan-actions">
      <button onClick={()=>setEditing(true)}><Edit3/>Change trip details</button>
-     <button onClick={()=>printCaretaker(active)}><Printer/>Print helper guide</button>
+     <button onClick={()=>printCaretaker(active)}><Printer/>Print Garden Buddy guide</button>
      <button className="danger-control" onClick={()=>onClosePlan(active.id)}><Trash2/>End trip plan</button>
     </div>
     {active.changes?.length>0&&<details className="vacation-change-list">
@@ -182,7 +194,7 @@ export default function VacationMode({garden,weather,navigate,onSavePlan,onRefre
      {group.tasks.length?<div className="vacation-task-list">{group.tasks.map(task=><VacationTask key={task.id} task={task} onComplete={onCompleteTask} onUpdate={next=>onUpdateTask(active.id,next)}/>)}</div>:<p className="vacation-empty">No work is currently required in this section.</p>}
     </section>)}
     <ReturnHomeReview review={active.intelligence?.returnHome}/>
-    <section className="vacation-honesty"><UserRound/><span><strong>This plan uses saved garden records.</strong><small>Weather exceptions remain forecasts until observed. Helper edits are preserved, and completed trip work is retained in history rather than regenerated. The helper guide is local only; no shared access was added.</small></span></section>
+    <section className="vacation-honesty"><UserRound/><span><strong>This plan uses saved garden records.</strong><small>Weather exceptions remain forecasts until observed. Garden Buddy edits are preserved, and completed trip work is retained in history rather than regenerated. The Garden Buddy guide is local only; no shared access was added.</small></span></section>
    </>}
   </section>
  </main>;
