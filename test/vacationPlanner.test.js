@@ -1,121 +1,28 @@
 import test from'node:test';
 import assert from'node:assert/strict';
 import{buildVacationIntelligence,buildVacationPlan,dedupeVacationTasks,linkExistingGardenTasks,refreshVacationPlan,vacationPlanNeedsReview,vacationTasksForBoard}from'../src/vacationPlanner.js';
-
 const baseGarden=()=>({profile:{gardenerName:'Brooke'},spaces:[{id:'pot',name:'Porch Tomato Containers',type:'container',capacity:3},{id:'bed',name:'Raised Bed',type:'bed',capacity:12},{id:'greenhouse',name:'Greenhouse',type:'greenhouse',capacity:20}],plants:[{id:'tomato',name:'Porch Tomato',cropId:'tomato',spaceId:'pot',stage:'Fruiting',lastWatered:null},{id:'pepper',name:'Pepper Seedling',cropId:'bell-pepper',spaceId:'greenhouse',stage:'Seedling'}],reminders:[],taskHistory:[],vacationPlans:[]});
 const weather=overrides=>({fetchedAt:'2026-07-18T10:00:00Z',recentRain24h:0,high:82,low:62,wind:8,rainChance:20,forecasts:[],...overrides});
-
-test('weekend trip creates specific before and after actions',()=>{
- const plan=buildVacationPlan({garden:baseGarden(),weather:weather(),departureDate:'2026-07-20',returnDate:'2026-07-22',caretakerAvailable:false});
- assert.ok(plan.tasks.some(row=>row.section==='before'&&row.targetId==='pot'));
- assert.ok(plan.tasks.some(row=>row.section==='after'&&row.action==='Post-trip garden inspection'));
- assert.equal(plan.duration,3);
-});
-
-test('two-week trip with caretaker creates dated during-trip instructions',()=>{
- const plan=buildVacationPlan({garden:baseGarden(),weather:weather(),departureDate:'2026-07-20',returnDate:'2026-08-03',caretakerAvailable:true,caretakerName:'Kelli'});
- const during=plan.tasks.filter(row=>row.section==='during');
- assert.ok(during.length>=4);
- assert.ok(during.every(row=>row.whatToCheck&&row.whatNotToDo&&row.weatherException));
-});
-
-test('no caretaker does not create caretaker-only work',()=>{
- const plan=buildVacationPlan({garden:baseGarden(),weather:weather(),departureDate:'2026-07-20',returnDate:'2026-08-03',caretakerAvailable:false});
- assert.equal(plan.tasks.some(row=>/caretaker/i.test(row.action)),false);
-});
-
-test('recent observed rain changes exposed-bed instruction but not protected greenhouse care',()=>{
- const plan=buildVacationPlan({garden:baseGarden(),weather:weather({recentRain24h:.6}),departureDate:'2026-07-20',returnDate:'2026-07-25',caretakerAvailable:true});
- assert.match(plan.tasks.find(row=>row.targetId==='bed'&&row.section==='before').instruction,/Recent observed rain/);
- assert.match(plan.tasks.find(row=>row.targetId==='greenhouse'&&row.section==='before').whatNotToDo,/outdoor rainfall/);
-});
-
-test('heat wave increases container and greenhouse urgency',()=>{
- const plan=buildVacationPlan({garden:baseGarden(),weather:weather({high:94}),departureDate:'2026-07-20',returnDate:'2026-07-25',caretakerAvailable:true});
- assert.equal(plan.tasks.find(row=>row.targetId==='greenhouse'&&row.section==='before').urgency,'Urgent');
- assert.equal(plan.tasks.find(row=>row.targetId==='pot'&&row.section==='before').urgency,'High');
-});
-
-test('frost risk and storm risk create preparation actions',()=>{
- const plan=buildVacationPlan({garden:baseGarden(),weather:weather({low:34,wind:31}),departureDate:'2026-09-20',returnDate:'2026-09-24',caretakerAvailable:false});
- assert.ok(plan.tasks.some(row=>row.action==='Prepare frost protection'));
- assert.ok(plan.tasks.some(row=>row.action==='Secure garden before wind'));
-});
-
-test('forecast rain remains an exception rather than completed watering',()=>{
- const plan=buildVacationPlan({garden:baseGarden(),weather:weather({rainChance:90}),departureDate:'2026-07-20',returnDate:'2026-07-24',caretakerAvailable:true});
- const bed=plan.tasks.find(row=>row.targetId==='bed'&&row.section==='before');
- assert.match(bed.whatNotToDo,/forecast rain/i);
- assert.equal(bed.status,'active');
-});
-
-test('matching existing task is linked and not duplicated on the Chore Board',()=>{
- const garden=baseGarden(),candidate=buildVacationPlan({garden,weather:weather(),departureDate:'2026-07-20',returnDate:'2026-07-22',caretakerAvailable:false}),target=candidate.tasks.find(row=>row.targetId==='pot'&&row.section==='before');
- garden.reminders=[{id:'existing',taskId:'existing-task',taskType:target.taskType,title:'Existing soil check',spaceId:'pot',dueDate:target.dueDate,status:'open'}];
- const plan=buildVacationPlan({garden,weather:weather(),departureDate:'2026-07-20',returnDate:'2026-07-22',caretakerAvailable:false});
- const linked=plan.tasks.find(row=>row.targetId==='pot'&&row.section==='before');
- assert.equal(linked.reusedExistingTask,true);
- assert.equal(linked.linkedTaskId,'existing-task');
- assert.equal(vacationTasksForBoard({...garden,vacationPlans:[plan]}).some(row=>row.id===linked.id),false);
-});
-
-test('completed existing task completes matching vacation instruction',()=>{
- const garden=baseGarden(),candidate=buildVacationPlan({garden,weather:weather(),departureDate:'2026-07-20',returnDate:'2026-07-22'}),target=candidate.tasks.find(row=>row.targetId==='pot'&&row.section==='before');
- garden.taskHistory=[{id:'history',taskId:'old',taskType:target.taskType,title:'Done',spaceId:'pot',dueDate:target.dueDate,status:'done',at:'2026-07-19T18:00:00Z'}];
- const linked=linkExistingGardenTasks(garden,[target])[0];
- assert.equal(linked.status,'completed');
-});
-
-test('duplicate vacation tasks collapse by connected action key',()=>{
- const base={id:'a',action:'Check soil',taskType:'Check Moisture',targetId:'pot',dueDate:'2026-07-21',priority:50,duplicateKey:'same'},rows=dedupeVacationTasks([base,{...base,id:'b',priority:90}]);
- assert.equal(rows.length,1);
- assert.equal(rows[0].priority,90);
-});
-
-test('forecast change requests review',()=>{
- const plan=buildVacationPlan({garden:baseGarden(),weather:weather(),departureDate:'2026-07-20',returnDate:'2026-07-25'});
- assert.equal(vacationPlanNeedsReview(plan,weather({high:96,fetchedAt:'2026-07-19T10:00:00Z'})),true);
-});
-
-test('refresh preserves manual caretaker edits and completion',()=>{
- const plan=buildVacationPlan({garden:baseGarden(),weather:weather(),departureDate:'2026-07-20',returnDate:'2026-07-25',caretakerAvailable:true}),task=plan.tasks.find(row=>row.section==='during');task.manualEdited=true;task.instruction='Use Brooke’s exact handoff wording.';task.status='completed';task.completedAt='2026-07-21T20:00:00Z';
- const refreshed=refreshVacationPlan(plan,baseGarden(),weather({high:94,fetchedAt:'2026-07-19T10:00:00Z'}),'Brooke'),same=refreshed.tasks.find(row=>row.duplicateKey===task.duplicateKey);
- assert.equal(same.instruction,'Use Brooke’s exact handoff wording.');
- assert.equal(same.status,'completed');
-});
-
-test('trip date change rebuilds duration and dates without changing plan id',()=>{
- const garden=baseGarden(),plan=buildVacationPlan({garden,weather:weather(),departureDate:'2026-07-20',returnDate:'2026-07-22'}),changed=buildVacationPlan({garden,weather:weather(),departureDate:'2026-07-20',returnDate:'2026-07-30',id:plan.id});
- assert.equal(changed.id,plan.id);
- assert.equal(changed.duration,11);
- assert.ok(changed.tasks.some(row=>row.dueDate==='2026-07-31'));
-});
-
-test('hot vacation intelligence prioritizes containers, greenhouse, and seedlings',()=>{
- const plan=buildVacationPlan({garden:baseGarden(),weather:weather({high:96,rainChance:15,forecasts:[{forecast_for:'2026-07-25',maximum_temperature:97,minimum_temperature:70,precipitation_probability:10,precipitation_amount:0}]}),departureDate:'2026-07-25',returnDate:'2026-08-02',caretakerAvailable:true});
- assert.equal(plan.intelligence.risk.level,'HIGH');
- assert.ok(plan.intelligence.beforeYouLeave.some(item=>item.subject==='Porch Tomato Containers'&&/Deep water/i.test(item.action)));
- assert.ok(plan.intelligence.beforeYouLeave.some(item=>item.subject==='Greenhouse'&&/Vent/i.test(item.action)));
- assert.ok(plan.intelligence.beforeYouLeave.some(item=>item.subject==='Pepper Seedling'&&/seedling moisture/i.test(item.action)));
- assert.equal(plan.intelligence.helperGuide.localOnly,true);
- assert.equal(plan.intelligence.futureAccessModel.temporaryAccessPrepared,false);
-});
-
-test('rainy vacation intelligence reduces garden bed watering work',()=>{
- const garden={...baseGarden(),spaces:[{id:'bed',name:'Raised Bed',type:'bed',capacity:12}],plants:[{id:'kale',name:'Kale Row',cropName:'Kale',spaceId:'bed',stage:'Established'}]};
- const plan=buildVacationPlan({garden,weather:weather({high:76,rainChance:90,forecasts:[{forecast_for:'2026-07-25',maximum_temperature:76,minimum_temperature:61,precipitation_probability:95,precipitation_amount:1.1}]}),departureDate:'2026-07-25',returnDate:'2026-07-28'});
- const beds=plan.intelligence.beforeYouLeave.find(item=>item.id==='garden-beds');
- assert.equal(plan.intelligence.risk.level,'LOW');
- assert.match(beds.action,/No extra watering/i);
- assert.match(beds.reason,/Rain is expected/i);
- assert.ok(plan.intelligence.risk.reasons.some(reason=>/rain/i.test(reason)));
-});
-
-test('normal vacation intelligence still produces actionable local helper guidance',()=>{
- const garden={...baseGarden(),spaces:[{id:'pot',name:'Porch Tomato Containers',type:'container',capacity:3},{id:'bed',name:'Raised Bed',type:'bed',capacity:12}],plants:[{id:'tomato',name:'Porch Tomato',cropId:'tomato',spaceId:'pot',stage:'Established'}]};
- const intelligence=buildVacationIntelligence({garden,weather:weather({high:81,rainChance:35}),plan:{departureDate:'2026-07-25',returnDate:'2026-07-27'},now:'2026-07-21T12:00:00Z'});
- assert.equal(intelligence.risk.level,'LOW');
- assert.ok(intelligence.beforeYouLeave.some(item=>item.subject==='Porch Tomato Containers'&&/Check container soil/i.test(item.action)));
- assert.ok(intelligence.helperGuide.dailyChecks.length>=1);
- assert.ok(intelligence.returnHome.needsAttention.some(item=>/containers/i.test(item)));
-});
+test('weekend trip creates specific before and after actions',()=>{const plan=buildVacationPlan({garden:baseGarden(),weather:weather(),departureDate:'2026-07-20',returnDate:'2026-07-22',caretakerAvailable:false});assert.ok(plan.tasks.some(row=>row.section==='before'&&row.targetId==='pot'));assert.ok(plan.tasks.some(row=>row.section==='after'&&row.action==='Post-trip garden inspection'));assert.equal(plan.duration,3)});
+test('two-week trip with caretaker creates dated during-trip instructions',()=>{const plan=buildVacationPlan({garden:baseGarden(),weather:weather(),departureDate:'2026-07-20',returnDate:'2026-08-03',caretakerAvailable:true,caretakerName:'Kelli'});const during=plan.tasks.filter(row=>row.section==='during');assert.ok(during.length>=4);assert.ok(during.every(row=>row.whatToCheck&&row.whatNotToDo&&row.weatherException))});
+test('no caretaker does not create caretaker-only work',()=>{const plan=buildVacationPlan({garden:baseGarden(),weather:weather(),departureDate:'2026-07-20',returnDate:'2026-08-03',caretakerAvailable:false});assert.equal(plan.tasks.some(row=>/caretaker/i.test(row.action)),false)});
+test('recent observed rain changes exposed-bed instruction but not protected greenhouse care',()=>{const plan=buildVacationPlan({garden:baseGarden(),weather:weather({recentRain24h:.6}),departureDate:'2026-07-20',returnDate:'2026-07-25',caretakerAvailable:true});assert.match(plan.tasks.find(row=>row.targetId==='bed'&&row.section==='before').instruction,/Recent observed rain/);assert.match(plan.tasks.find(row=>row.targetId==='greenhouse'&&row.section==='before').whatNotToDo,/outdoor rainfall/)});
+test('heat wave increases container and greenhouse urgency',()=>{const plan=buildVacationPlan({garden:baseGarden(),weather:weather({high:94}),departureDate:'2026-07-20',returnDate:'2026-07-25',caretakerAvailable:true});assert.equal(plan.tasks.find(row=>row.targetId==='greenhouse'&&row.section==='before').urgency,'Urgent');assert.equal(plan.tasks.find(row=>row.targetId==='pot'&&row.section==='before').urgency,'High')});
+test('frost risk and storm risk create preparation actions',()=>{const plan=buildVacationPlan({garden:baseGarden(),weather:weather({low:34,wind:31}),departureDate:'2026-09-20',returnDate:'2026-09-24',caretakerAvailable:false});assert.ok(plan.tasks.some(row=>row.action==='Prepare frost protection'));assert.ok(plan.tasks.some(row=>row.action==='Secure garden before wind'))});
+test('forecast rain remains an exception rather than completed watering',()=>{const plan=buildVacationPlan({garden:baseGarden(),weather:weather({rainChance:90}),departureDate:'2026-07-20',returnDate:'2026-07-24',caretakerAvailable:true});const bed=plan.tasks.find(row=>row.targetId==='bed'&&row.section==='before');assert.match(bed.whatNotToDo,/forecast rain/i);assert.equal(bed.status,'active')});
+test('matching existing task is linked and not duplicated on the Chore Board',()=>{const garden=baseGarden(),candidate=buildVacationPlan({garden,weather:weather(),departureDate:'2026-07-20',returnDate:'2026-07-22',caretakerAvailable:false}),target=candidate.tasks.find(row=>row.targetId==='pot'&&row.section==='before');garden.reminders=[{id:'existing',taskId:'existing-task',taskType:target.taskType,title:'Existing soil check',spaceId:'pot',dueDate:target.dueDate,status:'open'}];const plan=buildVacationPlan({garden,weather:weather(),departureDate:'2026-07-20',returnDate:'2026-07-22',caretakerAvailable:false});const linked=plan.tasks.find(row=>row.targetId==='pot'&&row.section==='before');assert.equal(linked.reusedExistingTask,true);assert.equal(linked.linkedTaskId,'existing-task');assert.equal(vacationTasksForBoard({...garden,vacationPlans:[plan]}).some(row=>row.id===linked.id),false)});
+test('completed existing task completes matching vacation instruction',()=>{const garden=baseGarden(),candidate=buildVacationPlan({garden,weather:weather(),departureDate:'2026-07-20',returnDate:'2026-07-22'}),target=candidate.tasks.find(row=>row.targetId==='pot'&&row.section==='before');garden.taskHistory=[{id:'history',taskId:'old',taskType:target.taskType,title:'Done',spaceId:'pot',dueDate:target.dueDate,status:'done',at:'2026-07-19T18:00:00Z'}];const linked=linkExistingGardenTasks(garden,[target])[0];assert.equal(linked.status,'completed')});
+test('duplicate vacation tasks collapse by connected action key',()=>{const base={id:'a',action:'Check soil',taskType:'Check Moisture',targetId:'pot',dueDate:'2026-07-21',priority:50,duplicateKey:'same'},rows=dedupeVacationTasks([base,{...base,id:'b',priority:90}]);assert.equal(rows.length,1);assert.equal(rows[0].priority,90)});
+test('forecast change requests review',()=>{const plan=buildVacationPlan({garden:baseGarden(),weather:weather(),departureDate:'2026-07-20',returnDate:'2026-07-25'});assert.equal(vacationPlanNeedsReview(plan,weather({high:96,fetchedAt:'2026-07-19T10:00:00Z'})),true)});
+test('refresh preserves manual caretaker edits and completion',()=>{const plan=buildVacationPlan({garden:baseGarden(),weather:weather(),departureDate:'2026-07-20',returnDate:'2026-07-25',caretakerAvailable:true}),task=plan.tasks.find(row=>row.section==='during');task.manualEdited=true;task.instruction='Use Brooke’s exact handoff wording.';task.status='completed';task.completedAt='2026-07-21T20:00:00Z';const refreshed=refreshVacationPlan(plan,baseGarden(),weather({high:94,fetchedAt:'2026-07-19T10:00:00Z'}),'Brooke'),same=refreshed.tasks.find(row=>row.duplicateKey===task.duplicateKey);assert.equal(same.instruction,'Use Brooke’s exact handoff wording.');assert.equal(same.status,'completed')});
+test('trip date change rebuilds duration and dates without changing plan id',()=>{const garden=baseGarden(),plan=buildVacationPlan({garden,weather:weather(),departureDate:'2026-07-20',returnDate:'2026-07-22'}),changed=buildVacationPlan({garden,weather:weather(),departureDate:'2026-07-20',returnDate:'2026-07-30',id:plan.id});assert.equal(changed.id,plan.id);assert.equal(changed.duration,11);assert.ok(changed.tasks.some(row=>row.dueDate==='2026-07-31'))});
+test('hot vacation intelligence prioritizes containers, greenhouse, and seedlings',()=>{const plan=buildVacationPlan({garden:baseGarden(),weather:weather({high:96,rainChance:15,forecasts:[{forecast_for:'2026-07-25',maximum_temperature:97,minimum_temperature:70,precipitation_probability:10,precipitation_amount:0}]}),departureDate:'2026-07-25',returnDate:'2026-08-02',caretakerAvailable:true});assert.equal(plan.intelligence.risk.level,'HIGH');assert.ok(plan.intelligence.beforeYouLeave.some(item=>item.subject==='Porch Tomato Containers'&&/Check container soil/i.test(item.action)));assert.ok(plan.intelligence.beforeYouLeave.some(item=>item.subject==='Greenhouse'&&/Vent/i.test(item.action)));assert.ok(plan.intelligence.beforeYouLeave.some(item=>item.subject==='Pepper Seedling'&&/seedling moisture/i.test(item.action)));assert.equal(plan.intelligence.helperGuide.localOnly,true);assert.equal(plan.intelligence.futureAccessModel.temporaryAccessPrepared,false)});
+test('heavy forecast rain is planning context, not completed bed watering',()=>{const garden={...baseGarden(),spaces:[{id:'bed',name:'Raised Bed',type:'bed',capacity:12}],plants:[{id:'kale',name:'Kale Row',cropName:'Kale',spaceId:'bed',stage:'Established'}]},w=weather({fetchedAt:'2026-07-25T10:00:00Z',high:76,rainChance:90,forecasts:[{forecast_for:'2026-07-27',maximum_temperature:76,minimum_temperature:61,precipitation_probability:95,precipitation_amount:1.1}]});const intelligence=buildVacationIntelligence({garden,weather:w,plan:{departureDate:'2026-07-27',returnDate:'2026-07-30'},now:'2026-07-25T12:00:00Z'}),beds=intelligence.beforeYouLeave.find(item=>item.id==='garden-beds');assert.match(beds.action,/Check bed moisture/i);assert.doesNotMatch(beds.action,/No extra watering/i);assert.match(beds.reason,/forecast/i);assert.ok(intelligence.risk.reasons.some(reason=>/forecast/i.test(reason)));assert.equal(intelligence.returnHome.completed.some(item=>/rain likely covered/i.test(item)),false)});
+test('recent observed rain may earn exposed-bed credit but still requires soil verification',()=>{const garden={...baseGarden(),spaces:[{id:'bed',name:'Raised Bed',type:'bed'}],plants:[]},intelligence=buildVacationIntelligence({garden,weather:weather({fetchedAt:'2026-07-25T10:00:00Z',recentRain24h:.6}),plan:{departureDate:'2026-07-27',returnDate:'2026-07-30'},now:'2026-07-25T12:00:00Z'}),beds=intelligence.beforeYouLeave.find(item=>item.id==='garden-beds');assert.equal(intelligence.weather.observedRainCredit,true);assert.match(beds.reason,/observed rain/i);assert.match(beds.action,/Check bed moisture/i);assert.ok(intelligence.returnHome.completed.some(item=>/observed rain/i.test(item)))});
+test('forecast rain does not cancel heat concern',()=>{const intelligence=buildVacationIntelligence({garden:baseGarden(),weather:weather({fetchedAt:'2026-07-25T10:00:00Z',high:96,rainChance:95}),plan:{departureDate:'2026-07-27',returnDate:'2026-07-31'},now:'2026-07-25T12:00:00Z'});assert.notEqual(intelligence.risk.score,0);assert.ok(intelligence.risk.warnings.some(item=>/Hot weather/i.test(item)));assert.ok(intelligence.beforeYouLeave.find(item=>item.id==='container-pot').priority>=78)});
+test('stale weather earns no observed rain credit and requires fresh check',()=>{const intelligence=buildVacationIntelligence({garden:baseGarden(),weather:weather({fetchedAt:'2026-07-10T10:00:00Z',recentRain24h:1.2,rainChance:90}),plan:{departureDate:'2026-07-27',returnDate:'2026-07-31'},now:'2026-07-25T12:00:00Z'});assert.equal(intelligence.weather.observedRainCredit,false);assert.equal(intelligence.weather.weatherFresh,false);assert.match(intelligence.weather.summary,/fresh check/i)});
+test('indoor and greenhouse spaces never receive outdoor rain credit',()=>{const garden={profile:{},spaces:[{id:'inside',name:'Basement Starts',type:'indoor'},{id:'glass',name:'Greenhouse',type:'greenhouse'}],plants:[{id:'a',name:'Basil',spaceId:'inside',stage:'Established'},{id:'b',name:'Pepper',spaceId:'glass',stage:'Established'}]},intelligence=buildVacationIntelligence({garden,weather:weather({fetchedAt:'2026-07-25T10:00:00Z',recentRain24h:1}),plan:{departureDate:'2026-07-27',returnDate:'2026-07-30'},now:'2026-07-25T12:00:00Z'});assert.match(intelligence.beforeYouLeave.find(item=>item.id==='indoor-inside').weatherFactors.join(' '),/does not water indoor/i);assert.match(intelligence.beforeYouLeave.find(item=>item.id==='greenhouse-glass').weatherFactors.join(' '),/does not water greenhouse/i)});
+test('covered container excludes rain credit while exposed container may use observed rain',()=>{const garden={profile:{},spaces:[{id:'covered',name:'Covered Porch Pot',type:'container',weatherExposure:'covered'},{id:'open',name:'Open Pot',type:'container',weatherExposure:'exposed'}],plants:[]},intelligence=buildVacationIntelligence({garden,weather:weather({fetchedAt:'2026-07-25T10:00:00Z',recentRain24h:.8}),plan:{departureDate:'2026-07-27',returnDate:'2026-07-30'},now:'2026-07-25T12:00:00Z'}),covered=intelligence.beforeYouLeave.find(item=>item.id==='container-covered'),open=intelligence.beforeYouLeave.find(item=>item.id==='container-open');assert.match(covered.weatherFactors.join(' '),/excluded/i);assert.match(open.reason,/observed rain/i);assert.match(open.action,/Check container soil/i)});
+test('refresh replaces forecast-only conclusion with observed-rain truth and preserves manual edits',()=>{const garden=baseGarden(),forecast=weather({fetchedAt:'2026-07-25T10:00:00Z',rainChance:95}),plan=buildVacationPlan({garden,weather:forecast,departureDate:'2026-07-27',returnDate:'2026-08-02',caretakerAvailable:true}),manual=plan.tasks.find(row=>row.section==='during');manual.manualEdited=true;manual.instruction='Keep this exact Garden Buddy note.';const wet=refreshVacationPlan(plan,garden,weather({fetchedAt:'2026-07-26T10:00:00Z',recentRain24h:.7,rainChance:10}),'Brooke'),dry=refreshVacationPlan(plan,garden,weather({fetchedAt:'2026-07-26T10:00:00Z',recentRain24h:0,rainChance:10}),'Brooke');assert.equal(wet.intelligence.weather.observedRainCredit,true);assert.equal(dry.intelligence.weather.observedRainCredit,false);assert.equal(wet.tasks.find(row=>row.duplicateKey===manual.duplicateKey).instruction,'Keep this exact Garden Buddy note.');assert.equal(dry.intelligence.returnHome.completed.some(item=>/rain likely covered/i.test(item)),false)});
+test('legacy vacation intelligence can be rebuilt without weatherSummary',()=>{const garden=baseGarden(),legacy={id:'legacy',status:'active',departureDate:'2026-07-27',returnDate:'2026-07-30',tasks:[]},intelligence=buildVacationIntelligence({garden,weather:weather({fetchedAt:'2026-07-25T10:00:00Z',rainChance:90}),plan:legacy,now:'2026-07-25T12:00:00Z'});assert.ok(intelligence);assert.equal(intelligence.weather.observedRainCredit,false);assert.match(intelligence.weather.summary,/forecast/i)});
+test('normal vacation intelligence still produces actionable local helper guidance',()=>{const garden={...baseGarden(),spaces:[{id:'pot',name:'Porch Tomato Containers',type:'container',capacity:3},{id:'bed',name:'Raised Bed',type:'bed',capacity:12}],plants:[{id:'tomato',name:'Porch Tomato',cropId:'tomato',spaceId:'pot',stage:'Established'}]};const intelligence=buildVacationIntelligence({garden,weather:weather({high:81,rainChance:35}),plan:{departureDate:'2026-07-25',returnDate:'2026-07-27'},now:'2026-07-21T12:00:00Z'});assert.equal(intelligence.risk.level,'LOW');assert.ok(intelligence.beforeYouLeave.some(item=>item.subject==='Porch Tomato Containers'&&/Check container soil/i.test(item.action)));assert.ok(intelligence.helperGuide.dailyChecks.length>=1);assert.ok(intelligence.returnHome.needsAttention.some(item=>/containers/i.test(item)))});
