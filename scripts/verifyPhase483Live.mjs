@@ -4,10 +4,10 @@ const noStore={cache:'no-store',headers:{'cache-control':'no-cache','pragma':'no
 const get=async path=>{const separator=path.includes('?')?'&':'?';const response=await fetch(`${base}${path}${separator}verify=${Date.now()}`,noStore);assert.equal(response.ok,true,`${path} returned ${response.status}`);return response};
 const health=await(await get('/api/health')).json();
 assert.equal(health.version,'0.21.1');
-assert.equal(health.buildId,'phase-4-8-3h-vacation-rain-truth');
-assert.equal(health.phase,'4.8.3h');
+assert.equal(health.buildId,'phase-4-8-3i-vacation-weather-freshness');
+assert.equal(health.phase,'4.8.3i');
 const html=await(await get('/')).text();assert.match(html,/id=["']root["']/);const assetMatch=html.match(/<script[^>]+src=["']([^"']+\.js)["']/);assert.ok(assetMatch,'Production JavaScript asset was not found in the app shell.');const bundle=await(await get(assetMatch[1])).text();
-assert.match(bundle,/phase-4-8-3h-vacation-rain-truth/);assert.match(bundle,/forecast rain as a reason to reassess/);assert.match(bundle,/Rain is forecast\. Check whether it actually occurred/);assert.match(bundle,/Recent observed rain/);assert.doesNotMatch(bundle,/Rain likely covered outdoor garden beds/);
-const sw=await(await get('/sw.js')).text();assert.match(sw,/brookes-garden-v0483h-vacation-rain-truth-20260726/);
+assert.match(bundle,/phase-4-8-3i-vacation-weather-freshness/);assert.match(bundle,/same Current, Recent, Stale, and Unavailable weather freshness/);assert.match(bundle,/Rain is forecast\. Check whether it actually occurred/);assert.match(bundle,/Recent observed rain/);assert.doesNotMatch(bundle,/Rain likely covered outdoor garden beds/);
+const sw=await(await get('/sw.js')).text();assert.match(sw,/brookes-garden-v0483i-vacation-weather-freshness-20260727/);
 const station=await(await get('/api/weather/current')).json();assert.equal('apiKey'in station,false);assert.equal('PWS_API_KEY'in station,false);
-console.log(JSON.stringify({ok:true,base,health,cache:'brookes-garden-v0483h-vacation-rain-truth-20260726',vacationRainTruth:true},null,2));
+console.log(JSON.stringify({ok:true,base,health,cache:'brookes-garden-v0483i-vacation-weather-freshness-20260727',vacationRainTruth:true,vacationFreshnessTruth:true},null,2));
